@@ -21,25 +21,13 @@ export default function RegisterTrainerPage() {
     const { data, error: authError } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
+      options: { data: { name: name.trim(), role: 'trainer' } },
     })
 
     if (authError || !data.user) {
       setError(authError?.message === 'User already registered'
         ? 'Этот email уже зарегистрирован'
         : (authError?.message ?? 'Ошибка регистрации'))
-      setLoading(false)
-      return
-    }
-
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: data.user.id,
-      name: name.trim(),
-      role: 'trainer',
-      trainer_id: null,
-    })
-
-    if (profileError) {
-      setError('Ошибка создания профиля: ' + profileError.message)
       setLoading(false)
       return
     }

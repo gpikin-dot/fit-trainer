@@ -43,25 +43,13 @@ export default function RegisterClientPage() {
     const { data, error: authError } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
+      options: { data: { name: name.trim(), role: 'client', trainer_id: invite.trainer_id } },
     })
 
     if (authError || !data.user) {
       setError(authError?.message === 'User already registered'
         ? 'Этот email уже зарегистрирован'
         : (authError?.message ?? 'Ошибка регистрации'))
-      setLoading(false)
-      return
-    }
-
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: data.user.id,
-      name: name.trim(),
-      role: 'client',
-      trainer_id: invite.trainer_id,
-    })
-
-    if (profileError) {
-      setError('Ошибка создания профиля')
       setLoading(false)
       return
     }

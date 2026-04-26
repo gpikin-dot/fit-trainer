@@ -32,12 +32,11 @@ export function useAuth() {
   }, [])
 
   async function fetchProfile(userId: string) {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single()
-    if (error) console.error('fetchProfile error:', error.code, error.message)
     setProfile(data)
     setLoading(false)
   }

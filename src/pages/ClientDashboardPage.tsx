@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
 import { Card, EmptyState, formatDate, plural } from '../components/UI'
-import type { AssignedWorkout, Workout, Exercise } from '../types/database'
+import type { AssignedWorkout, Workout } from '../types/database'
 
 export default function ClientDashboardPage() {
   const navigate = useNavigate()

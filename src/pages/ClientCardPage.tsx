@@ -54,7 +54,11 @@ export default function ClientCardPage() {
         supabase.from('exercises').select('*, exercise_library:exercises_library(*)').eq('workout_id', a.workout_id).order('order'),
         supabase.from('exercise_results').select('*').eq('assigned_workout_id', a.id),
       ])
-      return { ...a, exercises: exs ?? [], results: res ?? [] }
+      return {
+        ...a,
+        exercises: (exs ?? []) as (Exercise & { exercise_library: ExerciseLibrary })[],
+        results: (res ?? []) as ExerciseResult[],
+      }
     }))
     setAssignments(enriched)
 
@@ -64,7 +68,7 @@ export default function ClientCardPage() {
       if (a.status !== 'completed') continue
       for (const ex of a.exercises) {
         const lib = ex.exercise_library
-        const result = a.results.find(r => r.exercise_id === ex.id)
+        const result = a.results.find((r: ExerciseResult) => r.exercise_id === ex.id)
         if (!historyMap.has(lib.id)) {
           historyMap.set(lib.id, { library: lib, results: [], totalCount: 0 })
         }

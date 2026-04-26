@@ -4,7 +4,7 @@ import { ArrowLeft, Edit, Trash2, UserPlus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
-import { Modal, ErrorMessage, formatDate } from '../components/UI'
+import { Modal, formatDate } from '../components/UI'
 import type { Workout, Exercise, ExerciseLibrary, AssignedWorkout, Profile } from '../types/database'
 
 export default function WorkoutDetailPage() {
@@ -16,7 +16,6 @@ export default function WorkoutDetailPage() {
   const [assignments, setAssignments] = useState<(AssignedWorkout & { profile: Profile })[]>([])
   const [clients, setClients] = useState<Profile[]>([])
   const [showAssignModal, setShowAssignModal] = useState(false)
-  const [error, setError] = useState('')
 
   useEffect(() => {
     if (!id || !profile) return

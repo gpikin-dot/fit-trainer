@@ -68,7 +68,7 @@ export default function ClientCardPage() {
       if (a.status !== 'completed') continue
       for (const ex of a.exercises) {
         const lib = ex.exercise_library
-        const result = a.results.find(r => r.exercise_id === ex.id)
+        const result = a.results.find((r: ExerciseResult) => r.exercise_id === ex.id)
         if (!historyMap.has(lib.id)) {
           historyMap.set(lib.id, { library: lib, results: [], totalCount: 0 })
         }

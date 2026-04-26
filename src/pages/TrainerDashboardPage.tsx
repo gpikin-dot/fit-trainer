@@ -139,8 +139,7 @@ export default function TrainerDashboardPage() {
 
 function InviteModal({ invite, onClose }: { invite: Invite; onClose: () => void }) {
   const [copied, setCopied] = useState(false)
-  const appUrl = import.meta.env.VITE_APP_URL || window.location.origin
-  const link = `${appUrl}/invite/${invite.token}`
+  const link = `${window.location.origin}/invite/${invite.token}`
 
   function copy() {
     navigator.clipboard?.writeText(link)

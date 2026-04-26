@@ -54,7 +54,11 @@ export default function ClientCardPage() {
         supabase.from('exercises').select('*, exercise_library:exercises_library(*)').eq('workout_id', a.workout_id).order('order'),
         supabase.from('exercise_results').select('*').eq('assigned_workout_id', a.id),
       ])
-      return { ...a, exercises: exs ?? [], results: res ?? [] }
+      return {
+        ...a,
+        exercises: (exs ?? []) as (Exercise & { exercise_library: ExerciseLibrary })[],
+        results: (res ?? []) as ExerciseResult[],
+      }
     }))
     setAssignments(enriched)
 

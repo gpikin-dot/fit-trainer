@@ -4,7 +4,7 @@ import { ArrowLeft, Edit, Trash2, UserPlus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
-import { Modal, formatDate } from '../components/UI'
+import { Modal, ErrorMessage, formatDate } from '../components/UI'
 import type { Workout, Exercise, ExerciseLibrary, AssignedWorkout, Profile } from '../types/database'
 
 export default function WorkoutDetailPage() {
@@ -16,6 +16,7 @@ export default function WorkoutDetailPage() {
   const [assignments, setAssignments] = useState<(AssignedWorkout & { profile: Profile })[]>([])
   const [clients, setClients] = useState<Profile[]>([])
   const [showAssignModal, setShowAssignModal] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (!id || !profile) return
@@ -34,15 +35,17 @@ export default function WorkoutDetailPage() {
 
   async function handleDelete() {
     if (!confirm('Удалить тренировку? Это действие нельзя отменить.')) return
-    await supabase.from('workouts').delete().eq('id', id)
+    const { error: err } = await supabase.from('workouts').delete().eq('id', id)
+    if (err) { setError(err.message); return }
     navigate('/trainer')
   }
 
   async function handleAssign(clientId: string) {
-    const { data } = await supabase.from('assigned_workouts').insert({
+    const { data, error: err } = await supabase.from('assigned_workouts').insert({
       workout_id: id,
       client_id: clientId,
     }).select('*, profile:profiles(*)').single()
+    if (err) { setError(err.message); return }
     if (data) setAssignments(prev => [...prev, data])
     setShowAssignModal(false)
   }

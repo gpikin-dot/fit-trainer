@@ -92,3 +92,4 @@ scripts/
 3. Применить на staging вручную или через Supabase CLI
 4. Проверить на staging
 5. Сделать PR в `main`, после мержа применить на production
+

@@ -16,6 +16,8 @@ export default function WorkoutDetailPage() {
   const [assignments, setAssignments] = useState<(AssignedWorkout & { profile: Profile })[]>([])
   const [clients, setClients] = useState<Profile[]>([])
   const [showAssignModal, setShowAssignModal] = useState(false)
+  const [dateType, setDateType] = useState<'open' | 'specific'>('open')
+  const [assignDate, setAssignDate] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -65,13 +67,14 @@ export default function WorkoutDetailPage() {
   }
 
   async function handleAssign(clientId: string) {
-    const { data, error: err } = await supabase.from('assigned_workouts').insert({
-      workout_id: id,
-      client_id: clientId,
-    }).select('*, profile:profiles(*)').single()
+    const payload: Record<string, unknown> = { workout_id: id, client_id: clientId }
+    if (dateType === 'specific' && assignDate) payload.planned_date = assignDate
+    const { data, error: err } = await supabase.from('assigned_workouts').insert(payload).select('*, profile:profiles(*)').single()
     if (err) { setError(err.message); return }
     if (data) setAssignments(prev => [...prev, data])
     setShowAssignModal(false)
+    setDateType('open')
+    setAssignDate('')
   }
 
   const assignedClientIds = assignments.map(a => a.client_id)
@@ -149,7 +152,26 @@ export default function WorkoutDetailPage() {
 
       {showAssignModal && (
         <Modal onClose={() => setShowAssignModal(false)}>
-          <h2 className="text-xl font-semibold mb-3">Назначить клиенту</h2>
+          <h2 className="text-xl font-semibold mb-4">Назначить клиенту</h2>
+
+          {/* Date type toggle */}
+          <div className="flex gap-2 mb-3">
+            <button onClick={() => setDateType('open')}
+              className={`flex-1 py-2 text-xs rounded-lg border transition-colors ${dateType === 'open' ? 'bg-indigo-50 border-indigo-400 text-indigo-700 font-medium' : 'border-slate-200 text-slate-500'}`}>
+              Открытая дата
+            </button>
+            <button onClick={() => setDateType('specific')}
+              className={`flex-1 py-2 text-xs rounded-lg border transition-colors ${dateType === 'specific' ? 'bg-indigo-50 border-indigo-400 text-indigo-700 font-medium' : 'border-slate-200 text-slate-500'}`}>
+              Конкретная дата
+            </button>
+          </div>
+          {dateType === 'specific' && (
+            <input type="date" value={assignDate}
+              onChange={e => setAssignDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-3 font-[inherit]" />
+          )}
+
           {availableClients.length === 0
             ? <p className="text-sm text-slate-500">Все ваши клиенты уже получили эту тренировку.</p>
             : <div className="space-y-1">

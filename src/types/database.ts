@@ -63,6 +63,7 @@ export interface AssignedWorkout {
   workout_id: string
   client_id: string
   assigned_at: string
+  planned_date: string | null
   completed_at: string | null
   status: WorkoutStatus
 }

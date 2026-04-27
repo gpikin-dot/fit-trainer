@@ -81,18 +81,18 @@ export default function WorkoutDetailPage() {
 
   return (
     <Layout>
-      <div className="flex items-center justify-between mb-4">
-        <Link to="/trainer" className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
+      <div className="mb-4">
+        <Link to="/trainer" className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-3">
           <ArrowLeft className="w-4 h-4" /> Назад
         </Link>
         <div className="flex gap-2">
-          <button onClick={() => navigate(`/trainer/workout/${id}/edit`)} className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg">
+          <button onClick={() => navigate(`/trainer/workout/${id}/edit`)} className="flex-1 flex items-center justify-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 px-3 py-2 rounded-lg">
             <Edit className="w-4 h-4" /> Редактировать
           </button>
-          <button onClick={handleCopy} className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg">
+          <button onClick={handleCopy} className="flex-1 flex items-center justify-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 px-3 py-2 rounded-lg">
             <Copy className="w-4 h-4" /> Копировать
           </button>
-          <button onClick={handleDelete} className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 border border-red-200 px-3 py-1.5 rounded-lg">
+          <button onClick={handleDelete} className="flex-1 flex items-center justify-center gap-1.5 text-sm text-red-600 hover:text-red-800 border border-red-200 px-3 py-2 rounded-lg">
             <Trash2 className="w-4 h-4" /> Удалить
           </button>
         </div>

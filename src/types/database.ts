@@ -27,6 +27,7 @@ export interface Workout {
   trainer_id: string
   name: string
   default_rest_sec: number
+  is_favorite: boolean
   created_at: string
 }
 

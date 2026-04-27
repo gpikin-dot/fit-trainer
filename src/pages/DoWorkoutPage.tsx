@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Volume2, VolumeX, SkipForward, Plus, Pause, Play } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useTimer } from '../contexts/TimerContext'
 import Layout from '../components/Layout'
 import { ErrorMessage } from '../components/UI'
 import type { AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult } from '../types/database'
@@ -23,25 +24,23 @@ function storageKey(assignedId: string) {
   return `workout_progress_${assignedId}`
 }
 
+const RING_C = 220
+const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+
 export default function DoWorkoutPage() {
   const { assignedId } = useParams<{ assignedId: string }>()
   const navigate = useNavigate()
   const { profile } = useAuth()
+  const {
+    timerSec, timerTotal, timerActive, timerPaused, timerNextEx,
+    soundEnabled, startTimer, togglePause, addTime, skipTimer, setSoundEnabled,
+  } = useTimer()
 
   const [assignment, setAssignment] = useState<AssignedWorkout | null>(null)
   const [workout, setWorkout] = useState<Workout | null>(null)
   const [exercises, setExercises] = useState<(Exercise & { exercise_library: ExerciseLibrary })[]>([])
   const [existingResults, setExistingResults] = useState<ExerciseResult[]>([])
   const [exState, setExState] = useState<Record<string, ExerciseState>>({})
-
-  const [timerSec, setTimerSec] = useState(0)
-  const [timerTotal, setTimerTotal] = useState(0)
-  const [timerActive, setTimerActive] = useState(false)
-  const [timerPaused, setTimerPaused] = useState(false)
-  const [timerNextEx, setTimerNextEx] = useState<string | null>(null)
-  const [soundEnabled, setSoundEnabled] = useState(true)
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const audioCtxRef = useRef<AudioContext | null>(null)
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -65,12 +64,16 @@ export default function DoWorkoutPage() {
 
       const { data: w } = await supabase.from('workouts').select('*').eq('id', a.workout_id).single()
       setWorkout(w)
-      const { data: exs } = await supabase.from('exercises').select('*, exercise_library:exercises_library(*)').eq('workout_id', a.workout_id).order('order')
+      const { data: exs } = await supabase
+        .from('exercises')
+        .select('*, exercise_library:exercises_library(*)')
+        .eq('workout_id', a.workout_id)
+        .order('order')
 
       const list = exs ?? []
       setExercises(list)
 
-      // Restore from localStorage if available (mid-workout state takes priority)
+      // Restore from localStorage if available
       const saved = localStorage.getItem(storageKey(assignedId))
       if (saved) {
         try {
@@ -80,10 +83,9 @@ export default function DoWorkoutPage() {
             setExState(parsed)
             return
           }
-        } catch { /* fall through to DB state */ }
+        } catch { /* fall through */ }
       }
 
-      // Build initial state from DB results
       const initial: Record<string, ExerciseState> = {}
       for (const ex of list) {
         const existing = (res ?? []).find(r => r.exercise_id === ex.id)
@@ -101,54 +103,7 @@ export default function DoWorkoutPage() {
     })
   }, [assignedId])
 
-  const playBeep = useCallback(() => {
-    if (!soundEnabled) return
-    try {
-      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext()
-      const ctx = audioCtxRef.current
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.frequency.value = 880
-      gain.gain.setValueAtTime(0.3, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5)
-      osc.start(ctx.currentTime)
-      osc.stop(ctx.currentTime + 0.5)
-    } catch { /* ignore */ }
-  }, [soundEnabled])
-
-  useEffect(() => {
-    if (timerActive && !timerPaused) {
-      timerRef.current = setInterval(() => {
-        setTimerSec(prev => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current!)
-            setTimerActive(false)
-            playBeep()
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-    return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [timerActive, timerPaused, playBeep])
-
-  function startTimer(secs: number, exId: string) {
-    const currentIdx = exercises.findIndex(e => e.id === exId)
-    const nextEx = exercises[currentIdx + 1]
-    setTimerNextEx(nextEx?.exercise_library.name_ru ?? null)
-    setTimerSec(secs)
-    setTimerTotal(secs)
-    setTimerActive(true)
-    setTimerPaused(false)
-  }
-
   function markSet(exId: string, setIdx: number) {
-    const restSec = exercises.find(e => e.id === exId)?.rest_sec ?? workout?.default_rest_sec ?? 90
     const wasCompleted = exState[exId]?.sets[setIdx]?.completed
     setExState(prev => ({
       ...prev,
@@ -157,8 +112,11 @@ export default function DoWorkoutPage() {
         sets: prev[exId].sets.map((s, i) => i === setIdx ? { ...s, completed: !s.completed } : s),
       },
     }))
-    if (!wasCompleted) {
-      startTimer(restSec, exId)
+    if (!wasCompleted && assignedId) {
+      const restSec = exercises.find(e => e.id === exId)?.rest_sec ?? workout?.default_rest_sec ?? 90
+      const currentIdx = exercises.findIndex(e => e.id === exId)
+      const nextEx = exercises[currentIdx + 1]
+      startTimer(restSec, nextEx?.exercise_library.name_ru ?? null, assignedId)
     }
   }
 
@@ -215,6 +173,7 @@ export default function DoWorkoutPage() {
     }).eq('id', assignment.id)
 
     if (assignedId) localStorage.removeItem(storageKey(assignedId))
+    skipTimer()
     navigate('/client')
   }
 
@@ -224,10 +183,6 @@ export default function DoWorkoutPage() {
     </Layout>
   )
 
-  const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
-
-  // Ring progress: circumference ~220, offset 0 = full, offset 220 = empty
-  const RING_C = 220
   const ringOffset = timerTotal > 0 ? RING_C * (1 - timerSec / timerTotal) : 0
 
   return (
@@ -341,20 +296,18 @@ export default function DoWorkoutPage() {
         {saving ? 'Сохранение...' : '✓ Завершить тренировку'}
       </button>
 
-      {/* Rest timer — ring bottom sheet (Variant 3) */}
+      {/* Full ring timer sheet — only on this page */}
       {timerActive && (
         <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.12)] z-40 flex flex-col items-center px-6 pb-6 pt-3">
-          {/* Handle */}
           <div className="w-8 h-1 bg-slate-200 rounded-full mb-4" />
 
-          {/* Ring */}
           <div className="relative w-24 h-24">
             <svg width="96" height="96" viewBox="0 0 80 80" className="-rotate-90">
               <circle cx="40" cy="40" r="35" fill="none" stroke="#f1f5f9" strokeWidth="6" />
               <circle
                 cx="40" cy="40" r="35"
                 fill="none"
-                stroke="#10b981"
+                stroke={timerPaused ? '#94a3b8' : '#10b981'}
                 strokeWidth="6"
                 strokeLinecap="round"
                 strokeDasharray={RING_C}
@@ -375,7 +328,6 @@ export default function DoWorkoutPage() {
             </div>
           )}
 
-          {/* Controls */}
           <div className="flex items-center gap-2 mt-1">
             <button
               onClick={() => setSoundEnabled(e => !e)}
@@ -384,20 +336,20 @@ export default function DoWorkoutPage() {
               {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
             <button
-              onClick={() => setTimerSec(s => s + 30)}
+              onClick={() => addTime(30)}
               className="flex items-center gap-1 text-xs border border-slate-200 rounded-lg px-3 py-1.5 hover:border-emerald-400 text-slate-600"
             >
               <Plus className="w-3 h-3" /> 30 сек
             </button>
             <button
-              onClick={() => setTimerPaused(p => !p)}
+              onClick={togglePause}
               className="flex items-center gap-1 text-xs border border-slate-200 rounded-lg px-3 py-1.5 hover:border-emerald-400 text-slate-600"
             >
               {timerPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
               {timerPaused ? 'Продолжить' : 'Пауза'}
             </button>
             <button
-              onClick={() => setTimerActive(false)}
+              onClick={skipTimer}
               className="flex items-center gap-1 text-xs bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-3 py-1.5"
             >
               <SkipForward className="w-3 h-3" /> Пропустить

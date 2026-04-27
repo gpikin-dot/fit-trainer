@@ -217,12 +217,18 @@ export default function DoWorkoutPage() {
 
   const ringOffset = timerTotal > 0 ? RING_C * (1 - timerSec / timerTotal) : 0
 
+  const isReadOnly = assignment?.status === 'completed'
+
   const currentEx = exercises[currentExIdx]
   const currentSt = currentEx ? exState[currentEx.id] : null
   const currentSetIdx = currentSt ? currentSt.sets.findIndex(s => !s.completed) : -1
   const allSetsThisExDone = currentSetIdx === -1
 
   const isLastExercise = currentExIdx === exercises.length - 1
+
+  const completedDateStr = assignment?.completed_at
+    ? new Date(assignment.completed_at).toLocaleDateString('ru', { day: 'numeric', month: 'long' })
+    : null
 
   return (
     <Layout fullHeight>
@@ -233,10 +239,16 @@ export default function DoWorkoutPage() {
           <Link to="/client" className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
             <ArrowLeft className="w-4 h-4" /> Назад
           </Link>
-          {exercises.length > 0 && (
-            <span className="text-xs text-slate-400 font-medium">
-              {currentExIdx + 1} из {exercises.length}
+          {isReadOnly ? (
+            <span className="text-xs bg-emerald-100 text-emerald-700 font-medium px-2 py-0.5 rounded-full">
+              ✓ {completedDateStr}
             </span>
+          ) : (
+            exercises.length > 0 && (
+              <span className="text-xs text-slate-400 font-medium">
+                {currentExIdx + 1} из {exercises.length}
+              </span>
+            )
           )}
         </div>
         {workout && <h1 className="text-base font-semibold truncate">{workout.name}</h1>}
@@ -304,12 +316,13 @@ export default function DoWorkoutPage() {
                   {/* Sets */}
                   <div className="space-y-2">
                     {st.sets.map((s, i) => {
-                      const isCurrentSet = i === thisSetIdx
+                      const isCurrentSet = !isReadOnly && i === thisSetIdx
+                      const showCompleted = isReadOnly || s.completed
                       return (
                         <div
                           key={i}
                           className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                            s.completed
+                            showCompleted
                               ? 'bg-emerald-50 border-emerald-200'
                               : isCurrentSet
                                 ? 'bg-white border-slate-800 shadow-sm'
@@ -317,19 +330,30 @@ export default function DoWorkoutPage() {
                           }`}
                         >
                           <button
-                            onClick={() => markSet(ex.id, i)}
+                            onClick={() => !isReadOnly && markSet(ex.id, i)}
+                            disabled={isReadOnly}
                             className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors ${
-                              s.completed
+                              showCompleted
                                 ? 'bg-emerald-500 text-white'
                                 : isCurrentSet
                                   ? 'bg-slate-800 text-white'
                                   : 'border border-slate-300 text-slate-400'
                             }`}
                           >
-                            {s.completed ? '✓' : i + 1}
+                            {showCompleted ? '✓' : i + 1}
                           </button>
 
-                          {ex.exercise_library.exercise_type === 'cardio_time' ? (
+                          {isReadOnly ? (
+                            // Read-only: plain text
+                            <span className="text-sm text-slate-700 font-medium">
+                              {ex.exercise_library.exercise_type === 'cardio_time'
+                                ? `${s.reps} мин${parseFloat(s.weight) > 0 ? ` · ${s.weight} км` : ''}`
+                                : ex.exercise_library.exercise_type === 'cardio_reps'
+                                  ? `${s.reps} повт`
+                                  : `${s.reps} повт${parseFloat(s.weight) > 0 ? ` × ${s.weight} кг` : ''}`
+                              }
+                            </span>
+                          ) : ex.exercise_library.exercise_type === 'cardio_time' ? (
                             <>
                               <input type="text" inputMode="numeric" value={s.reps}
                                 onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
@@ -369,27 +393,39 @@ export default function DoWorkoutPage() {
                   {ex.exercise_library.exercise_type === 'cardio_time' && (
                     <div className="mt-3 flex items-center gap-2">
                       <span className="text-xs text-slate-500 shrink-0">Пульс (уд/мин)</span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={st.heartRate}
-                        onChange={e => updateHeartRate(ex.id, e.target.value)}
-                        onFocus={e => e.target.select()}
-                        placeholder={ex.target_heart_rate_bpm ? `цель: ${ex.target_heart_rate_bpm}` : 'не указан'}
-                        className="w-24 border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-center"
-                      />
+                      {isReadOnly ? (
+                        <span className="text-sm text-slate-700 font-medium">
+                          {st.heartRate || '—'}
+                        </span>
+                      ) : (
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={st.heartRate}
+                          onChange={e => updateHeartRate(ex.id, e.target.value)}
+                          onFocus={e => e.target.select()}
+                          placeholder={ex.target_heart_rate_bpm ? `цель: ${ex.target_heart_rate_bpm}` : 'не указан'}
+                          className="w-24 border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-center"
+                        />
+                      )}
                     </div>
                   )}
 
                   {/* Note */}
                   <div className="mt-3">
-                    <input
-                      type="text"
-                      value={st.note}
-                      onChange={e => updateNote(ex.id, e.target.value)}
-                      placeholder="Комментарий..."
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-600 placeholder-slate-300"
-                    />
+                    {isReadOnly ? (
+                      st.note && (
+                        <p className="text-sm text-slate-500 italic px-1">{st.note}</p>
+                      )
+                    ) : (
+                      <input
+                        type="text"
+                        value={st.note}
+                        onChange={e => updateNote(ex.id, e.target.value)}
+                        placeholder="Комментарий..."
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-600 placeholder-slate-300"
+                      />
+                    )}
                   </div>
 
                   <div className="h-4" />
@@ -401,7 +437,7 @@ export default function DoWorkoutPage() {
       )}
 
       {/* Bottom action button */}
-      {loaded && !timerActive && currentEx && (
+      {loaded && !timerActive && !isReadOnly && currentEx && (
         <div className="shrink-0 px-4 pb-safe-or-6 pt-3 bg-white border-t border-slate-100">
           <div className="pb-2">
             {allSetsThisExDone ? (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Edit, Trash2, UserPlus } from 'lucide-react'
+import { ArrowLeft, Edit, Trash2, UserPlus, Copy } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
@@ -33,6 +33,30 @@ export default function WorkoutDetailPage() {
     })
   }, [id, profile])
 
+  async function handleCopy() {
+    if (!profile || !workout) return
+    const { data: newWorkout } = await supabase.from('workouts').insert({
+      trainer_id: profile.id,
+      name: `${workout.name} (копия)`,
+      default_rest_sec: workout.default_rest_sec,
+    }).select().single()
+    if (!newWorkout) { setError('Ошибка копирования'); return }
+
+    if (exercises.length > 0) {
+      await supabase.from('exercises').insert(exercises.map(e => ({
+        workout_id: newWorkout.id,
+        library_exercise_id: e.library_exercise_id,
+        sets: e.sets,
+        reps: e.reps,
+        weight_kg: e.weight_kg,
+        rest_sec: e.rest_sec,
+        trainer_note: e.trainer_note,
+        order: e.order,
+      })))
+    }
+    navigate(`/trainer/workout/${newWorkout.id}/edit`)
+  }
+
   async function handleDelete() {
     if (!confirm('Удалить тренировку? Это действие нельзя отменить.')) return
     const { error: err } = await supabase.from('workouts').delete().eq('id', id)
@@ -64,6 +88,9 @@ export default function WorkoutDetailPage() {
         <div className="flex gap-2">
           <button onClick={() => navigate(`/trainer/workout/${id}/edit`)} className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg">
             <Edit className="w-4 h-4" /> Редактировать
+          </button>
+          <button onClick={handleCopy} className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg">
+            <Copy className="w-4 h-4" /> Копировать
           </button>
           <button onClick={handleDelete} className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 border border-red-200 px-3 py-1.5 rounded-lg">
             <Trash2 className="w-4 h-4" /> Удалить

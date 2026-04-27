@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Plus, Lock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
-import { EmptyState } from '../components/UI'
+import { EmptyState, Modal } from '../components/UI'
 import type { Profile, AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult } from '../types/database'
 
 const DAYS_RU = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
@@ -98,6 +98,10 @@ export default function ClientCardPage() {
   const [assignments, setAssignments] = useState<EnrichedAssignment[]>([])
   const [tab, setTab] = useState<'active' | 'history' | 'stats'>('active')
   const [loading, setLoading] = useState(true)
+  const [repeatTarget, setRepeatTarget] = useState<EnrichedAssignment | null>(null)
+  const [repeatDateType, setRepeatDateType] = useState<'open' | 'specific'>('open')
+  const [repeatDate, setRepeatDate] = useState('')
+  const [repeating, setRepeating] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -127,6 +131,22 @@ export default function ClientCardPage() {
     }))
     setAssignments(enriched)
     setLoading(false)
+  }
+
+  async function handleRepeat() {
+    if (!repeatTarget || repeating) return
+    setRepeating(true)
+    const payload: Record<string, unknown> = {
+      workout_id: repeatTarget.workout_id,
+      client_id: repeatTarget.client_id,
+    }
+    if (repeatDateType === 'specific' && repeatDate) payload.planned_date = repeatDate
+    await supabase.from('assigned_workouts').insert(payload)
+    setRepeatTarget(null)
+    setRepeatDateType('open')
+    setRepeatDate('')
+    setRepeating(false)
+    if (id) loadData(id)
   }
 
   if (loading) return <Layout><div className="text-center py-12 text-slate-400">Загрузка...</div></Layout>
@@ -253,7 +273,7 @@ export default function ClientCardPage() {
                   </div>
                   <div className="pt-2 border-t border-slate-100">
                     <button
-                      onClick={() => navigate(`/trainer/workout/${a.workout_id}`)}
+                      onClick={() => { setRepeatTarget(a); setRepeatDateType('open'); setRepeatDate('') }}
                       className="w-full text-sm text-slate-600 border border-slate-200 rounded-lg py-2 font-medium">
                       Повторить тренировку
                     </button>
@@ -266,6 +286,44 @@ export default function ClientCardPage() {
 
       {/* Stats tab */}
       {tab === 'stats' && <EmptyState text="Статистика — скоро" />}
+
+      {/* Repeat modal */}
+      {repeatTarget && (
+        <Modal onClose={() => setRepeatTarget(null)}>
+          <h2 className="text-xl font-semibold mb-1">Повторить тренировку</h2>
+          <p className="text-sm text-slate-500 mb-4">{repeatTarget.workout?.name}</p>
+
+          <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">Дата тренировки</p>
+          <div className="flex gap-2 mb-3">
+            <button onClick={() => setRepeatDateType('open')}
+              className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${repeatDateType === 'open' ? 'bg-indigo-50 border-indigo-400 text-indigo-700 font-medium' : 'border-slate-200 text-slate-500'}`}>
+              Открытая дата
+            </button>
+            <button onClick={() => setRepeatDateType('specific')}
+              className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${repeatDateType === 'specific' ? 'bg-indigo-50 border-indigo-400 text-indigo-700 font-medium' : 'border-slate-200 text-slate-500'}`}>
+              Конкретная дата
+            </button>
+          </div>
+          {repeatDateType === 'open' && (
+            <p className="text-xs text-slate-400 mb-4">Клиент сможет выполнить тренировку в любой день.</p>
+          )}
+          {repeatDateType === 'specific' && (
+            <input type="date" value={repeatDate}
+              onChange={e => setRepeatDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
+              className="border border-slate-300 rounded-lg px-3 py-3 text-base font-[inherit] bg-white mb-4 min-h-[48px]" />
+          )}
+
+          <button
+            onClick={handleRepeat}
+            disabled={repeating || (repeatDateType === 'specific' && !repeatDate)}
+            className="w-full py-3 rounded-xl bg-indigo-600 text-white font-medium text-sm disabled:opacity-40 mb-2">
+            Назначить
+          </button>
+          <button onClick={() => setRepeatTarget(null)} className="w-full text-sm text-slate-500 py-1">Отмена</button>
+        </Modal>
+      )}
     </Layout>
   )
 }

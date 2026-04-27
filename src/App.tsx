@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
+import { TimerProvider } from './contexts/TimerContext'
 import LoginPage from './pages/LoginPage'
 import RegisterTrainerPage from './pages/RegisterTrainerPage'
 import RegisterClientPage from './pages/RegisterClientPage'
@@ -37,6 +38,7 @@ export default function App() {
   )
 
   return (
+    <TimerProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/invite/:token" element={<InvitePage />} />
@@ -76,5 +78,6 @@ export default function App() {
         } />
       </Routes>
     </BrowserRouter>
+    </TimerProvider>
   )
 }

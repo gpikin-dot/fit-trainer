@@ -31,6 +31,8 @@ export interface Workout {
   created_at: string
 }
 
+export type ExerciseType = 'strength' | 'cardio_reps' | 'cardio_time'
+
 export interface ExerciseLibrary {
   id: string
   external_id: string
@@ -40,6 +42,7 @@ export interface ExerciseLibrary {
   equipment: string | null
   image_urls: string[]
   source: string
+  exercise_type: ExerciseType
 }
 
 export interface Exercise {

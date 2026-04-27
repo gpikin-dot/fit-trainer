@@ -6,9 +6,10 @@ interface TimerContextValue {
   timerActive: boolean
   timerPaused: boolean
   timerNextEx: string | null
+  timerExerciseId: string | null
   assignedWorkoutId: string | null
   soundEnabled: boolean
-  startTimer: (secs: number, nextExName: string | null, assignedId: string) => void
+  startTimer: (secs: number, nextExName: string | null, assignedId: string, exId: string) => void
   togglePause: () => void
   addTime: (secs: number) => void
   skipTimer: () => void
@@ -23,6 +24,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const [timerActive, setTimerActive] = useState(false)
   const [timerPaused, setTimerPaused] = useState(false)
   const [timerNextEx, setTimerNextEx] = useState<string | null>(null)
+  const [timerExerciseId, setTimerExerciseId] = useState<string | null>(null)
   const [assignedWorkoutId, setAssignedWorkoutId] = useState<string | null>(null)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -64,13 +66,14 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [timerActive, timerPaused, playBeep])
 
-  function startTimer(secs: number, nextExName: string | null, assignedId: string) {
+  function startTimer(secs: number, nextExName: string | null, assignedId: string, exId: string) {
     setTimerSec(secs)
     setTimerTotal(secs)
     setTimerActive(true)
     setTimerPaused(false)
     setTimerNextEx(nextExName)
     setAssignedWorkoutId(assignedId)
+    setTimerExerciseId(exId)
   }
 
   function togglePause() { setTimerPaused(p => !p) }
@@ -80,9 +83,8 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   return (
     <TimerContext.Provider value={{
       timerSec, timerTotal, timerActive, timerPaused, timerNextEx,
-      assignedWorkoutId, soundEnabled,
-      startTimer, togglePause, addTime, skipTimer,
-      setSoundEnabled,
+      timerExerciseId, assignedWorkoutId, soundEnabled,
+      startTimer, togglePause, addTime, skipTimer, setSoundEnabled,
     }}>
       {children}
     </TimerContext.Provider>

@@ -226,23 +226,23 @@ export default function CreateWorkoutPage() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
                   <label className="text-xs text-slate-500">Подходы</label>
-                  <input type="number" value={ex.sets} onChange={e => updateExercise(ex.tempId, { sets: parseInt(e.target.value) || 1 })}
-                    className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" min={1} />
+                  <input type="number" inputMode="numeric" value={ex.sets} onChange={e => updateExercise(ex.tempId, { sets: parseInt(e.target.value) || 1 })}
+                    onFocus={e => e.target.select()} className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" min={1} />
                 </div>
                 <div>
                   <label className="text-xs text-slate-500">Повторения</label>
-                  <input type="number" value={ex.reps} onChange={e => updateExercise(ex.tempId, { reps: parseInt(e.target.value) || 1 })}
-                    className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" min={1} />
+                  <input type="number" inputMode="numeric" value={ex.reps} onChange={e => updateExercise(ex.tempId, { reps: parseInt(e.target.value) || 1 })}
+                    onFocus={e => e.target.select()} className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" min={1} />
                 </div>
                 <div>
                   <label className="text-xs text-slate-500">Вес (кг)</label>
-                  <input type="number" value={ex.weight_kg} onChange={e => updateExercise(ex.tempId, { weight_kg: parseFloat(e.target.value) || 0 })}
-                    className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" min={0} step={0.5} />
+                  <input type="number" inputMode="decimal" value={ex.weight_kg} onChange={e => updateExercise(ex.tempId, { weight_kg: parseFloat(e.target.value) || 0 })}
+                    onFocus={e => e.target.select()} className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" min={0} step={0.5} />
                 </div>
                 <div>
                   <label className="text-xs text-slate-500">Отдых (сек)</label>
-                  <input type="number" value={ex.rest_sec ?? ''} onChange={e => updateExercise(ex.tempId, { rest_sec: e.target.value ? parseInt(e.target.value) : null })}
-                    placeholder="по умолчанию" className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" min={0} />
+                  <input type="number" inputMode="numeric" value={ex.rest_sec ?? ''} onChange={e => updateExercise(ex.tempId, { rest_sec: e.target.value ? parseInt(e.target.value) : null })}
+                    onFocus={e => e.target.select()} placeholder="по умолчанию" className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" min={0} />
                 </div>
               </div>
               <div className="mt-2">

@@ -221,16 +221,20 @@ export default function DoWorkoutPage() {
                     </button>
                     <input
                       type="number"
+                      inputMode="numeric"
                       value={s.reps}
                       onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
+                      onFocus={e => e.target.select()}
                       className="w-16 border border-slate-300 rounded px-2 py-1 text-sm text-center"
                       placeholder="повт"
                     />
                     <span className="text-slate-400 text-sm">×</span>
                     <input
                       type="number"
+                      inputMode="decimal"
                       value={s.weight}
                       onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
+                      onFocus={e => e.target.select()}
                       className="w-20 border border-slate-300 rounded px-2 py-1 text-sm text-center"
                       placeholder="кг"
                       step={0.5}

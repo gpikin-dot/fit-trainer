@@ -22,7 +22,7 @@ export default function ClientCardPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [client, setClient] = useState<Profile | null>(null)
-  const [tab, setTab] = useState<'exercises' | 'workouts'>('exercises')
+  const [tab, setTab] = useState<'exercises' | 'workouts'>('workouts')
   const [exerciseHistory, setExerciseHistory] = useState<ExerciseHistory[]>([])
   const [assignments, setAssignments] = useState<(AssignedWorkout & { workout: Workout; exercises: (Exercise & { exercise_library: ExerciseLibrary })[]; results: ExerciseResult[] })[]>([])
   const [totalWorkouts, setTotalWorkouts] = useState(0)
@@ -165,54 +165,84 @@ export default function ClientCardPage() {
           </div>
       )}
 
-      {tab === 'workouts' && (
-        assignments.length === 0
-          ? <EmptyState text="Нет назначенных тренировок" />
-          : <div className="space-y-3">
-            {assignments.map(a => (
-              <div key={a.id} className="bg-white border border-slate-200 rounded-xl p-4">
-                <div className="flex items-start justify-between mb-2 gap-2 flex-wrap">
-                  <div>
-                    <div className="font-medium">{a.workout?.name ?? '—'}</div>
-                    <div className="text-xs text-slate-500">Назначена: {formatDate(a.assigned_at)}{a.completed_at && ` · Выполнена: ${formatDate(a.completed_at)}`}</div>
-                  </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${a.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                    {a.status === 'completed' ? '✓ Выполнена' : 'В процессе'}
-                  </span>
+      {tab === 'workouts' && (() => {
+        const pending = assignments.filter(a => a.status !== 'completed')
+        const completed = assignments.filter(a => a.status === 'completed')
+        const today = new Date().toISOString().split('T')[0]
+        if (assignments.length === 0) return <EmptyState text="Нет назначенных тренировок" />
+        return (
+          <div className="space-y-5">
+            {pending.length > 0 && (
+              <div>
+                <div className="text-xs text-slate-400 uppercase tracking-widest mb-2">Активные</div>
+                <div className="space-y-2">
+                  {pending.map(a => (
+                    <div key={a.id} className="bg-white border border-amber-200 rounded-xl p-4">
+                      <div className="flex items-start justify-between gap-2 flex-wrap">
+                        <div>
+                          <div className="font-medium">{a.workout?.name ?? '—'}</div>
+                          <div className="text-xs text-slate-500 mt-0.5">
+                            Назначена: {formatDate(a.assigned_at)}
+                            {a.planned_date
+                              ? ` · ${a.planned_date === today ? 'сегодня' : new Date(a.planned_date + 'T00:00:00').toLocaleDateString('ru', { day: 'numeric', month: 'short' })}`
+                              : ' · открытая дата'}
+                          </div>
+                        </div>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">В процессе</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                {a.status === 'completed' && (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-xs text-slate-500 border-b border-slate-200">
-                          <th className="text-left py-1.5 pr-2">Упражнение</th>
-                          <th className="text-left py-1.5 px-2">План</th>
-                          <th className="text-left py-1.5 px-2">Факт</th>
-                          <th className="text-left py-1.5 pl-2">Комментарий</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {a.exercises.map(ex => {
-                          const res = a.results.find(r => r.exercise_id === ex.id)
-                          return (
-                            <tr key={ex.id} className="border-b border-slate-100 last:border-0">
-                              <td className="py-1.5 pr-2">{ex.exercise_library.name_ru}</td>
-                              <td className="py-1.5 px-2 text-slate-600">{ex.sets}×{ex.reps}{ex.weight_kg > 0 ? ` · ${ex.weight_kg}кг` : ''}</td>
-                              <td className={`py-1.5 px-2 font-medium ${res?.completed ? 'text-green-700' : 'text-slate-400'}`}>
-                                {res?.completed ? `${ex.sets}×${res.actual_reps ?? '?'}${res.actual_weight_kg ? ` · ${res.actual_weight_kg}кг` : ''}` : '—'}
-                              </td>
-                              <td className="py-1.5 pl-2 text-slate-500 italic text-xs">{res?.client_note ?? ''}</td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
               </div>
-            ))}
+            )}
+            {completed.length > 0 && (
+              <div>
+                <div className="text-xs text-slate-400 uppercase tracking-widest mb-2">История</div>
+                <div className="space-y-3">
+                  {completed.map(a => (
+                    <div key={a.id} className="bg-white border border-slate-200 rounded-xl p-4">
+                      <div className="flex items-start justify-between mb-2 gap-2 flex-wrap">
+                        <div>
+                          <div className="font-medium">{a.workout?.name ?? '—'}</div>
+                          <div className="text-xs text-slate-500">Назначена: {formatDate(a.assigned_at)}{a.completed_at && ` · Выполнена: ${formatDate(a.completed_at)}`}</div>
+                        </div>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Выполнена</span>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="text-xs text-slate-500 border-b border-slate-200">
+                              <th className="text-left py-1.5 pr-2">Упражнение</th>
+                              <th className="text-left py-1.5 px-2">План</th>
+                              <th className="text-left py-1.5 px-2">Факт</th>
+                              <th className="text-left py-1.5 pl-2">Комментарий</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {a.exercises.map(ex => {
+                              const res = a.results.find(r => r.exercise_id === ex.id)
+                              return (
+                                <tr key={ex.id} className="border-b border-slate-100 last:border-0">
+                                  <td className="py-1.5 pr-2">{ex.exercise_library.name_ru}</td>
+                                  <td className="py-1.5 px-2 text-slate-600">{ex.sets}×{ex.reps}{ex.weight_kg > 0 ? ` · ${ex.weight_kg}кг` : ''}</td>
+                                  <td className={`py-1.5 px-2 font-medium ${res?.completed ? 'text-green-700' : 'text-slate-400'}`}>
+                                    {res?.completed ? `${ex.sets}×${res.actual_reps ?? '?'}${res.actual_weight_kg ? ` · ${res.actual_weight_kg}кг` : ''}` : '—'}
+                                  </td>
+                                  <td className="py-1.5 pl-2 text-slate-500 italic text-xs">{res?.client_note ?? ''}</td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-      )}
+        )
+      })()}
     </Layout>
   )
 }

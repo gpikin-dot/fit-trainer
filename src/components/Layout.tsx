@@ -54,7 +54,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Compact floating timer — shown on all pages except the workout page itself */}
       {showCompactTimer && (
-        <div className="fixed bottom-4 right-4 z-50 bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.14)] border border-slate-100 overflow-hidden">
+        <div
+          className="fixed bottom-4 right-4 z-50 bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.14)] border border-slate-100 overflow-hidden"
+          style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+        >
           {/* Tap area → go back to workout */}
           <button
             onClick={() => assignedWorkoutId && navigate(`/client/workout/${assignedWorkoutId}`)}

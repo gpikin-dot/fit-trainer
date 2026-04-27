@@ -117,7 +117,7 @@ export default function Layout({ children, fullHeight = false }: {
               {timerPaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
             </button>
             <button
-              onClick={skipTimer}
+              onClick={() => { skipTimer(); assignedWorkoutId && navigate(`/client/workout/${assignedWorkoutId}`) }}
               className="flex-1 py-2 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 border-l border-slate-100"
             >
               <SkipForward className="w-3.5 h-3.5" />

@@ -95,13 +95,13 @@ export default function TrainerDashboardPage() {
 
       <div className="flex gap-1 mb-5 border-b border-slate-200">
         <TabButton active={tab === 'workouts'} onClick={() => setTab('workouts')}>
-          <span className="flex items-center gap-1.5"><ClipboardList className="w-4 h-4" /> Тренировки ({workouts.length})</span>
+          <ClipboardList className="w-5 h-5" />
         </TabButton>
         <TabButton active={tab === 'favorites'} onClick={() => setTab('favorites')}>
-          <span className="flex items-center gap-1.5"><Star className="w-4 h-4" /> Избранное ({favorites.length})</span>
+          <Star className="w-5 h-5" />
         </TabButton>
         <TabButton active={tab === 'clients'} onClick={() => setTab('clients')}>
-          <span className="flex items-center gap-1.5"><Users className="w-4 h-4" /> Клиенты ({clients.length})</span>
+          <Users className="w-5 h-5" />
         </TabButton>
       </div>
 

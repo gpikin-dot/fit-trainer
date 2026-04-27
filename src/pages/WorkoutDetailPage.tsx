@@ -197,13 +197,11 @@ export default function WorkoutDetailPage() {
                 <p className="text-xs text-slate-400 mb-3">Клиент сможет выполнить тренировку в любой день.</p>
               )}
               {dateType === 'specific' && (
-                <div className="mb-3 overflow-hidden">
-                  <input type="date" value={assignDate}
-                    onChange={e => setAssignDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
-                    className="block border border-slate-300 rounded-lg px-3 py-3 text-base font-[inherit] bg-white appearance-none" />
-                </div>
+                <input type="date" value={assignDate}
+                  onChange={e => setAssignDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
+                  className="border border-slate-300 rounded-lg px-3 py-3 text-base font-[inherit] bg-white mb-3 min-h-[48px]" />
               )}
 
               {/* Confirm */}

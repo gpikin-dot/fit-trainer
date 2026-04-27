@@ -12,7 +12,14 @@ WHERE external_id IN ('ex-109', 'ex-112', 'ex-113', 'ex-114');
 
 -- cardio_time: counted in time/distance (treadmill, elliptical, etc.)
 UPDATE exercises_library SET exercise_type = 'cardio_time'
-WHERE external_id IN ('ex-107', 'ex-108', 'ex-110', 'ex-111', 'ex-115', 'ex-116');
+WHERE external_id IN ('ex-30', 'ex-107', 'ex-108', 'ex-110', 'ex-111', 'ex-115', 'ex-116');
+-- ex-30:  Велотренажёр
+-- ex-107: Бег на дорожке
+-- ex-108: Эллиптический тренажёр
+-- ex-110: Степпер
+-- ex-111: Гребной тренажёр
+-- ex-115: Ходьба на дорожке
+-- ex-116: Интервальный бег
 -- ex-107: Бег на дорожке
 -- ex-108: Эллиптический тренажёр
 -- ex-110: Степпер

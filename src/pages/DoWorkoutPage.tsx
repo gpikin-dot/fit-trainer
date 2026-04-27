@@ -205,44 +205,83 @@ export default function DoWorkoutPage() {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="font-medium">{idx + 1}. {ex.exercise_library.name_ru}</div>
-                  <div className="text-xs text-slate-500 mt-0.5">{ex.sets} подхода · {ex.reps} повт · {ex.weight_kg > 0 ? `${ex.weight_kg} кг` : 'вес не указан'}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    {ex.exercise_library.category === 'Кардио'
+                      ? `${ex.sets > 1 ? `${ex.sets} интервала · ` : ''}${ex.reps} мин${ex.weight_kg > 0 ? ` · ${ex.weight_kg} км` : ''}`
+                      : `${ex.sets} подхода · ${ex.reps} повт · ${ex.weight_kg > 0 ? `${ex.weight_kg} кг` : 'вес не указан'}`
+                    }
+                  </div>
                   {ex.trainer_note && <div className="text-xs text-indigo-700 mt-1 italic">{ex.trainer_note}</div>}
                 </div>
               </div>
 
-              <div className="space-y-2">
-                {st.sets.map((s, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <button
-                      onClick={() => markSet(ex.id, i)}
-                      className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium shrink-0 transition-colors ${s.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 text-slate-400 hover:border-emerald-400'}`}
-                    >
-                      {s.completed ? '✓' : i + 1}
-                    </button>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      value={s.reps}
-                      onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
-                      onFocus={e => e.target.select()}
-                      className="w-16 border border-slate-300 rounded px-2 py-1 text-sm text-center"
-                      placeholder="повт"
-                    />
-                    <span className="text-slate-400 text-sm">×</span>
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      value={s.weight}
-                      onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
-                      onFocus={e => e.target.select()}
-                      className="w-20 border border-slate-300 rounded px-2 py-1 text-sm text-center"
-                      placeholder="кг"
-                      step={0.5}
-                    />
-                    <span className="text-slate-400 text-xs">кг</span>
-                  </div>
-                ))}
-              </div>
+              {ex.exercise_library.category === 'Кардио' ? (
+                <div className="space-y-2">
+                  {st.sets.map((s, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <button
+                        onClick={() => markSet(ex.id, i)}
+                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium shrink-0 transition-colors ${s.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 text-slate-400 hover:border-emerald-400'}`}
+                      >
+                        {s.completed ? '✓' : i + 1}
+                      </button>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={s.reps}
+                        onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
+                        onFocus={e => e.target.select()}
+                        className="w-16 border border-slate-300 rounded px-2 py-1 text-sm text-center"
+                        placeholder="мин"
+                      />
+                      <span className="text-slate-400 text-xs">мин</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={s.weight}
+                        onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
+                        onFocus={e => e.target.select()}
+                        className="w-20 border border-slate-300 rounded px-2 py-1 text-sm text-center"
+                        placeholder="0"
+                      />
+                      <span className="text-slate-400 text-xs">км</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {st.sets.map((s, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <button
+                        onClick={() => markSet(ex.id, i)}
+                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium shrink-0 transition-colors ${s.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 text-slate-400 hover:border-emerald-400'}`}
+                      >
+                        {s.completed ? '✓' : i + 1}
+                      </button>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={s.reps}
+                        onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
+                        onFocus={e => e.target.select()}
+                        className="w-16 border border-slate-300 rounded px-2 py-1 text-sm text-center"
+                        placeholder="повт"
+                      />
+                      <span className="text-slate-400 text-sm">×</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={s.weight}
+                        onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
+                        onFocus={e => e.target.select()}
+                        className="w-20 border border-slate-300 rounded px-2 py-1 text-sm text-center"
+                        placeholder="кг"
+                      />
+                      <span className="text-slate-400 text-xs">кг</span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="mt-3">
                 <input

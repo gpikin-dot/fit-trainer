@@ -15,6 +15,7 @@ export default function TrainerDashboardPage() {
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [clients, setClients] = useState<Profile[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
+  const [clientCounts, setClientCounts] = useState<Map<string, { total: number; completed: number }>>(new Map())
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null)
   const [error, setError] = useState('')
@@ -26,10 +27,25 @@ export default function TrainerDashboardPage() {
       supabase.from('workouts').select('*').eq('trainer_id', profile.id).order('created_at', { ascending: false }),
       supabase.from('profiles').select('*').eq('trainer_id', profile.id),
       supabase.from('invites').select('*').eq('trainer_id', profile.id),
-    ]).then(([w, c, i]) => {
+    ]).then(async ([w, c, i]) => {
+      const clientList = c.data ?? []
       setWorkouts(w.data ?? [])
-      setClients(c.data ?? [])
+      setClients(clientList)
       setInvites(i.data ?? [])
+
+      if (clientList.length > 0) {
+        const { data: assignments } = await supabase
+          .from('assigned_workouts')
+          .select('client_id, status')
+          .in('client_id', clientList.map(cl => cl.id))
+        const counts = new Map<string, { total: number; completed: number }>()
+        for (const a of assignments ?? []) {
+          const cur = counts.get(a.client_id) ?? { total: 0, completed: 0 }
+          counts.set(a.client_id, { total: cur.total + 1, completed: cur.completed + (a.status === 'completed' ? 1 : 0) })
+        }
+        setClientCounts(counts)
+      }
+
       setLoading(false)
     })
   }, [profile])
@@ -136,17 +152,25 @@ export default function TrainerDashboardPage() {
         clients.length === 0
           ? <EmptyState text={activeInvites.length > 0 ? 'Клиенты ещё не приняли приглашение.' : 'Нет клиентов. Нажмите «Пригласить клиента» вверху.'} />
           : <div className="space-y-2">
-            {clients.map(c => (
-              <Card key={c.id} onClick={() => navigate(`/trainer/client/${c.id}`)}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">{c.name}</div>
-                    <div className="text-sm text-slate-500 mt-0.5">{plural(0, 'тренировка', 'тренировки', 'тренировок')}</div>
+            {clients.map(c => {
+              const cnt = clientCounts.get(c.id) ?? { total: 0, completed: 0 }
+              const subtitle = cnt.total === 0
+                ? 'Нет тренировок'
+                : cnt.completed > 0
+                  ? `${plural(cnt.completed, 'выполнена', 'выполнено', 'выполнено')} ${cnt.completed} из ${cnt.total}`
+                  : `${plural(cnt.total, 'назначена', 'назначено', 'назначено')} ${cnt.total}`
+              return (
+                <Card key={c.id} onClick={() => navigate(`/trainer/client/${c.id}`)}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">{c.name}</div>
+                      <div className="text-sm text-slate-500 mt-0.5">{subtitle}</div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-slate-400" />
                   </div>
-                  <ChevronRight className="w-5 h-5 text-slate-400" />
-                </div>
-              </Card>
-            ))}
+                </Card>
+              )
+            })}
           </div>
       )}
 

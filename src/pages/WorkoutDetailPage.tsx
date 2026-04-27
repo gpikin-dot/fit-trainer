@@ -67,6 +67,12 @@ export default function WorkoutDetailPage() {
     navigate('/trainer')
   }
 
+  useEffect(() => {
+    if (showAssignModal && availableClients.length === 1) {
+      setSelectedClientId(availableClients[0].id)
+    }
+  }, [showAssignModal])
+
   function closeAssignModal() {
     setShowAssignModal(false)
     setDateType('open')
@@ -191,10 +197,13 @@ export default function WorkoutDetailPage() {
                 <p className="text-xs text-slate-400 mb-3">Клиент сможет выполнить тренировку в любой день.</p>
               )}
               {dateType === 'specific' && (
-                <input type="date" value={assignDate}
-                  onChange={e => setAssignDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-3 text-base mb-3 font-[inherit] bg-white" />
+                <div className="mb-3 overflow-hidden">
+                  <input type="date" value={assignDate}
+                    onChange={e => setAssignDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
+                    className="block border border-slate-300 rounded-lg px-3 py-3 text-base font-[inherit] bg-white appearance-none" />
+                </div>
               )}
 
               {/* Confirm */}

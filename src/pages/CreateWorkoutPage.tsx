@@ -184,7 +184,14 @@ export default function CreateWorkoutPage() {
 
       <div className="space-y-4 mb-6">
         <Input label="Название" value={name} onChange={setName} placeholder="Например: Ноги. День 1" />
-        <Input label="Время отдыха между подходами (сек)" value={defaultRest} onChange={setDefaultRest} type="number" />
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Время отдыха между подходами (сек)</label>
+          <input type="text" inputMode="numeric" value={defaultRest}
+            onChange={e => setDefaultRest(e.target.value)}
+            onBlur={() => { if (!defaultRest || parseInt(defaultRest) < 1) setDefaultRest('90') }}
+            onFocus={e => e.target.select()}
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
 
         {clients.length > 0 && (
           <div>
@@ -226,23 +233,30 @@ export default function CreateWorkoutPage() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
                   <label className="text-xs text-slate-500">Подходы</label>
-                  <input type="number" inputMode="numeric" value={ex.sets} onChange={e => updateExercise(ex.tempId, { sets: parseInt(e.target.value) || 1 })}
-                    onFocus={e => e.target.select()} className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" min={1} />
+                  <input type="text" inputMode="numeric" value={isNaN(ex.sets) ? '' : ex.sets}
+                    onChange={e => updateExercise(ex.tempId, { sets: parseInt(e.target.value) })}
+                    onBlur={() => { if (!ex.sets || ex.sets < 1) updateExercise(ex.tempId, { sets: 1 }) }}
+                    onFocus={e => e.target.select()} className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" />
                 </div>
                 <div>
                   <label className="text-xs text-slate-500">Повторения</label>
-                  <input type="number" inputMode="numeric" value={ex.reps} onChange={e => updateExercise(ex.tempId, { reps: parseInt(e.target.value) || 1 })}
-                    onFocus={e => e.target.select()} className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" min={1} />
+                  <input type="text" inputMode="numeric" value={isNaN(ex.reps) ? '' : ex.reps}
+                    onChange={e => updateExercise(ex.tempId, { reps: parseInt(e.target.value) })}
+                    onBlur={() => { if (!ex.reps || ex.reps < 1) updateExercise(ex.tempId, { reps: 1 }) }}
+                    onFocus={e => e.target.select()} className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" />
                 </div>
                 <div>
                   <label className="text-xs text-slate-500">Вес (кг)</label>
-                  <input type="number" inputMode="decimal" value={ex.weight_kg} onChange={e => updateExercise(ex.tempId, { weight_kg: parseFloat(e.target.value) || 0 })}
-                    onFocus={e => e.target.select()} className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" min={0} step={0.5} />
+                  <input type="text" inputMode="decimal" value={isNaN(ex.weight_kg) ? '' : ex.weight_kg}
+                    onChange={e => updateExercise(ex.tempId, { weight_kg: parseFloat(e.target.value.replace(',', '.')) })}
+                    onBlur={() => { if (isNaN(ex.weight_kg)) updateExercise(ex.tempId, { weight_kg: 0 }) }}
+                    onFocus={e => e.target.select()} className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" />
                 </div>
                 <div>
                   <label className="text-xs text-slate-500">Отдых (сек)</label>
-                  <input type="number" inputMode="numeric" value={ex.rest_sec ?? ''} onChange={e => updateExercise(ex.tempId, { rest_sec: e.target.value ? parseInt(e.target.value) : null })}
-                    onFocus={e => e.target.select()} placeholder="по умолчанию" className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" min={0} />
+                  <input type="text" inputMode="numeric" value={ex.rest_sec ?? ''}
+                    onChange={e => updateExercise(ex.tempId, { rest_sec: e.target.value ? parseInt(e.target.value) : null })}
+                    onFocus={e => e.target.select()} placeholder="по умолчанию" className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" />
                 </div>
               </div>
               <div className="mt-2">

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Timer, Volume2, VolumeX, SkipForward, Plus } from 'lucide-react'
+import { ArrowLeft, Volume2, VolumeX, SkipForward, Plus, Pause, Play } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
@@ -19,6 +19,10 @@ interface ExerciseState {
   heartRate: string
 }
 
+function storageKey(assignedId: string) {
+  return `workout_progress_${assignedId}`
+}
+
 export default function DoWorkoutPage() {
   const { assignedId } = useParams<{ assignedId: string }>()
   const navigate = useNavigate()
@@ -31,14 +35,23 @@ export default function DoWorkoutPage() {
   const [exState, setExState] = useState<Record<string, ExerciseState>>({})
 
   const [timerSec, setTimerSec] = useState(0)
+  const [timerTotal, setTimerTotal] = useState(0)
   const [timerActive, setTimerActive] = useState(false)
   const [timerPaused, setTimerPaused] = useState(false)
+  const [timerNextEx, setTimerNextEx] = useState<string | null>(null)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // Persist progress to localStorage whenever exState changes
+  useEffect(() => {
+    if (assignedId && Object.keys(exState).length > 0) {
+      localStorage.setItem(storageKey(assignedId), JSON.stringify(exState))
+    }
+  }, [exState, assignedId])
 
   useEffect(() => {
     if (!assignedId) return
@@ -57,6 +70,20 @@ export default function DoWorkoutPage() {
       const list = exs ?? []
       setExercises(list)
 
+      // Restore from localStorage if available (mid-workout state takes priority)
+      const saved = localStorage.getItem(storageKey(assignedId))
+      if (saved) {
+        try {
+          const parsed: Record<string, ExerciseState> = JSON.parse(saved)
+          const hasAllKeys = list.every(ex => ex.id in parsed)
+          if (hasAllKeys) {
+            setExState(parsed)
+            return
+          }
+        } catch { /* fall through to DB state */ }
+      }
+
+      // Build initial state from DB results
       const initial: Record<string, ExerciseState> = {}
       for (const ex of list) {
         const existing = (res ?? []).find(r => r.exercise_id === ex.id)
@@ -110,14 +137,19 @@ export default function DoWorkoutPage() {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [timerActive, timerPaused, playBeep])
 
-  function startTimer(secs: number) {
+  function startTimer(secs: number, exId: string) {
+    const currentIdx = exercises.findIndex(e => e.id === exId)
+    const nextEx = exercises[currentIdx + 1]
+    setTimerNextEx(nextEx?.exercise_library.name_ru ?? null)
     setTimerSec(secs)
+    setTimerTotal(secs)
     setTimerActive(true)
     setTimerPaused(false)
   }
 
   function markSet(exId: string, setIdx: number) {
     const restSec = exercises.find(e => e.id === exId)?.rest_sec ?? workout?.default_rest_sec ?? 90
+    const wasCompleted = exState[exId]?.sets[setIdx]?.completed
     setExState(prev => ({
       ...prev,
       [exId]: {
@@ -125,8 +157,8 @@ export default function DoWorkoutPage() {
         sets: prev[exId].sets.map((s, i) => i === setIdx ? { ...s, completed: !s.completed } : s),
       },
     }))
-    if (!exState[exId]?.sets[setIdx]?.completed) {
-      startTimer(restSec)
+    if (!wasCompleted) {
+      startTimer(restSec, exId)
     }
   }
 
@@ -182,6 +214,7 @@ export default function DoWorkoutPage() {
       completed_at: new Date().toISOString(),
     }).eq('id', assignment.id)
 
+    if (assignedId) localStorage.removeItem(storageKey(assignedId))
     navigate('/client')
   }
 
@@ -193,6 +226,10 @@ export default function DoWorkoutPage() {
 
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
+  // Ring progress: circumference ~220, offset 0 = full, offset 220 = empty
+  const RING_C = 220
+  const ringOffset = timerTotal > 0 ? RING_C * (1 - timerSec / timerTotal) : 0
+
   return (
     <Layout>
       <Link to="/client" className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-4">
@@ -203,7 +240,7 @@ export default function DoWorkoutPage() {
 
       {error && <ErrorMessage text={error} />}
 
-      <div className="space-y-4 mb-6">
+      <div className={`space-y-4 ${timerActive ? 'mb-6 pb-52' : 'mb-6'}`}>
         {exercises.map((ex, idx) => {
           const st = exState[ex.id]
           if (!st) return null
@@ -304,25 +341,65 @@ export default function DoWorkoutPage() {
         {saving ? 'Сохранение...' : '✓ Завершить тренировку'}
       </button>
 
-      {/* Rest timer — sticky bottom */}
+      {/* Rest timer — ring bottom sheet (Variant 3) */}
       {timerActive && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg px-4 py-3 flex items-center justify-between z-40">
-          <div className="flex items-center gap-2">
-            <Timer className="w-5 h-5 text-emerald-600" />
-            <span className="text-xl font-mono font-semibold">{fmt(timerSec)}</span>
-            <span className="text-sm text-slate-500">отдых</span>
+        <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.12)] z-40 flex flex-col items-center px-6 pb-6 pt-3">
+          {/* Handle */}
+          <div className="w-8 h-1 bg-slate-200 rounded-full mb-4" />
+
+          {/* Ring */}
+          <div className="relative w-24 h-24">
+            <svg width="96" height="96" viewBox="0 0 80 80" className="-rotate-90">
+              <circle cx="40" cy="40" r="35" fill="none" stroke="#f1f5f9" strokeWidth="6" />
+              <circle
+                cx="40" cy="40" r="35"
+                fill="none"
+                stroke="#10b981"
+                strokeWidth="6"
+                strokeLinecap="round"
+                strokeDasharray={RING_C}
+                strokeDashoffset={ringOffset}
+                style={{ transition: 'stroke-dashoffset 1s linear' }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center text-xl font-bold text-slate-900">
+              {fmt(timerSec)}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setSoundEnabled(e => !e)} className="text-slate-400 hover:text-slate-600">
-              {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+
+          <div className="text-xs text-slate-400 tracking-widest uppercase mt-1 mb-1">отдых</div>
+
+          {timerNextEx && (
+            <div className="text-xs text-slate-400 mb-3">
+              следующий: <span className="text-slate-600 font-medium">{timerNextEx}</span>
+            </div>
+          )}
+
+          {/* Controls */}
+          <div className="flex items-center gap-2 mt-1">
+            <button
+              onClick={() => setSoundEnabled(e => !e)}
+              className="p-2 text-slate-400 hover:text-slate-600"
+            >
+              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
-            <button onClick={() => setTimerSec(s => s + 30)} className="text-xs border border-slate-200 rounded-lg px-2 py-1 hover:border-emerald-400 flex items-center gap-1">
+            <button
+              onClick={() => setTimerSec(s => s + 30)}
+              className="flex items-center gap-1 text-xs border border-slate-200 rounded-lg px-3 py-1.5 hover:border-emerald-400 text-slate-600"
+            >
               <Plus className="w-3 h-3" /> 30 сек
             </button>
-            <button onClick={() => setTimerPaused(p => !p)} className="text-xs border border-slate-200 rounded-lg px-2 py-1 hover:border-emerald-400">
+            <button
+              onClick={() => setTimerPaused(p => !p)}
+              className="flex items-center gap-1 text-xs border border-slate-200 rounded-lg px-3 py-1.5 hover:border-emerald-400 text-slate-600"
+            >
+              {timerPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
               {timerPaused ? 'Продолжить' : 'Пауза'}
             </button>
-            <button onClick={() => setTimerActive(false)} className="text-xs border border-slate-200 rounded-lg px-2 py-1 hover:border-red-300 text-slate-500 flex items-center gap-1">
+            <button
+              onClick={() => setTimerActive(false)}
+              className="flex items-center gap-1 text-xs bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-3 py-1.5"
+            >
               <SkipForward className="w-3 h-3" /> Пропустить
             </button>
           </div>

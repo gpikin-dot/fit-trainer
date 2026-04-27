@@ -33,18 +33,18 @@ export default function InvitePage() {
 
       setInvite(inv)
       setTrainer(trainerData)
+      sessionStorage.setItem('invite_token', token)
+      sessionStorage.setItem('invite_trainer_name', trainerData?.name ?? '')
       setLoading(false)
     }
     checkInvite()
   }, [token])
 
   useEffect(() => {
-    if (!loading && invite && trainer) {
-      sessionStorage.setItem('invite_token', token!)
-      sessionStorage.setItem('invite_trainer_name', trainer.name)
+    if (!loading && invite) {
       navigate('/register/client', { replace: true })
     }
-  }, [loading, invite, trainer])
+  }, [loading, invite])
 
   if (loading) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">

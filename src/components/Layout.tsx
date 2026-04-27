@@ -1,17 +1,21 @@
 import { Dumbbell, LogOut } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { profile, signOut } = useAuth()
+  const navigate = useNavigate()
+
+  const homeUrl = profile?.role === 'client' ? '/client' : '/trainer'
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <button onClick={() => navigate(homeUrl)} className="flex items-center gap-2 hover:opacity-75 transition-opacity">
             <Dumbbell className="w-6 h-6 text-indigo-600" />
             <span className="font-semibold">FitTrainer</span>
-          </div>
+          </button>
           {profile && (
             <div className="flex items-center gap-3">
               <div className="text-sm text-slate-600 hidden sm:block">

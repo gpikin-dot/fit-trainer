@@ -379,7 +379,7 @@ export default function CreateWorkoutPage() {
           <div className="flex gap-1 flex-wrap mb-3">
             {CATEGORIES.map(cat => (
               <button key={cat} onClick={() => setLibraryCategory(cat)}
-                className={`text-xs px-2.5 py-1 rounded-full border ${libraryCategory === cat ? 'bg-indigo-600 text-white border-indigo-600' : 'border-slate-300 text-slate-600 hover:border-indigo-400'}`}>
+                className={`text-xs px-3 py-1.5 rounded-xl border font-medium transition-colors ${libraryCategory === cat ? 'bg-indigo-600 text-white border-indigo-600' : 'border-slate-200 text-slate-600 bg-white hover:border-indigo-400 shadow-sm'}`}>
                 {cat}
               </button>
             ))}

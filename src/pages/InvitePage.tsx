@@ -38,6 +38,14 @@ export default function InvitePage() {
     checkInvite()
   }, [token])
 
+  useEffect(() => {
+    if (!loading && invite && trainer) {
+      sessionStorage.setItem('invite_token', token!)
+      sessionStorage.setItem('invite_trainer_name', trainer.name)
+      navigate('/register/client', { replace: true })
+    }
+  }, [loading, invite, trainer])
+
   if (loading) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
       <div className="text-slate-500">Проверка приглашения...</div>
@@ -54,13 +62,6 @@ export default function InvitePage() {
       </div>
     </div>
   )
-
-  // Valid invite — redirect to register client with token stored
-  if (invite && trainer) {
-    sessionStorage.setItem('invite_token', token!)
-    sessionStorage.setItem('invite_trainer_name', trainer.name)
-    navigate('/register/client', { replace: true })
-  }
 
   return null
 }

@@ -318,7 +318,7 @@ export default function CreateWorkoutPage() {
               </button>
             ))}
           </div>
-          <div className="space-y-1 max-h-56 overflow-y-auto overscroll-contain mb-3">
+          <div className="space-y-1 max-h-[45vh] overflow-y-auto overscroll-contain mb-3">
             {filteredLibrary.map(lib => {
               const selected = selectedLibraryIds.has(lib.id)
               return (

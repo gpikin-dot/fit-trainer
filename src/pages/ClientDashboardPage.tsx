@@ -68,7 +68,7 @@ export default function ClientDashboardPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${a.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${a.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                     {a.status === 'completed' ? '✓ Выполнена' : 'Открыть'}
                   </span>
                   <ChevronRight className="w-4 h-4 text-slate-400" />

@@ -215,7 +215,7 @@ export default function DoWorkoutPage() {
                   <div key={i} className="flex items-center gap-2">
                     <button
                       onClick={() => markSet(ex.id, i)}
-                      className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium shrink-0 transition-colors ${s.completed ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300 text-slate-400 hover:border-indigo-400'}`}
+                      className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium shrink-0 transition-colors ${s.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 text-slate-400 hover:border-emerald-400'}`}
                     >
                       {s.completed ? '✓' : i + 1}
                     </button>
@@ -266,7 +266,7 @@ export default function DoWorkoutPage() {
       {timerActive && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg px-4 py-3 flex items-center justify-between z-40">
           <div className="flex items-center gap-2">
-            <Timer className="w-5 h-5 text-indigo-600" />
+            <Timer className="w-5 h-5 text-emerald-600" />
             <span className="text-xl font-mono font-semibold">{fmt(timerSec)}</span>
             <span className="text-sm text-slate-500">отдых</span>
           </div>
@@ -274,10 +274,10 @@ export default function DoWorkoutPage() {
             <button onClick={() => setSoundEnabled(e => !e)} className="text-slate-400 hover:text-slate-600">
               {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
             </button>
-            <button onClick={() => setTimerSec(s => s + 30)} className="text-xs border border-slate-200 rounded-lg px-2 py-1 hover:border-indigo-400 flex items-center gap-1">
+            <button onClick={() => setTimerSec(s => s + 30)} className="text-xs border border-slate-200 rounded-lg px-2 py-1 hover:border-emerald-400 flex items-center gap-1">
               <Plus className="w-3 h-3" /> 30 сек
             </button>
-            <button onClick={() => setTimerPaused(p => !p)} className="text-xs border border-slate-200 rounded-lg px-2 py-1 hover:border-indigo-400">
+            <button onClick={() => setTimerPaused(p => !p)} className="text-xs border border-slate-200 rounded-lg px-2 py-1 hover:border-emerald-400">
               {timerPaused ? 'Продолжить' : 'Пауза'}
             </button>
             <button onClick={() => setTimerActive(false)} className="text-xs border border-slate-200 rounded-lg px-2 py-1 hover:border-red-300 text-slate-500 flex items-center gap-1">

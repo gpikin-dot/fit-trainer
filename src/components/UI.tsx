@@ -34,15 +34,18 @@ export function Card({
   children,
   onClick,
   className = '',
+  variant = 'indigo',
 }: {
   children: React.ReactNode
   onClick?: () => void
   className?: string
+  variant?: 'indigo' | 'emerald'
 }) {
+  const hoverBorder = variant === 'emerald' ? 'hover:border-emerald-300' : 'hover:border-indigo-300'
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-xl border border-slate-200 p-4 shadow-sm ${onClick ? 'cursor-pointer hover:border-indigo-300 hover:shadow-md transition-all' : ''} ${className}`}
+      className={`bg-white rounded-xl border border-slate-200 p-4 shadow-sm ${onClick ? `cursor-pointer ${hoverBorder} hover:shadow-md transition-all` : ''} ${className}`}
     >
       {children}
     </div>

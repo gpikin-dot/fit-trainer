@@ -60,14 +60,14 @@ export default function ClientDashboardPage() {
           {assignments.map(a => (
             <Card key={a.id} variant="emerald" onClick={() => navigate(`/client/workout/${a.id}`)}>
               <div className="flex items-center justify-between">
-                <div>
+                <div className="min-w-0">
                   <div className="font-medium">{a.workout?.name ?? '—'}</div>
-                  <div className="text-sm text-slate-500 mt-0.5 flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5" />
+                  <div className="text-sm text-slate-500 mt-0.5 flex items-center gap-1 whitespace-nowrap">
+                    <Calendar className="w-3.5 h-3.5 shrink-0" />
                     {formatDate(a.assigned_at)} · {plural(a.exerciseCount, 'упражнение', 'упражнения', 'упражнений')}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${a.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                     {a.status === 'completed' ? '✓ Выполнена' : 'Открыть'}
                   </span>

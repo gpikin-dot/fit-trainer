@@ -32,7 +32,7 @@ export default function DoWorkoutPage() {
   const navigate = useNavigate()
   const { profile } = useAuth()
   const {
-    timerSec, timerTotal, timerActive, timerPaused, timerNextEx,
+    timerSec, timerTotal, timerActive, timerPaused, timerNextEx, timerExerciseId,
     soundEnabled, startTimer, togglePause, addTime, skipTimer, setSoundEnabled,
   } = useTimer()
 
@@ -41,6 +41,7 @@ export default function DoWorkoutPage() {
   const [exercises, setExercises] = useState<(Exercise & { exercise_library: ExerciseLibrary })[]>([])
   const [existingResults, setExistingResults] = useState<ExerciseResult[]>([])
   const [exState, setExState] = useState<Record<string, ExerciseState>>({})
+  const [loaded, setLoaded] = useState(false)
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -60,7 +61,7 @@ export default function DoWorkoutPage() {
     ]).then(async ([{ data: a }, { data: res }]) => {
       setAssignment(a)
       setExistingResults(res ?? [])
-      if (!a) return
+      if (!a) { setLoaded(true); return }
 
       const { data: w } = await supabase.from('workouts').select('*').eq('id', a.workout_id).single()
       setWorkout(w)
@@ -79,10 +80,7 @@ export default function DoWorkoutPage() {
         try {
           const parsed: Record<string, ExerciseState> = JSON.parse(saved)
           const hasAllKeys = list.every(ex => ex.id in parsed)
-          if (hasAllKeys) {
-            setExState(parsed)
-            return
-          }
+          if (hasAllKeys) { setExState(parsed); setLoaded(true); return }
         } catch { /* fall through */ }
       }
 
@@ -100,8 +98,19 @@ export default function DoWorkoutPage() {
         }
       }
       setExState(initial)
+      setLoaded(true)
     })
   }, [assignedId])
+
+  // When returning to workout page with active timer, scroll to the exercise being timed
+  useEffect(() => {
+    if (timerActive && timerExerciseId && exercises.length > 0) {
+      setTimeout(() => {
+        document.getElementById(`exercise-${timerExerciseId}`)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 150)
+    }
+  }, [timerActive, timerExerciseId, exercises.length])
 
   function markSet(exId: string, setIdx: number) {
     const wasCompleted = exState[exId]?.sets[setIdx]?.completed
@@ -114,7 +123,6 @@ export default function DoWorkoutPage() {
     }))
     if (!wasCompleted && assignedId) {
       const restSec = exercises.find(e => e.id === exId)?.rest_sec ?? workout?.default_rest_sec ?? 90
-      // Show next exercise only when all sets of the current one are done
       const currentSets = exState[exId]?.sets ?? []
       const otherSetsRemaining = currentSets.some((s, i) => i !== setIdx && !s.completed)
       let nextExName: string | null = null
@@ -122,7 +130,7 @@ export default function DoWorkoutPage() {
         const currentIdx = exercises.findIndex(e => e.id === exId)
         nextExName = exercises[currentIdx + 1]?.exercise_library.name_ru ?? null
       }
-      startTimer(restSec, nextExName, assignedId)
+      startTimer(restSec, nextExName, assignedId, exId)
     }
   }
 
@@ -154,7 +162,6 @@ export default function DoWorkoutPage() {
       if (!st) continue
       const lastCompleted = st.sets.filter(s => s.completed).at(-1)
       const completed = st.sets.some(s => s.completed)
-
       const existing = existingResults.find(r => r.exercise_id === ex.id)
       const payload = {
         assigned_workout_id: assignment.id,
@@ -165,7 +172,6 @@ export default function DoWorkoutPage() {
         client_note: st.note || null,
         actual_heart_rate_bpm: st.heartRate ? (parseInt(st.heartRate) || null) : null,
       }
-
       if (existing) {
         await supabase.from('exercise_results').update(payload).eq('id', existing.id)
       } else {
@@ -183,189 +189,200 @@ export default function DoWorkoutPage() {
     navigate('/client')
   }
 
-  if (!workout || exercises.length === 0) return (
-    <Layout>
-      <div className="text-center py-12 text-slate-400">Загрузка...</div>
-    </Layout>
-  )
-
   const ringOffset = timerTotal > 0 ? RING_C * (1 - timerSec / timerTotal) : 0
 
   return (
-    <Layout>
-      <Link to="/client" className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-4">
-        <ArrowLeft className="w-4 h-4" /> Назад
-      </Link>
-      <h1 className="text-2xl font-semibold mb-1">{workout.name}</h1>
-      <p className="text-sm text-slate-500 mb-5">Отдых по умолчанию: {workout.default_rest_sec} сек</p>
+    <Layout fullHeight>
+      {/* Inner flex column: header area + scrollable content + timer */}
+      <div className="flex flex-col h-full">
 
-      {error && <ErrorMessage text={error} />}
+        {/* Page header — not scrollable */}
+        <div className="px-4 pt-4 pb-2 shrink-0">
+          <Link to="/client" className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-3">
+            <ArrowLeft className="w-4 h-4" /> Назад
+          </Link>
+          {workout && (
+            <>
+              <h1 className="text-xl font-semibold">{workout.name}</h1>
+              <p className="text-xs text-slate-500 mt-0.5">Отдых по умолчанию: {workout.default_rest_sec} сек</p>
+            </>
+          )}
+          {error && <ErrorMessage text={error} />}
+        </div>
 
-      <div className={`space-y-4 ${timerActive ? 'mb-6 pb-52' : 'mb-6'}`}>
-        {exercises.map((ex, idx) => {
-          const st = exState[ex.id]
-          if (!st) return null
-          return (
-            <div key={ex.id} className="bg-white border border-slate-200 rounded-xl p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div className="font-medium">{idx + 1}. {ex.exercise_library.name_ru}</div>
-                  <div className="text-xs text-slate-500 mt-0.5">
-                    {ex.exercise_library.exercise_type === 'cardio_time'
-                      ? `${ex.sets > 1 ? `${ex.sets} интервала · ` : ''}${ex.reps} мин${ex.weight_kg > 0 ? ` · ${ex.weight_kg} км` : ''}`
-                      : ex.exercise_library.exercise_type === 'cardio_reps'
-                        ? `${ex.sets} подхода · ${ex.reps} повт`
-                        : `${ex.sets} подхода · ${ex.reps} повт · ${ex.weight_kg > 0 ? `${ex.weight_kg} кг` : 'вес не указан'}`
-                    }
-                  </div>
-                  {ex.trainer_note && <div className="text-xs text-indigo-700 mt-1 italic">{ex.trainer_note}</div>}
-                </div>
-              </div>
+        {/* Scrollable exercises */}
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
+          {!loaded ? (
+            <div className="text-center py-12 text-slate-400">Загрузка...</div>
+          ) : (
+            <div className="space-y-4">
+              {exercises.map((ex, idx) => {
+                const st = exState[ex.id]
+                if (!st) return null
+                return (
+                  <div
+                    id={`exercise-${ex.id}`}
+                    key={ex.id}
+                    className="bg-white border border-slate-200 rounded-xl p-4"
+                  >
+                    <div className="mb-3">
+                      <div className="font-medium">{idx + 1}. {ex.exercise_library.name_ru}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        {ex.exercise_library.exercise_type === 'cardio_time'
+                          ? `${ex.sets > 1 ? `${ex.sets} интервала · ` : ''}${ex.reps} мин${ex.weight_kg > 0 ? ` · ${ex.weight_kg} км` : ''}`
+                          : ex.exercise_library.exercise_type === 'cardio_reps'
+                            ? `${ex.sets} подхода · ${ex.reps} повт`
+                            : `${ex.sets} подхода · ${ex.reps} повт · ${ex.weight_kg > 0 ? `${ex.weight_kg} кг` : 'вес не указан'}`
+                        }
+                      </div>
+                      {ex.trainer_note && <div className="text-xs text-indigo-700 mt-1 italic">{ex.trainer_note}</div>}
+                    </div>
 
-              <div className="space-y-2">
-                {st.sets.map((s, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <button
-                      onClick={() => markSet(ex.id, i)}
-                      className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium shrink-0 transition-colors ${s.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 text-slate-400 hover:border-emerald-400'}`}
-                    >
-                      {s.completed ? '✓' : i + 1}
-                    </button>
-                    {ex.exercise_library.exercise_type === 'cardio_time' ? (
-                      <>
-                        <input type="text" inputMode="numeric" value={s.reps}
-                          onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
+                    <div className="space-y-2">
+                      {st.sets.map((s, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <button
+                            onClick={() => markSet(ex.id, i)}
+                            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium shrink-0 transition-colors ${s.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 text-slate-400 hover:border-emerald-400'}`}
+                          >
+                            {s.completed ? '✓' : i + 1}
+                          </button>
+                          {ex.exercise_library.exercise_type === 'cardio_time' ? (
+                            <>
+                              <input type="text" inputMode="numeric" value={s.reps}
+                                onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
+                                onFocus={e => e.target.select()}
+                                className="w-16 border border-slate-300 rounded px-2 py-1 text-sm text-center" placeholder="мин" />
+                              <span className="text-slate-400 text-xs">мин</span>
+                              <input type="text" inputMode="decimal" value={s.weight}
+                                onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
+                                onFocus={e => e.target.select()}
+                                className="w-20 border border-slate-300 rounded px-2 py-1 text-sm text-center" placeholder="0" />
+                              <span className="text-slate-400 text-xs">км</span>
+                            </>
+                          ) : (
+                            <>
+                              <input type="text" inputMode="numeric" value={s.reps}
+                                onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
+                                onFocus={e => e.target.select()}
+                                className="w-16 border border-slate-300 rounded px-2 py-1 text-sm text-center" placeholder="повт" />
+                              {ex.exercise_library.exercise_type !== 'cardio_reps' && (
+                                <>
+                                  <span className="text-slate-400 text-sm">×</span>
+                                  <input type="text" inputMode="decimal" value={s.weight}
+                                    onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
+                                    onFocus={e => e.target.select()}
+                                    className="w-20 border border-slate-300 rounded px-2 py-1 text-sm text-center" placeholder="кг" />
+                                  <span className="text-slate-400 text-xs">кг</span>
+                                </>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {ex.exercise_library.exercise_type === 'cardio_time' && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="text-xs text-slate-500 shrink-0">Пульс (уд/мин)</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={st.heartRate}
+                          onChange={e => updateHeartRate(ex.id, e.target.value)}
                           onFocus={e => e.target.select()}
-                          className="w-16 border border-slate-300 rounded px-2 py-1 text-sm text-center" placeholder="мин" />
-                        <span className="text-slate-400 text-xs">мин</span>
-                        <input type="text" inputMode="decimal" value={s.weight}
-                          onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
-                          onFocus={e => e.target.select()}
-                          className="w-20 border border-slate-300 rounded px-2 py-1 text-sm text-center" placeholder="0" />
-                        <span className="text-slate-400 text-xs">км</span>
-                      </>
-                    ) : (
-                      <>
-                        <input type="text" inputMode="numeric" value={s.reps}
-                          onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
-                          onFocus={e => e.target.select()}
-                          className="w-16 border border-slate-300 rounded px-2 py-1 text-sm text-center" placeholder="повт" />
-                        {ex.exercise_library.exercise_type !== 'cardio_reps' && (
-                          <>
-                            <span className="text-slate-400 text-sm">×</span>
-                            <input type="text" inputMode="decimal" value={s.weight}
-                              onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
-                              onFocus={e => e.target.select()}
-                              className="w-20 border border-slate-300 rounded px-2 py-1 text-sm text-center" placeholder="кг" />
-                            <span className="text-slate-400 text-xs">кг</span>
-                          </>
-                        )}
-                      </>
+                          placeholder={ex.target_heart_rate_bpm ? `цель: ${ex.target_heart_rate_bpm}` : 'не указан'}
+                          className="w-24 border border-slate-300 rounded px-2 py-1 text-sm text-center"
+                        />
+                      </div>
                     )}
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        value={st.note}
+                        onChange={e => updateNote(ex.id, e.target.value)}
+                        placeholder="Комментарий..."
+                        className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-600 placeholder-slate-300"
+                      />
+                    </div>
                   </div>
-                ))}
-              </div>
+                )
+              })}
 
-              {ex.exercise_library.exercise_type === 'cardio_time' && (
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="text-xs text-slate-500 shrink-0">Пульс (уд/мин)</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={st.heartRate}
-                    onChange={e => updateHeartRate(ex.id, e.target.value)}
-                    onFocus={e => e.target.select()}
-                    placeholder={ex.target_heart_rate_bpm ? `цель: ${ex.target_heart_rate_bpm}` : 'не указан'}
-                    className="w-24 border border-slate-300 rounded px-2 py-1 text-sm text-center"
-                  />
-                </div>
-              )}
-              <div className="mt-2">
-                <input
-                  type="text"
-                  value={st.note}
-                  onChange={e => updateNote(ex.id, e.target.value)}
-                  placeholder="Комментарий..."
-                  className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-600 placeholder-slate-300"
-                />
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      <button
-        onClick={handleFinish}
-        disabled={saving}
-        className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-3 rounded-xl mb-20"
-      >
-        {saving ? 'Сохранение...' : '✓ Завершить тренировку'}
-      </button>
-
-      {/* Full ring timer sheet — only on this page */}
-      {timerActive && (
-        <div
-          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.12)] z-40 flex flex-col items-center px-6 pb-6 pt-3"
-          style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-        >
-          <div className="w-8 h-1 bg-slate-200 rounded-full mb-4" />
-
-          <div className="relative w-24 h-24">
-            <svg width="96" height="96" viewBox="0 0 80 80" className="-rotate-90">
-              <circle cx="40" cy="40" r="35" fill="none" stroke="#f1f5f9" strokeWidth="6" />
-              <circle
-                cx="40" cy="40" r="35"
-                fill="none"
-                stroke={timerPaused ? '#94a3b8' : '#10b981'}
-                strokeWidth="6"
-                strokeLinecap="round"
-                strokeDasharray={RING_C}
-                strokeDashoffset={ringOffset}
-                style={{ transition: 'stroke-dashoffset 1s linear' }}
-              />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center text-xl font-bold text-slate-900">
-              {fmt(timerSec)}
-            </div>
-          </div>
-
-          <div className="text-xs text-slate-400 tracking-widest uppercase mt-1 mb-1">отдых</div>
-
-          {timerNextEx && (
-            <div className="text-xs text-slate-400 mb-3">
-              следующий: <span className="text-slate-600 font-medium">{timerNextEx}</span>
+              <button
+                onClick={handleFinish}
+                disabled={saving}
+                className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-3 rounded-xl"
+              >
+                {saving ? 'Сохранение...' : '✓ Завершить тренировку'}
+              </button>
+              <div className="h-2" />
             </div>
           )}
-
-          <div className="flex items-center gap-2 mt-1">
-            <button
-              onClick={() => setSoundEnabled(e => !e)}
-              className="p-2 text-slate-400 hover:text-slate-600"
-            >
-              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={() => addTime(30)}
-              className="flex items-center gap-1 text-xs border border-slate-200 rounded-lg px-3 py-1.5 hover:border-emerald-400 text-slate-600"
-            >
-              <Plus className="w-3 h-3" /> 30 сек
-            </button>
-            <button
-              onClick={togglePause}
-              className="flex items-center gap-1 text-xs border border-slate-200 rounded-lg px-3 py-1.5 hover:border-emerald-400 text-slate-600"
-            >
-              {timerPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
-              {timerPaused ? 'Продолжить' : 'Пауза'}
-            </button>
-            <button
-              onClick={skipTimer}
-              className="flex items-center gap-1 text-xs bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-3 py-1.5"
-            >
-              <SkipForward className="w-3 h-3" /> Пропустить
-            </button>
-          </div>
         </div>
-      )}
+
+        {/* Timer — sits at bottom of flex layout, no position:fixed */}
+        {timerActive && (
+          <div className="shrink-0 bg-white rounded-t-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.12)] flex flex-col items-center px-6 pb-6 pt-3">
+            <div className="w-8 h-1 bg-slate-200 rounded-full mb-4" />
+
+            <div className="relative w-24 h-24">
+              <svg width="96" height="96" viewBox="0 0 80 80" className="-rotate-90">
+                <circle cx="40" cy="40" r="35" fill="none" stroke="#f1f5f9" strokeWidth="6" />
+                <circle
+                  cx="40" cy="40" r="35"
+                  fill="none"
+                  stroke={timerPaused ? '#94a3b8' : '#10b981'}
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeDasharray={RING_C}
+                  strokeDashoffset={ringOffset}
+                  style={{ transition: 'stroke-dashoffset 1s linear' }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center text-xl font-bold text-slate-900">
+                {fmt(timerSec)}
+              </div>
+            </div>
+
+            <div className="text-xs text-slate-400 tracking-widest uppercase mt-1 mb-1">отдых</div>
+
+            {timerNextEx && (
+              <div className="text-xs text-slate-400 mb-3">
+                следующий: <span className="text-slate-600 font-medium">{timerNextEx}</span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 mt-1">
+              <button
+                onClick={() => setSoundEnabled(e => !e)}
+                className="p-2 text-slate-400 hover:text-slate-600"
+              >
+                {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              </button>
+              <button
+                onClick={() => addTime(30)}
+                className="flex items-center gap-1 text-xs border border-slate-200 rounded-lg px-3 py-1.5 hover:border-emerald-400 text-slate-600"
+              >
+                <Plus className="w-3 h-3" /> 30 сек
+              </button>
+              <button
+                onClick={togglePause}
+                className="flex items-center gap-1 text-xs border border-slate-200 rounded-lg px-3 py-1.5 hover:border-emerald-400 text-slate-600"
+              >
+                {timerPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
+                {timerPaused ? 'Продолжить' : 'Пауза'}
+              </button>
+              <button
+                onClick={skipTimer}
+                className="flex items-center gap-1 text-xs bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-3 py-1.5"
+              >
+                <SkipForward className="w-3 h-3" /> Пропустить
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </Layout>
   )
 }

@@ -6,7 +6,10 @@ import { useTimer } from '../contexts/TimerContext'
 const RING_C = 220
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children, fullHeight = false }: {
+  children: React.ReactNode
+  fullHeight?: boolean
+}) {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -23,8 +26,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const ringOffset = timerTotal > 0 ? RING_C * (1 - timerSec / timerTotal) : 0
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="bg-white border-b border-slate-200">
+    <div className={`${fullHeight ? 'h-dvh flex flex-col' : 'min-h-screen'} bg-slate-50 text-slate-900`}>
+      <header className="bg-white border-b border-slate-200 shrink-0">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <button onClick={() => navigate(homeUrl)} className="flex items-center gap-2 hover:opacity-75 transition-opacity">
             <Dumbbell className={`w-6 h-6 ${profile?.role === 'client' ? 'text-emerald-600' : 'text-indigo-600'}`} />
@@ -48,22 +51,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           )}
         </div>
       </header>
-      <main className="max-w-5xl mx-auto px-4 py-6">
+
+      <main className={
+        fullHeight
+          ? 'flex-1 overflow-hidden flex flex-col max-w-5xl mx-auto w-full'
+          : 'max-w-5xl mx-auto px-4 py-6'
+      }>
         {children}
       </main>
 
-      {/* Compact floating timer — shown on all pages except the workout page itself */}
+      {/* Compact floating timer — shown on all pages except the workout page */}
       {showCompactTimer && (
         <div
           className="fixed bottom-4 right-4 z-50 bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.14)] border border-slate-100 overflow-hidden"
           style={{ transform: 'translateZ(0)', willChange: 'transform' }}
         >
-          {/* Tap area → go back to workout */}
           <button
             onClick={() => assignedWorkoutId && navigate(`/client/workout/${assignedWorkoutId}`)}
             className="flex items-center gap-3 px-4 py-3 w-full"
           >
-            {/* Mini ring */}
             <div className="relative w-10 h-10 shrink-0">
               <svg width="40" height="40" viewBox="0 0 80 80" className="-rotate-90">
                 <circle cx="40" cy="40" r="35" fill="none" stroke="#f1f5f9" strokeWidth="8" />
@@ -91,7 +97,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </button>
 
-          {/* Quick controls row */}
           <div className="flex border-t border-slate-100">
             <button
               onClick={() => setSoundEnabled(e => !e)}

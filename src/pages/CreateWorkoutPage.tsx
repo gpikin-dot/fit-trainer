@@ -124,17 +124,20 @@ export default function CreateWorkoutPage() {
     const toAdd = library.filter(l => selectedLibraryIds.has(l.id))
     setExercises(prev => [
       ...prev,
-      ...toAdd.map((lib, i) => ({
-        tempId: `tmp-${Date.now()}-${i}`,
-        library_exercise_id: lib.id,
-        library: lib,
-        sets: 3,
-        reps: 10,
-        weight_kg: '0',
-        rest_sec: null,
-        trainer_note: '',
-        order: prev.length + i,
-      })),
+      ...toAdd.map((lib, i) => {
+        const isCardio = lib.category === 'Кардио'
+        return {
+          tempId: `tmp-${Date.now()}-${i}`,
+          library_exercise_id: lib.id,
+          library: lib,
+          sets: isCardio ? 1 : 3,
+          reps: isCardio ? 30 : 10,
+          weight_kg: '0',
+          rest_sec: null,
+          trainer_note: '',
+          order: prev.length + i,
+        }
+      }),
     ])
     setSelectedLibraryIds(new Set())
     setShowLibraryModal(false)

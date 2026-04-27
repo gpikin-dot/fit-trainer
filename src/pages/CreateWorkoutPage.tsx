@@ -42,6 +42,7 @@ export default function CreateWorkoutPage() {
   const [showLibraryModal, setShowLibraryModal] = useState(false)
   const [librarySearch, setLibrarySearch] = useState('')
   const [libraryCategory, setLibraryCategory] = useState('Все')
+  const [selectedLibraryIds, setSelectedLibraryIds] = useState<Set<string>>(new Set())
   const [clientHistory, setClientHistory] = useState<ClientHistory[]>([])
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -107,22 +108,35 @@ export default function CreateWorkoutPage() {
     setClientHistory(history)
   }
 
-  async function addExercise(lib: ExerciseLibrary) {
-    if (!profile) return
+  function toggleLibrarySelect(id: string) {
+    setSelectedLibraryIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  async function addSelectedExercises() {
+    if (!profile || selectedLibraryIds.size === 0) return
     const check = await canAddExercise(profile.id, id ?? 'new')
     if (!check.allowed) { setError(check.reason ?? ''); return }
 
-    setExercises(prev => [...prev, {
-      tempId: `tmp-${Date.now()}`,
-      library_exercise_id: lib.id,
-      library: lib,
-      sets: 3,
-      reps: 10,
-      weight_kg: '0',
-      rest_sec: null,
-      trainer_note: '',
-      order: prev.length,
-    }])
+    const toAdd = library.filter(l => selectedLibraryIds.has(l.id))
+    setExercises(prev => [
+      ...prev,
+      ...toAdd.map((lib, i) => ({
+        tempId: `tmp-${Date.now()}-${i}`,
+        library_exercise_id: lib.id,
+        library: lib,
+        sets: 3,
+        reps: 10,
+        weight_kg: '0',
+        rest_sec: null,
+        trainer_note: '',
+        order: prev.length + i,
+      })),
+    ])
+    setSelectedLibraryIds(new Set())
     setShowLibraryModal(false)
   }
 
@@ -289,8 +303,8 @@ export default function CreateWorkoutPage() {
       </button>
 
       {showLibraryModal && (
-        <Modal onClose={() => setShowLibraryModal(false)}>
-          <h2 className="text-lg font-semibold mb-3">Выберите упражнение</h2>
+        <Modal onClose={() => { setShowLibraryModal(false); setSelectedLibraryIds(new Set()) }}>
+          <h2 className="text-lg font-semibold mb-3">Выберите упражнения</h2>
           <div className="relative mb-3">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
             <input value={librarySearch} onChange={e => setLibrarySearch(e.target.value)} placeholder="Поиск..."
@@ -304,16 +318,31 @@ export default function CreateWorkoutPage() {
               </button>
             ))}
           </div>
-          <div className="space-y-1 max-h-64 overflow-y-auto">
-            {filteredLibrary.map(lib => (
-              <button key={lib.id} onClick={() => addExercise(lib)}
-                className="w-full text-left px-3 py-2 hover:bg-indigo-50 rounded-lg text-sm">
-                <span className="font-medium">{lib.name_ru}</span>
-                <span className="text-slate-400 ml-2 text-xs">{lib.category} · {lib.equipment}</span>
-              </button>
-            ))}
+          <div className="space-y-1 max-h-56 overflow-y-auto mb-3">
+            {filteredLibrary.map(lib => {
+              const selected = selectedLibraryIds.has(lib.id)
+              return (
+                <button key={lib.id} onClick={() => toggleLibrarySelect(lib.id)}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-3 transition-colors ${selected ? 'bg-indigo-50 border border-indigo-300' : 'hover:bg-slate-50 border border-transparent'}`}>
+                  <div className={`w-5 h-5 rounded border-2 shrink-0 flex items-center justify-center transition-colors ${selected ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'}`}>
+                    {selected && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                  </div>
+                  <div>
+                    <div className="font-medium">{lib.name_ru}</div>
+                    <div className="text-slate-400 text-xs">{lib.category} · {lib.equipment}</div>
+                  </div>
+                </button>
+              )
+            })}
             {filteredLibrary.length === 0 && <p className="text-sm text-slate-400 text-center py-4">Ничего не найдено</p>}
           </div>
+          <button
+            onClick={addSelectedExercises}
+            disabled={selectedLibraryIds.size === 0}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+          >
+            {selectedLibraryIds.size === 0 ? 'Выберите упражнения' : `Добавить (${selectedLibraryIds.size})`}
+          </button>
         </Modal>
       )}
     </Layout>

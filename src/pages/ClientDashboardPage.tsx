@@ -16,7 +16,9 @@ interface AssignmentData extends AssignedWorkout {
 const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь']
 const DAYS_RU = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
 
-function toDateStr(d: Date) { return d.toISOString().split('T')[0] }
+function toDateStr(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 function getMonthDays(start: Date): (Date | null)[] {
   const y = start.getFullYear(), m = start.getMonth()
@@ -81,7 +83,7 @@ export default function ClientDashboardPage() {
   const plannedByDay = new Map<string, AssignmentData>()
   for (const a of assignments) {
     if (a.status === 'completed' && a.completed_at) {
-      completedByDay.set(a.completed_at.split('T')[0], a)
+      completedByDay.set(toDateStr(new Date(a.completed_at)), a)
     } else if (a.planned_date) {
       plannedByDay.set(a.planned_date, a)
     }
@@ -91,12 +93,11 @@ export default function ClientDashboardPage() {
   const todayWorkout = active.find(a => a.planned_date === today)
 
   // Month stats
-  const monthStr = toDateStr(currentMonth)
-  const nextMonthStr = toDateStr(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
-  const completedThisMonth = assignments.filter(a =>
-    a.status === 'completed' && a.completed_at &&
-    a.completed_at >= monthStr && a.completed_at < nextMonthStr
-  ).length
+  const completedThisMonth = assignments.filter(a => {
+    if (a.status !== 'completed' || !a.completed_at) return false
+    const d = new Date(a.completed_at)
+    return d.getFullYear() === currentMonth.getFullYear() && d.getMonth() === currentMonth.getMonth()
+  }).length
 
   function prevMonth() { setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1)) }
   function nextMonth() { setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() + 1, 1)) }

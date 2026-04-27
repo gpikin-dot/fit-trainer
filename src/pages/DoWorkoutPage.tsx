@@ -45,6 +45,8 @@ export default function DoWorkoutPage() {
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [confirmInfo, setConfirmInfo] = useState({ done: 0, total: 0 })
 
   useEffect(() => {
     if (assignedId && Object.keys(exState).length > 0) {
@@ -313,7 +315,12 @@ export default function DoWorkoutPage() {
             })}
 
             <button
-              onClick={handleFinish}
+              onClick={() => {
+                const total = exercises.length
+                const done = exercises.filter(ex => exState[ex.id]?.sets.some(s => s.completed)).length
+                if (done < total) { setConfirmInfo({ done, total }); setShowConfirm(true) }
+                else handleFinish()
+              }}
               disabled={saving}
               className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-3 rounded-xl"
             >
@@ -379,6 +386,28 @@ export default function DoWorkoutPage() {
             >
               <SkipForward className="w-3 h-3" /> Пропустить
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation dialog */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50 pb-8 px-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <h3 className="font-semibold text-lg mb-2">Завершить тренировку?</h3>
+            <p className="text-sm text-slate-500 mb-6">
+              Ты выполнил {confirmInfo.done} из {confirmInfo.total} упражнений.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowConfirm(false)}
+                className="flex-1 border border-slate-200 rounded-xl py-3 text-sm text-slate-600 hover:bg-slate-50">
+                Продолжить
+              </button>
+              <button onClick={() => { setShowConfirm(false); handleFinish() }}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-xl py-3 text-sm font-medium">
+                Завершить
+              </button>
+            </div>
           </div>
         </div>
       )}

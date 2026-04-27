@@ -304,7 +304,10 @@ export default function DoWorkoutPage() {
 
       {/* Full ring timer sheet — only on this page */}
       {timerActive && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.12)] z-40 flex flex-col items-center px-6 pb-6 pt-3">
+        <div
+          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.12)] z-40 flex flex-col items-center px-6 pb-6 pt-3"
+          style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+        >
           <div className="w-8 h-1 bg-slate-200 rounded-full mb-4" />
 
           <div className="relative w-24 h-24">

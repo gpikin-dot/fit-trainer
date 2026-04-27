@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { ArrowLeft, Plus, Trash2, Search } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -33,10 +33,11 @@ export default function CreateWorkoutPage() {
   const { id } = useParams()
   const isEdit = !!id
   const { profile } = useAuth()
+  const [searchParams] = useSearchParams()
 
   const [name, setName] = useState('')
   const [defaultRest, setDefaultRest] = useState('90')
-  const [contextClientId, setContextClientId] = useState('')
+  const [contextClientId, setContextClientId] = useState(searchParams.get('client') ?? '')
   const [exercises, setExercises] = useState<WorkoutExercise[]>([])
   const [clients, setClients] = useState<Profile[]>([])
   const [library, setLibrary] = useState<ExerciseLibrary[]>([])

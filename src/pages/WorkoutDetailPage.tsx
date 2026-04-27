@@ -18,6 +18,7 @@ export default function WorkoutDetailPage() {
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [dateType, setDateType] = useState<'open' | 'specific'>('open')
   const [assignDate, setAssignDate] = useState('')
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -66,15 +67,21 @@ export default function WorkoutDetailPage() {
     navigate('/trainer')
   }
 
-  async function handleAssign(clientId: string) {
-    const payload: Record<string, unknown> = { workout_id: id, client_id: clientId }
+  function closeAssignModal() {
+    setShowAssignModal(false)
+    setDateType('open')
+    setAssignDate('')
+    setSelectedClientId(null)
+  }
+
+  async function handleAssign() {
+    if (!selectedClientId) return
+    const payload: Record<string, unknown> = { workout_id: id, client_id: selectedClientId }
     if (dateType === 'specific' && assignDate) payload.planned_date = assignDate
     const { data, error: err } = await supabase.from('assigned_workouts').insert(payload).select('*, profile:profiles(*)').single()
     if (err) { setError(err.message); return }
     if (data) setAssignments(prev => [...prev, data])
-    setShowAssignModal(false)
-    setDateType('open')
-    setAssignDate('')
+    closeAssignModal()
   }
 
   const assignedClientIds = assignments.map(a => a.client_id)
@@ -151,39 +158,55 @@ export default function WorkoutDetailPage() {
       </div>
 
       {showAssignModal && (
-        <Modal onClose={() => setShowAssignModal(false)}>
+        <Modal onClose={closeAssignModal}>
           <h2 className="text-xl font-semibold mb-4">Назначить клиенту</h2>
 
-          {/* Date type toggle */}
-          <div className="flex gap-2 mb-3">
-            <button onClick={() => setDateType('open')}
-              className={`flex-1 py-2 text-xs rounded-lg border transition-colors ${dateType === 'open' ? 'bg-indigo-50 border-indigo-400 text-indigo-700 font-medium' : 'border-slate-200 text-slate-500'}`}>
-              Открытая дата
-            </button>
-            <button onClick={() => setDateType('specific')}
-              className={`flex-1 py-2 text-xs rounded-lg border transition-colors ${dateType === 'specific' ? 'bg-indigo-50 border-indigo-400 text-indigo-700 font-medium' : 'border-slate-200 text-slate-500'}`}>
-              Конкретная дата
-            </button>
-          </div>
-          {dateType === 'specific' && (
-            <input type="date" value={assignDate}
-              onChange={e => setAssignDate(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-3 font-[inherit]" />
-          )}
-
           {availableClients.length === 0
-            ? <p className="text-sm text-slate-500">Все ваши клиенты уже получили эту тренировку.</p>
-            : <div className="space-y-1">
-              {availableClients.map(c => (
-                <button key={c.id} onClick={() => handleAssign(c.id)}
-                  className="w-full text-left border border-slate-200 rounded-lg p-3 hover:border-indigo-400 hover:bg-indigo-50">
-                  <div className="font-medium text-sm">{c.name}</div>
+            ? <p className="text-sm text-slate-500 mb-4">Все ваши клиенты уже получили эту тренировку.</p>
+            : <>
+              {/* Step 1: client */}
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">1. Выберите клиента</p>
+              <div className="space-y-1 mb-4">
+                {availableClients.map(c => (
+                  <button key={c.id} onClick={() => setSelectedClientId(c.id)}
+                    className={`w-full text-left rounded-lg p-3 border transition-colors ${selectedClientId === c.id ? 'border-indigo-500 bg-indigo-50 text-indigo-800' : 'border-slate-200 hover:border-slate-300'}`}>
+                    <div className="font-medium text-sm">{c.name}</div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Step 2: date */}
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">2. Дата тренировки</p>
+              <div className="flex gap-2 mb-3">
+                <button onClick={() => setDateType('open')}
+                  className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${dateType === 'open' ? 'bg-indigo-50 border-indigo-400 text-indigo-700 font-medium' : 'border-slate-200 text-slate-500'}`}>
+                  Открытая дата
                 </button>
-              ))}
-            </div>
+                <button onClick={() => setDateType('specific')}
+                  className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${dateType === 'specific' ? 'bg-indigo-50 border-indigo-400 text-indigo-700 font-medium' : 'border-slate-200 text-slate-500'}`}>
+                  Конкретная дата
+                </button>
+              </div>
+              {dateType === 'open' && (
+                <p className="text-xs text-slate-400 mb-3">Клиент сможет выполнить тренировку в любой день.</p>
+              )}
+              {dateType === 'specific' && (
+                <input type="date" value={assignDate}
+                  onChange={e => setAssignDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-3 text-base mb-3 font-[inherit] bg-white" />
+              )}
+
+              {/* Confirm */}
+              <button
+                onClick={handleAssign}
+                disabled={!selectedClientId || (dateType === 'specific' && !assignDate)}
+                className="w-full py-3 rounded-xl bg-indigo-600 text-white font-medium text-sm transition-opacity disabled:opacity-40 active:opacity-80 mb-2">
+                Назначить
+              </button>
+            </>
           }
-          <button onClick={() => setShowAssignModal(false)} className="mt-4 w-full text-sm text-slate-500 hover:text-slate-700">Закрыть</button>
+          <button onClick={closeAssignModal} className="w-full text-sm text-slate-500 hover:text-slate-700 py-1">Отмена</button>
         </Modal>
       )}
     </Layout>

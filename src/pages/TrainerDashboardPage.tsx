@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, UserPlus, ChevronRight, Copy, Check, ClipboardList, Users } from 'lucide-react'
+import { Plus, UserPlus, ChevronRight, Copy, Check, ClipboardList, Users, Star } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
@@ -11,7 +11,7 @@ import type { Workout, Profile, Invite } from '../types/database'
 export default function TrainerDashboardPage() {
   const navigate = useNavigate()
   const { profile } = useAuth()
-  const [tab, setTab] = useState<'workouts' | 'clients'>('workouts')
+  const [tab, setTab] = useState<'workouts' | 'favorites' | 'clients'>('workouts')
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [clients, setClients] = useState<Profile[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
@@ -33,6 +33,13 @@ export default function TrainerDashboardPage() {
       setLoading(false)
     })
   }, [profile])
+
+  async function toggleFavorite(e: React.MouseEvent, workout: Workout) {
+    e.stopPropagation()
+    const newVal = !workout.is_favorite
+    setWorkouts(prev => prev.map(w => w.id === workout.id ? { ...w, is_favorite: newVal } : w))
+    await supabase.from('workouts').update({ is_favorite: newVal }).eq('id', workout.id)
+  }
 
   async function handleCreateInvite() {
     if (!profile) return
@@ -62,6 +69,7 @@ export default function TrainerDashboardPage() {
   }
 
   const activeInvites = invites.filter(i => !i.used_by && new Date(i.expires_at) > new Date())
+  const favorites = workouts.filter(w => w.is_favorite)
 
   if (loading) return (
     <Layout>
@@ -89,28 +97,40 @@ export default function TrainerDashboardPage() {
         <TabButton active={tab === 'workouts'} onClick={() => setTab('workouts')}>
           <span className="flex items-center gap-1.5"><ClipboardList className="w-4 h-4" /> Тренировки ({workouts.length})</span>
         </TabButton>
+        <TabButton active={tab === 'favorites'} onClick={() => setTab('favorites')}>
+          <span className="flex items-center gap-1.5"><Star className="w-4 h-4" /> Избранное ({favorites.length})</span>
+        </TabButton>
         <TabButton active={tab === 'clients'} onClick={() => setTab('clients')}>
           <span className="flex items-center gap-1.5"><Users className="w-4 h-4" /> Клиенты ({clients.length})</span>
         </TabButton>
       </div>
 
-      {tab === 'workouts' && (
-        workouts.length === 0
-          ? <EmptyState text="Пока нет тренировок. Создайте первую!" />
+      {(tab === 'workouts' || tab === 'favorites') && (() => {
+        const list = tab === 'favorites' ? favorites : workouts
+        return list.length === 0
+          ? <EmptyState text={tab === 'favorites' ? 'Нет избранных тренировок. Нажмите ★ на тренировке.' : 'Пока нет тренировок. Создайте первую!'} />
           : <div className="space-y-2">
-            {workouts.map(w => (
+            {list.map(w => (
               <Card key={w.id} onClick={() => navigate(`/trainer/workout/${w.id}`)}>
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-medium">{w.name}</div>
                     <div className="text-sm text-slate-500 mt-0.5">{formatDate(w.created_at)}</div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-slate-400" />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={e => toggleFavorite(e, w)}
+                      className={`p-1 rounded transition-colors ${w.is_favorite ? 'text-amber-400 hover:text-amber-500' : 'text-slate-300 hover:text-amber-400'}`}
+                    >
+                      <Star className="w-5 h-5" fill={w.is_favorite ? 'currentColor' : 'none'} />
+                    </button>
+                    <ChevronRight className="w-5 h-5 text-slate-400" />
+                  </div>
                 </div>
               </Card>
             ))}
           </div>
-      )}
+      })()}
 
       {tab === 'clients' && (
         clients.length === 0

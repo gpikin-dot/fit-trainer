@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Volume2, VolumeX, SkipForward, Plus, Pause, Play } from 'lucide-react'
+import { ArrowLeft, Volume2, VolumeX, SkipForward, Plus, Pause, Play, ChevronRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useTimer } from '../contexts/TimerContext'
@@ -42,18 +42,24 @@ export default function DoWorkoutPage() {
   const [existingResults, setExistingResults] = useState<ExerciseResult[]>([])
   const [exState, setExState] = useState<Record<string, ExerciseState>>({})
   const [loaded, setLoaded] = useState(false)
+  const [currentExIdx, setCurrentExIdx] = useState(0)
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [showConfirm, setShowConfirm] = useState(false)
   const [confirmInfo, setConfirmInfo] = useState({ done: 0, total: 0 })
 
+  const touchStartX = useRef<number | null>(null)
+  const touchStartY = useRef<number | null>(null)
+
+  // Persist progress to localStorage
   useEffect(() => {
     if (assignedId && Object.keys(exState).length > 0) {
       localStorage.setItem(storageKey(assignedId), JSON.stringify(exState))
     }
   }, [exState, assignedId])
 
+  // Load data
   useEffect(() => {
     if (!assignedId) return
     Promise.all([
@@ -105,15 +111,30 @@ export default function DoWorkoutPage() {
     })
   }, [assignedId])
 
-  // Scroll to the exercise being timed when returning to this page
+  // Navigate to the exercise being timed
   useEffect(() => {
-    if (timerActive && timerExerciseId && exercises.length > 0) {
-      setTimeout(() => {
-        document.getElementById(`exercise-${timerExerciseId}`)
-          ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }, 150)
+    if (timerExerciseId && exercises.length > 0) {
+      const idx = exercises.findIndex(e => e.id === timerExerciseId)
+      if (idx >= 0) setCurrentExIdx(idx)
     }
-  }, [timerActive, timerExerciseId, exercises.length])
+  }, [timerExerciseId, exercises.length])
+
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null || touchStartY.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    const dy = e.changedTouches[0].clientY - touchStartY.current
+    if (Math.abs(dx) > Math.abs(dy) + 10 && Math.abs(dx) > 50) {
+      if (dx < 0 && currentExIdx < exercises.length - 1) setCurrentExIdx(i => i + 1)
+      if (dx > 0 && currentExIdx > 0) setCurrentExIdx(i => i - 1)
+    }
+    touchStartX.current = null
+    touchStartY.current = null
+  }
 
   function markSet(exId: string, setIdx: number) {
     const wasCompleted = exState[exId]?.sets[setIdx]?.completed
@@ -196,99 +217,155 @@ export default function DoWorkoutPage() {
 
   const ringOffset = timerTotal > 0 ? RING_C * (1 - timerSec / timerTotal) : 0
 
-  // Three direct children of Layout (fullHeight):
-  // 1. shrink-0 page header
-  // 2. flex-1 min-h-0 scrollable exercises
-  // 3. shrink-0 timer sheet (when active)
+  const currentEx = exercises[currentExIdx]
+  const currentSt = currentEx ? exState[currentEx.id] : null
+  const currentSetIdx = currentSt ? currentSt.sets.findIndex(s => !s.completed) : -1
+  const allSetsThisExDone = currentSetIdx === -1
+
+  const isLastExercise = currentExIdx === exercises.length - 1
+
   return (
     <Layout fullHeight>
 
-      {/* 1. Page header — fixed, not scrollable */}
-      <div className="shrink-0 px-4 pt-4 pb-2 border-b border-slate-100">
-        <Link to="/client" className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-2">
-          <ArrowLeft className="w-4 h-4" /> Назад
-        </Link>
-        {workout && (
-          <>
-            <h1 className="text-xl font-semibold">{workout.name}</h1>
-            <p className="text-xs text-slate-500 mt-0.5">Отдых по умолчанию: {workout.default_rest_sec} сек</p>
-          </>
-        )}
+      {/* Header */}
+      <div className="shrink-0 px-4 pt-4 pb-3 border-b border-slate-100">
+        <div className="flex items-center justify-between mb-2">
+          <Link to="/client" className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
+            <ArrowLeft className="w-4 h-4" /> Назад
+          </Link>
+          {exercises.length > 0 && (
+            <span className="text-xs text-slate-400 font-medium">
+              {currentExIdx + 1} из {exercises.length}
+            </span>
+          )}
+        </div>
+        {workout && <h1 className="text-base font-semibold truncate">{workout.name}</h1>}
         {error && <ErrorMessage text={error} />}
+
+        {/* Progress segments */}
+        {exercises.length > 0 && (
+          <div className="flex gap-1 mt-2">
+            {exercises.map((ex, i) => {
+              const done = exState[ex.id]?.sets.some(s => s.completed)
+              return (
+                <button
+                  key={ex.id}
+                  onClick={() => setCurrentExIdx(i)}
+                  className={`h-1.5 rounded-full flex-1 transition-colors ${
+                    i === currentExIdx ? 'bg-slate-800' :
+                    done ? 'bg-emerald-400' : 'bg-slate-200'
+                  }`}
+                />
+              )
+            })}
+          </div>
+        )}
       </div>
 
-      {/* 2. Scrollable exercises area */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
-        {!loaded ? (
-          <div className="text-center py-12 text-slate-400">Загрузка...</div>
-        ) : (
-          <div className="space-y-4">
-            {exercises.map((ex, idx) => {
+      {/* Carousel */}
+      {!loaded ? (
+        <div className="flex-1 flex items-center justify-center text-slate-400">Загрузка...</div>
+      ) : (
+        <div
+          className="flex-1 min-h-0 overflow-hidden"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
+          <div
+            className="flex h-full transition-transform duration-300 ease-out"
+            style={{ transform: `translateX(${-currentExIdx * 100}%)` }}
+          >
+            {exercises.map((ex) => {
               const st = exState[ex.id]
-              if (!st) return null
+              if (!st) return <div key={ex.id} className="w-full h-full shrink-0" />
+              const thisSetIdx = st.sets.findIndex(s => !s.completed)
+
               return (
-                <div
-                  id={`exercise-${ex.id}`}
-                  key={ex.id}
-                  className="bg-white border border-slate-200 rounded-xl p-4"
-                >
-                  <div className="mb-3">
-                    <div className="font-medium">{idx + 1}. {ex.exercise_library.name_ru}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">
+                <div key={ex.id} className="w-full h-full shrink-0 overflow-y-auto px-4 py-4">
+
+                  {/* Exercise title */}
+                  <div className="mb-4">
+                    <h2 className="text-xl font-semibold leading-tight">{ex.exercise_library.name_ru}</h2>
+                    <div className="text-sm text-slate-400 mt-0.5">
                       {ex.exercise_library.exercise_type === 'cardio_time'
                         ? `${ex.sets > 1 ? `${ex.sets} интервала · ` : ''}${ex.reps} мин${ex.weight_kg > 0 ? ` · ${ex.weight_kg} км` : ''}`
                         : ex.exercise_library.exercise_type === 'cardio_reps'
                           ? `${ex.sets} подхода · ${ex.reps} повт`
-                          : `${ex.sets} подхода · ${ex.reps} повт · ${ex.weight_kg > 0 ? `${ex.weight_kg} кг` : 'вес не указан'}`
+                          : `${ex.sets} подхода · ${ex.reps} повт${ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}`
                       }
                     </div>
-                    {ex.trainer_note && <div className="text-xs text-indigo-700 mt-1 italic">{ex.trainer_note}</div>}
-                  </div>
-
-                  <div className="space-y-2">
-                    {st.sets.map((s, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <button
-                          onClick={() => markSet(ex.id, i)}
-                          className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium shrink-0 transition-colors ${s.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 text-slate-400 hover:border-emerald-400'}`}
-                        >
-                          {s.completed ? '✓' : i + 1}
-                        </button>
-                        {ex.exercise_library.exercise_type === 'cardio_time' ? (
-                          <>
-                            <input type="text" inputMode="numeric" value={s.reps}
-                              onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
-                              onFocus={e => e.target.select()}
-                              className="w-16 border border-slate-300 rounded px-2 py-1 text-sm text-center" placeholder="мин" />
-                            <span className="text-slate-400 text-xs">мин</span>
-                            <input type="text" inputMode="decimal" value={s.weight}
-                              onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
-                              onFocus={e => e.target.select()}
-                              className="w-20 border border-slate-300 rounded px-2 py-1 text-sm text-center" placeholder="0" />
-                            <span className="text-slate-400 text-xs">км</span>
-                          </>
-                        ) : (
-                          <>
-                            <input type="text" inputMode="numeric" value={s.reps}
-                              onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
-                              onFocus={e => e.target.select()}
-                              className="w-16 border border-slate-300 rounded px-2 py-1 text-sm text-center" placeholder="повт" />
-                            {ex.exercise_library.exercise_type !== 'cardio_reps' && (
-                              <>
-                                <span className="text-slate-400 text-sm">×</span>
-                                <input type="text" inputMode="decimal" value={s.weight}
-                                  onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
-                                  onFocus={e => e.target.select()}
-                                  className="w-20 border border-slate-300 rounded px-2 py-1 text-sm text-center" placeholder="кг" />
-                                <span className="text-slate-400 text-xs">кг</span>
-                              </>
-                            )}
-                          </>
-                        )}
+                    {ex.trainer_note && (
+                      <div className="text-xs text-indigo-700 mt-2 italic bg-indigo-50 px-3 py-2 rounded-xl">
+                        {ex.trainer_note}
                       </div>
-                    ))}
+                    )}
                   </div>
 
+                  {/* Sets */}
+                  <div className="space-y-2">
+                    {st.sets.map((s, i) => {
+                      const isCurrentSet = i === thisSetIdx
+                      return (
+                        <div
+                          key={i}
+                          className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                            s.completed
+                              ? 'bg-emerald-50 border-emerald-200'
+                              : isCurrentSet
+                                ? 'bg-white border-slate-800 shadow-sm'
+                                : 'bg-white border-slate-200'
+                          }`}
+                        >
+                          <button
+                            onClick={() => markSet(ex.id, i)}
+                            className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors ${
+                              s.completed
+                                ? 'bg-emerald-500 text-white'
+                                : isCurrentSet
+                                  ? 'bg-slate-800 text-white'
+                                  : 'border border-slate-300 text-slate-400'
+                            }`}
+                          >
+                            {s.completed ? '✓' : i + 1}
+                          </button>
+
+                          {ex.exercise_library.exercise_type === 'cardio_time' ? (
+                            <>
+                              <input type="text" inputMode="numeric" value={s.reps}
+                                onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
+                                onFocus={e => e.target.select()}
+                                className="w-14 border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-center" placeholder="мин" />
+                              <span className="text-slate-400 text-xs">мин</span>
+                              <input type="text" inputMode="decimal" value={s.weight}
+                                onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
+                                onFocus={e => e.target.select()}
+                                className="w-16 border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-center" placeholder="0" />
+                              <span className="text-slate-400 text-xs">км</span>
+                            </>
+                          ) : (
+                            <>
+                              <input type="text" inputMode="numeric" value={s.reps}
+                                onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
+                                onFocus={e => e.target.select()}
+                                className="w-14 border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-center" placeholder="повт" />
+                              {ex.exercise_library.exercise_type !== 'cardio_reps' && (
+                                <>
+                                  <span className="text-slate-300 text-sm">×</span>
+                                  <input type="text" inputMode="decimal" value={s.weight}
+                                    onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
+                                    onFocus={e => e.target.select()}
+                                    className="w-16 border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-center" placeholder="кг" />
+                                  <span className="text-slate-400 text-xs">кг</span>
+                                </>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* Heart rate for cardio */}
                   {ex.exercise_library.exercise_type === 'cardio_time' && (
                     <div className="mt-3 flex items-center gap-2">
                       <span className="text-xs text-slate-500 shrink-0">Пульс (уд/мин)</span>
@@ -299,41 +376,69 @@ export default function DoWorkoutPage() {
                         onChange={e => updateHeartRate(ex.id, e.target.value)}
                         onFocus={e => e.target.select()}
                         placeholder={ex.target_heart_rate_bpm ? `цель: ${ex.target_heart_rate_bpm}` : 'не указан'}
-                        className="w-24 border border-slate-300 rounded px-2 py-1 text-sm text-center"
+                        className="w-24 border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-center"
                       />
                     </div>
                   )}
-                  <div className="mt-2">
+
+                  {/* Note */}
+                  <div className="mt-3">
                     <input
                       type="text"
                       value={st.note}
                       onChange={e => updateNote(ex.id, e.target.value)}
                       placeholder="Комментарий..."
-                      className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-600 placeholder-slate-300"
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-600 placeholder-slate-300"
                     />
                   </div>
+
+                  <div className="h-4" />
                 </div>
               )
             })}
-
-            <button
-              onClick={() => {
-                const total = exercises.length
-                const done = exercises.filter(ex => exState[ex.id]?.sets.some(s => s.completed)).length
-                if (done < total) { setConfirmInfo({ done, total }); setShowConfirm(true) }
-                else handleFinish()
-              }}
-              disabled={saving}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-3 rounded-xl"
-            >
-              {saving ? 'Сохранение...' : '✓ Завершить тренировку'}
-            </button>
-            <div className="h-2" />
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* 3. Timer sheet — at bottom, shrink-0, no position:fixed */}
+      {/* Bottom action button */}
+      {loaded && !timerActive && currentEx && (
+        <div className="shrink-0 px-4 pb-safe-or-6 pt-3 bg-white border-t border-slate-100">
+          <div className="pb-2">
+            {allSetsThisExDone ? (
+              isLastExercise ? (
+                <button
+                  onClick={() => {
+                    const total = exercises.length
+                    const done = exercises.filter(ex => exState[ex.id]?.sets.some(s => s.completed)).length
+                    if (done < total) { setConfirmInfo({ done, total }); setShowConfirm(true) }
+                    else handleFinish()
+                  }}
+                  disabled={saving}
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold py-4 rounded-2xl text-base"
+                >
+                  {saving ? 'Сохранение...' : '✓ Завершить тренировку'}
+                </button>
+              ) : (
+                <button
+                  onClick={() => setCurrentExIdx(i => i + 1)}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-4 rounded-2xl text-base flex items-center justify-center gap-2"
+                >
+                  Следующее упражнение <ChevronRight className="w-5 h-5" />
+                </button>
+              )
+            ) : (
+              <button
+                onClick={() => markSet(currentEx.id, currentSetIdx)}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-4 rounded-2xl text-base"
+              >
+                ✓ Подход {currentSetIdx + 1} выполнен
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Timer sheet */}
       {timerActive && (
         <div className="shrink-0 bg-white rounded-t-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.12)] flex flex-col items-center px-6 pb-6 pt-3">
           <div className="w-8 h-1 bg-slate-200 rounded-full mb-4" />

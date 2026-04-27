@@ -182,10 +182,12 @@ export default function DoWorkoutPage() {
       }
     }
 
-    await supabase.from('assigned_workouts').update({
+    const { error: updateErr } = await supabase.from('assigned_workouts').update({
       status: 'completed',
       completed_at: new Date().toISOString(),
     }).eq('id', assignment.id)
+
+    if (updateErr) { setError(updateErr.message); setSaving(false); return }
 
     if (assignedId) localStorage.removeItem(storageKey(assignedId))
     skipTimer()

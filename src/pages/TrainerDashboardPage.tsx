@@ -4,7 +4,7 @@ import { Plus, UserPlus, ChevronRight, Copy, Check, ClipboardList, Users, Star }
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
-import { Card, EmptyState, Modal, TabButton, plural, formatDate, ErrorMessage } from '../components/UI'
+import { Card, EmptyState, Modal, TabButton, formatDate, ErrorMessage } from '../components/UI'
 import { canCreateWorkout, canInviteClient } from '../lib/planLimits'
 import type { Workout, Profile, Invite } from '../types/database'
 

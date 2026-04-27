@@ -197,7 +197,7 @@ export default function CreateWorkoutPage() {
       <h1 className="text-2xl font-semibold mb-5">{isEdit ? 'Редактировать тренировку' : 'Новая тренировка'}</h1>
 
       <div className="space-y-4 mb-6">
-        <Input label="Название" value={name} onChange={setName} placeholder="Например: Ноги. День 1" />
+        <Input label="Название" value={name} onChange={v => { setName(v); setError('') }} placeholder="Например: Ноги. День 1" />
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Время отдыха между подходами (сек)</label>
           <input type="text" inputMode="numeric" value={defaultRest}

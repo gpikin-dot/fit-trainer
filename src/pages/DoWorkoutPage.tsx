@@ -16,6 +16,7 @@ interface SetState {
 interface ExerciseState {
   sets: SetState[]
   note: string
+  heartRate: string
 }
 
 export default function DoWorkoutPage() {
@@ -66,6 +67,7 @@ export default function DoWorkoutPage() {
             weight: existing?.actual_weight_kg != null ? String(existing.actual_weight_kg) : String(ex.weight_kg),
           })),
           note: existing?.client_note ?? '',
+          heartRate: existing?.actual_heart_rate_bpm != null ? String(existing.actual_heart_rate_bpm) : '',
         }
       }
       setExState(initial)
@@ -142,6 +144,10 @@ export default function DoWorkoutPage() {
     setExState(prev => ({ ...prev, [exId]: { ...prev[exId], note } }))
   }
 
+  function updateHeartRate(exId: string, heartRate: string) {
+    setExState(prev => ({ ...prev, [exId]: { ...prev[exId], heartRate } }))
+  }
+
   async function handleFinish() {
     if (!assignment || !profile) return
     setSaving(true)
@@ -161,6 +167,7 @@ export default function DoWorkoutPage() {
         actual_weight_kg: lastCompleted ? (parseFloat(lastCompleted.weight) || null) : null,
         completed,
         client_note: st.note || null,
+        actual_heart_rate_bpm: st.heartRate ? (parseInt(st.heartRate) || null) : null,
       }
 
       if (existing) {
@@ -261,7 +268,21 @@ export default function DoWorkoutPage() {
                 ))}
               </div>
 
-              <div className="mt-3">
+              {ex.exercise_library.exercise_type === 'cardio_time' && (
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="text-xs text-slate-500 shrink-0">Пульс (уд/мин)</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={st.heartRate}
+                    onChange={e => updateHeartRate(ex.id, e.target.value)}
+                    onFocus={e => e.target.select()}
+                    placeholder={ex.target_heart_rate_bpm ? `цель: ${ex.target_heart_rate_bpm}` : 'не указан'}
+                    className="w-24 border border-slate-300 rounded px-2 py-1 text-sm text-center"
+                  />
+                </div>
+              )}
+              <div className="mt-2">
                 <input
                   type="text"
                   value={st.note}

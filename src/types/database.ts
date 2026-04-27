@@ -54,6 +54,7 @@ export interface Exercise {
   weight_kg: number
   rest_sec: number | null
   trainer_note: string | null
+  target_heart_rate_bpm: number | null
   order: number
 }
 
@@ -72,6 +73,7 @@ export interface ExerciseResult {
   exercise_id: string
   actual_reps: number | null
   actual_weight_kg: number | null
+  actual_heart_rate_bpm: number | null
   completed: boolean
   client_note: string | null
 }

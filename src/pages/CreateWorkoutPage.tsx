@@ -19,6 +19,7 @@ interface WorkoutExercise {
   weight_kg: string
   rest_sec: number | null
   trainer_note: string
+  target_heart_rate_bpm: number | null
   order: number
 }
 
@@ -66,6 +67,7 @@ export default function CreateWorkoutPage() {
           weight_kg: String(e.weight_kg),
           rest_sec: e.rest_sec,
           trainer_note: e.trainer_note ?? '',
+          target_heart_rate_bpm: e.target_heart_rate_bpm ?? null,
           order: e.order,
         })))
       })
@@ -135,6 +137,7 @@ export default function CreateWorkoutPage() {
           weight_kg: '0',
           rest_sec: null,
           trainer_note: '',
+          target_heart_rate_bpm: null,
           order: prev.length + i,
         }
       }),
@@ -179,6 +182,7 @@ export default function CreateWorkoutPage() {
         weight_kg: parseFloat(e.weight_kg.replace(',', '.')) || 0,
         rest_sec: e.rest_sec,
         trainer_note: e.trainer_note || null,
+        target_heart_rate_bpm: e.target_heart_rate_bpm ?? null,
         order: e.order,
       })))
     }
@@ -321,10 +325,23 @@ export default function CreateWorkoutPage() {
                     onFocus={e => e.target.select()} placeholder="по умолч." className={numInput} />
                 </div>
               </div>
-              <div className="mt-2">
-                <label className="text-xs text-slate-500">Комментарий тренера</label>
-                <input type="text" value={ex.trainer_note} onChange={e => updateExercise(ex.tempId, { trainer_note: e.target.value })}
-                  placeholder="Необязательно" className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" />
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                {exType === 'cardio_time' && (
+                  <div>
+                    <label className="text-xs text-slate-500">Целевой пульс (уд/мин)</label>
+                    <input type="text" inputMode="numeric"
+                      value={ex.target_heart_rate_bpm ?? ''}
+                      onChange={e => updateExercise(ex.tempId, { target_heart_rate_bpm: e.target.value ? parseInt(e.target.value) : null })}
+                      onFocus={e => e.target.select()}
+                      placeholder="Не задан"
+                      className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" />
+                  </div>
+                )}
+                <div className={exType === 'cardio_time' ? '' : 'col-span-2'}>
+                  <label className="text-xs text-slate-500">Комментарий тренера</label>
+                  <input type="text" value={ex.trainer_note} onChange={e => updateExercise(ex.tempId, { trainer_note: e.target.value })}
+                    placeholder="Необязательно" className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" />
+                </div>
               </div>
 
               {contextClientId && hist && (

@@ -16,7 +16,7 @@ interface WorkoutExercise {
   library: ExerciseLibrary
   sets: number
   reps: number
-  weight_kg: number
+  weight_kg: string
   rest_sec: number | null
   trainer_note: string
   order: number
@@ -62,7 +62,7 @@ export default function CreateWorkoutPage() {
           library: e.exercise_library,
           sets: e.sets,
           reps: e.reps,
-          weight_kg: e.weight_kg,
+          weight_kg: String(e.weight_kg),
           rest_sec: e.rest_sec,
           trainer_note: e.trainer_note ?? '',
           order: e.order,
@@ -118,7 +118,7 @@ export default function CreateWorkoutPage() {
       library: lib,
       sets: 3,
       reps: 10,
-      weight_kg: 0,
+      weight_kg: '0',
       rest_sec: null,
       trainer_note: '',
       order: prev.length,
@@ -159,7 +159,7 @@ export default function CreateWorkoutPage() {
         library_exercise_id: e.library_exercise_id,
         sets: e.sets,
         reps: e.reps,
-        weight_kg: e.weight_kg,
+        weight_kg: parseFloat(e.weight_kg.replace(',', '.')) || 0,
         rest_sec: e.rest_sec,
         trainer_note: e.trainer_note || null,
         order: e.order,
@@ -247,9 +247,8 @@ export default function CreateWorkoutPage() {
                 </div>
                 <div>
                   <label className="text-xs text-slate-500">Вес (кг)</label>
-                  <input type="text" inputMode="decimal" value={isNaN(ex.weight_kg) ? '' : ex.weight_kg}
-                    onChange={e => updateExercise(ex.tempId, { weight_kg: parseFloat(e.target.value.replace(',', '.')) })}
-                    onBlur={() => { if (isNaN(ex.weight_kg)) updateExercise(ex.tempId, { weight_kg: 0 }) }}
+                  <input type="text" inputMode="decimal" value={ex.weight_kg}
+                    onChange={e => updateExercise(ex.tempId, { weight_kg: e.target.value })}
                     onFocus={e => e.target.select()} className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" />
                 </div>
                 <div>

@@ -114,9 +114,15 @@ export default function DoWorkoutPage() {
     }))
     if (!wasCompleted && assignedId) {
       const restSec = exercises.find(e => e.id === exId)?.rest_sec ?? workout?.default_rest_sec ?? 90
-      const currentIdx = exercises.findIndex(e => e.id === exId)
-      const nextEx = exercises[currentIdx + 1]
-      startTimer(restSec, nextEx?.exercise_library.name_ru ?? null, assignedId)
+      // Show next exercise only when all sets of the current one are done
+      const currentSets = exState[exId]?.sets ?? []
+      const otherSetsRemaining = currentSets.some((s, i) => i !== setIdx && !s.completed)
+      let nextExName: string | null = null
+      if (!otherSetsRemaining) {
+        const currentIdx = exercises.findIndex(e => e.id === exId)
+        nextExName = exercises[currentIdx + 1]?.exercise_library.name_ru ?? null
+      }
+      startTimer(restSec, nextExName, assignedId)
     }
   }
 

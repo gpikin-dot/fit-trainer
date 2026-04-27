@@ -58,7 +58,7 @@ export default function ClientDashboardPage() {
         ? <EmptyState text="Тренер ещё не назначил тренировок. Загляните позже!" />
         : <div className="space-y-2">
           {assignments.map(a => (
-            <Card key={a.id} onClick={() => navigate(`/client/workout/${a.id}`)}>
+            <Card key={a.id} variant="emerald" onClick={() => navigate(`/client/workout/${a.id}`)}>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">{a.workout?.name ?? '—'}</div>

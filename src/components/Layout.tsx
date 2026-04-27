@@ -13,7 +13,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <button onClick={() => navigate(homeUrl)} className="flex items-center gap-2 hover:opacity-75 transition-opacity">
-            <Dumbbell className="w-6 h-6 text-indigo-600" />
+            <Dumbbell className={`w-6 h-6 ${profile?.role === 'client' ? 'text-emerald-600' : 'text-indigo-600'}`} />
             <span className="font-semibold">FitTrainer</span>
           </button>
           {profile && (

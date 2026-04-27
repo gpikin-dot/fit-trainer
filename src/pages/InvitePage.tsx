@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import type { Invite, Profile } from '../types/database'
+import type { Invite } from '../types/database'
 
 export default function InvitePage() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
   const [invite, setInvite] = useState<Invite | null>(null)
-  const [trainer, setTrainer] = useState<Profile | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -32,7 +31,6 @@ export default function InvitePage() {
         .single()
 
       setInvite(inv)
-      setTrainer(trainerData)
       sessionStorage.setItem('invite_token', token)
       sessionStorage.setItem('invite_trainer_name', trainerData?.name ?? '')
       setLoading(false)

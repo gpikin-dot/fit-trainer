@@ -154,11 +154,12 @@ export default function TrainerDashboardPage() {
           : <div className="space-y-2">
             {clients.map(c => {
               const cnt = clientCounts.get(c.id) ?? { total: 0, completed: 0 }
-              const subtitle = cnt.total === 0
-                ? 'Нет тренировок'
+              const active = cnt.total - cnt.completed
+              const subtitle = active > 0
+                ? `${active} активн${active === 1 ? 'ая' : active < 5 ? 'ых' : 'ых'}`
                 : cnt.completed > 0
-                  ? `${plural(cnt.completed, 'выполнена', 'выполнено', 'выполнено')} ${cnt.completed} из ${cnt.total}`
-                  : `${plural(cnt.total, 'назначена', 'назначено', 'назначено')} ${cnt.total}`
+                  ? `Все выполнены (${cnt.completed})`
+                  : 'Нет тренировок'
               return (
                 <Card key={c.id} onClick={() => navigate(`/trainer/client/${c.id}`)}>
                   <div className="flex items-center justify-between">

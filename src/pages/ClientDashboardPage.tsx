@@ -62,9 +62,12 @@ export default function ClientDashboardPage() {
               <div className="flex items-center justify-between">
                 <div className="min-w-0">
                   <div className="font-medium">{a.workout?.name ?? '—'}</div>
-                  <div className="text-sm text-slate-500 mt-0.5 flex items-center gap-1 whitespace-nowrap">
+                  <div className="text-sm text-slate-500 mt-0.5 flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5 shrink-0" />
-                    {formatDate(a.assigned_at)} · {plural(a.exerciseCount, 'упражнение', 'упражнения', 'упражнений')}
+                    {formatDate(a.assigned_at)}
+                  </div>
+                  <div className="text-sm text-slate-500">
+                    {plural(a.exerciseCount, 'упражнение', 'упражнения', 'упражнений')}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

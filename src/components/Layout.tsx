@@ -65,7 +65,7 @@ export default function Layout({ children, fullHeight = false }: {
               {timerNextEx && (
                 <div className="text-xs text-[var(--slate-500)] max-w-[120px] truncate">{timerNextEx}</div>
               )}
-              <div className="text-[var(--fs-2xs)] text-emerald-600 mt-0.5">вернуться →</div>
+              <div className="text-[var(--fs-2xs)] text-[var(--green-600)] mt-0.5">вернуться →</div>
             </div>
           </button>
 
@@ -90,7 +90,7 @@ export default function Layout({ children, fullHeight = false }: {
             </button>
             <button
               onClick={() => { skipTimer(); assignedWorkoutId && navigate(`/client/workout/${assignedWorkoutId}`) }}
-              className="flex-1 py-2 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 border-l border-[var(--slate-100)]"
+              className="flex-1 py-2 flex items-center justify-center text-[var(--green-600)] hover:bg-[var(--green-50)] border-l border-[var(--slate-100)]"
             >
               <SkipForward className="w-3.5 h-3.5" />
             </button>

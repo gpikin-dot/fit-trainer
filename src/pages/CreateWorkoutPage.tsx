@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Search } from 'lucide-react'
+import { ArrowLeft, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
@@ -163,10 +163,6 @@ export default function CreateWorkoutPage() {
         >
           <ArrowLeft className="w-3 h-3" /> {isEdit ? 'К шаблону' : 'Шаблоны'}
         </Link>
-
-        <h1 className="text-[1rem] font-bold text-[var(--slate-900)] mb-[13px]">
-          {isEdit ? 'Редактировать тренировку' : 'Новая тренировка'}
-        </h1>
 
         {/* Form fields */}
         <div className="mb-[10px]">
@@ -341,7 +337,7 @@ export default function CreateWorkoutPage() {
 
         <button
           onClick={() => setShowLibraryModal(true)}
-          className="border-[1.5px] border-dashed border-[var(--indigo-200)] bg-white rounded-[8px] py-[8px] text-[var(--fs-2xs)] font-bold text-[var(--indigo-500)] w-full flex items-center justify-center gap-1 my-[6px]"
+          className="border-[1.5px] border-dashed border-[var(--indigo-200)] bg-white rounded-[8px] py-[8px] text-[var(--fs-2xs)] font-bold text-[var(--indigo-500)] w-full flex items-center justify-center gap-1 mt-[6px] mb-[8px]"
         >
           <Plus className="w-3.5 h-3.5" /> Добавить упражнение
         </button>
@@ -357,42 +353,48 @@ export default function CreateWorkoutPage() {
 
       {showLibraryModal && (
         <Modal onClose={() => { setShowLibraryModal(false); setSelectedLibraryIds(new Set()) }}>
-          <h2 className="text-lg font-semibold mb-3">Выберите упражнения</h2>
-          <div className="relative mb-3">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-            <input value={librarySearch} onChange={e => setLibrarySearch(e.target.value)} placeholder="Поиск..."
-              className="w-full border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm" />
-          </div>
-          <div className="flex gap-1 flex-wrap mb-3">
+          <p className="text-[var(--fs-md)] font-bold text-[var(--slate-900)] mb-[4px]">Выберите упражнения</p>
+          <p className="text-[var(--fs-3xs)] text-[var(--slate-500)] mb-[12px]">Выбрано: {selectedLibraryIds.size}</p>
+          <input
+            value={librarySearch}
+            onChange={e => setLibrarySearch(e.target.value)}
+            placeholder="🔍 Поиск..."
+            className="w-full border border-[var(--slate-200)] rounded-[8px] px-[9px] py-[7px] text-[var(--fs-xs)] bg-[var(--slate-50)] outline-none focus:border-[var(--indigo-300)] mb-[9px]"
+          />
+          <div className="flex gap-[4px] flex-wrap mb-[9px]">
             {CATEGORIES.map(cat => (
               <button key={cat} onClick={() => setLibraryCategory(cat)}
-                className={`text-xs px-3 py-1.5 rounded-xl border font-medium transition-colors ${libraryCategory === cat ? 'bg-indigo-600 text-white border-indigo-600' : 'border-slate-200 text-slate-600 bg-white hover:border-indigo-400 shadow-sm'}`}>
+                className={`text-[var(--fs-3xs)] font-semibold px-[8px] py-[3px] rounded-[20px] transition-colors ${
+                  libraryCategory === cat
+                    ? 'bg-[var(--indigo-500)] text-white'
+                    : 'bg-[var(--slate-100)] text-[var(--slate-500)]'
+                }`}>
                 {cat}
               </button>
             ))}
           </div>
-          <div className="space-y-1 max-h-[45vh] overflow-y-auto overscroll-contain mb-3">
+          <div className="max-h-[45vh] overflow-y-auto overscroll-contain mb-[9px]">
             {filteredLibrary.map(lib => {
               const selected = selectedLibraryIds.has(lib.id)
               return (
                 <button key={lib.id} onClick={() => toggleLibrarySelect(lib.id)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-3 transition-colors ${selected ? 'bg-indigo-50 border border-indigo-300' : 'hover:bg-slate-50 border border-transparent'}`}>
-                  <div className={`w-5 h-5 rounded border-2 shrink-0 flex items-center justify-center transition-colors ${selected ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'}`}>
-                    {selected && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                  className={`w-full text-left px-[9px] py-[7px] flex items-center gap-[8px] border-b border-[var(--slate-100)] transition-colors ${selected ? 'bg-[var(--indigo-50)]' : 'hover:bg-[var(--slate-50)]'}`}>
+                  <div className={`w-[15px] h-[15px] rounded-[3px] border shrink-0 flex items-center justify-center transition-colors ${selected ? 'bg-[var(--indigo-500)] border-[var(--indigo-500)]' : 'border-[var(--slate-300)] bg-white'}`}>
+                    {selected && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                   </div>
                   <div>
-                    <div className="font-medium">{lib.name_ru}</div>
-                    <div className="text-slate-400 text-xs">{lib.category} · {lib.equipment}</div>
+                    <div className="text-[var(--fs-2xs)] font-semibold text-[var(--slate-900)]">{lib.name_ru}</div>
+                    <div className="text-[var(--fs-3xs)] text-[var(--slate-400)]">{lib.category}</div>
                   </div>
                 </button>
               )
             })}
-            {filteredLibrary.length === 0 && <p className="text-sm text-slate-400 text-center py-4">Ничего не найдено</p>}
+            {filteredLibrary.length === 0 && <p className="text-[var(--fs-xs)] text-[var(--slate-400)] text-center py-4">Ничего не найдено</p>}
           </div>
           <button
             onClick={addSelectedExercises}
             disabled={selectedLibraryIds.size === 0}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+            className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] disabled:opacity-40 text-white text-[var(--fs-2xs)] font-bold py-[9px] rounded-[8px] transition-colors"
           >
             {selectedLibraryIds.size === 0 ? 'Выберите упражнения' : `Добавить (${selectedLibraryIds.size})`}
           </button>

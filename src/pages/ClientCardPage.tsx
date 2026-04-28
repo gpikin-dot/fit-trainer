@@ -150,12 +150,12 @@ export default function ClientCardPage() {
                     <div className="flex justify-between gap-[6px]">
                       <div className="flex-1 min-w-0">
                         <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{a.workout?.name ?? '—'}</div>
-                        <div className="text-[var(--fs-2xs)] text-[var(--slate-400)] mt-[2px]">{dateLabel}</div>
+                        <div className="text-[var(--fs-3xs)] text-[var(--slate-400)] mt-[2px]">{dateLabel}</div>
                       </div>
-                      <span className={`text-[var(--fs-2xs)] font-bold px-[7px] py-[2px] rounded-[20px] shrink-0 ${
+                      <span className={`text-[var(--fs-3xs)] font-bold px-[7px] py-[2px] rounded-[20px] shrink-0 ${
                         started ? 'bg-[var(--amber-100)] text-[var(--amber-800)]' : 'bg-[var(--slate-100)] text-[var(--slate-500)]'
                       }`}>
-                        {started ? 'В процессе' : 'Не начата'}
+                        {done}/{totalEx}
                       </span>
                     </div>
                     <div className="mt-[7px] h-[3px] bg-[var(--slate-100)] rounded-full overflow-hidden">
@@ -189,17 +189,17 @@ export default function ClientCardPage() {
                   >
                     <div className="flex-1 min-w-0">
                       <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{a.workout?.name ?? '—'}</div>
-                      <div className="text-[var(--fs-2xs)] text-[var(--slate-400)] mt-[2px]">{dateLabel}</div>
+                      <div className="text-[var(--fs-3xs)] text-[var(--slate-400)] mt-[2px]">{dateLabel}</div>
                     </div>
                     <div className="flex gap-[5px] shrink-0 items-center">
-                      <span className={`text-[var(--fs-2xs)] font-bold px-[7px] py-[2px] rounded-[20px] ${
+                      <span className={`text-[var(--fs-3xs)] font-bold px-[7px] py-[2px] rounded-[20px] ${
                         pct === 1 ? 'bg-[var(--green-100)] text-[var(--green-700)]'
                         : pct >= 0.6 ? 'bg-[var(--amber-100)] text-[var(--amber-800)]'
                         : 'bg-[var(--red-100)] text-[var(--red-800)]'
                       }`}>
                         {done}/{totalEx}
                       </span>
-                      <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
+                      <span className="text-[var(--slate-300)] text-[var(--fs-xs)]">›</span>
                     </div>
                   </div>
                 )

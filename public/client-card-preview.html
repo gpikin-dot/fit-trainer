@@ -68,8 +68,7 @@
         <div class="font-medium">ткст 4</div>
         <div class="text-xs text-slate-500">Назначена: 27 апр. · Выполнена: 27 апр.</div>
       </div>
-      <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Выполнена</span>
-    </div>
+          </div>
     <table class="w-full text-xs text-slate-600">
       <thead><tr class="text-slate-400 border-b border-slate-100">
         <th class="text-left py-1">Упражнение</th><th class="text-left py-1">План</th><th class="text-left py-1">Факт</th>
@@ -87,8 +86,7 @@
         <div class="font-medium">тест 3</div>
         <div class="text-xs text-slate-500">Назначена: 27 апр. · Выполнена: 27 апр.</div>
       </div>
-      <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Выполнена</span>
-    </div>
+          </div>
   </div>
 
   <p class="text-center text-xs text-slate-300 pb-8">— текущий вид —</p>
@@ -99,12 +97,14 @@
 
   <!-- header — compact -->
   <div class="text-sm text-slate-500">← К списку клиентов</div>
-  <div class="flex items-start justify-between gap-3">
-    <div>
-      <h1 class="text-2xl font-semibold">Греги</h1>
-      <div class="flex gap-2 mt-1">
-        <span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">2 активных</span>
-        <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">4 выполнено</span>
+  <div class="flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <!-- avatar placeholder -->
+      <div class="w-12 h-12 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center shrink-0">
+        <span class="text-lg font-semibold text-slate-400">Г</span>
+      </div>
+      <div>
+        <h1 class="text-xl font-semibold">Греги</h1>
       </div>
     </div>
     <button class="shrink-0 flex items-center gap-1 bg-indigo-600 text-white text-xs font-medium px-3 py-2 rounded-lg">
@@ -112,135 +112,246 @@
     </button>
   </div>
 
-  <!-- АКТИВНЫЕ -->
-  <div>
-    <div class="text-xs text-slate-400 uppercase tracking-widest mb-2">Активные</div>
-    <div class="space-y-2">
+  <!-- TABS -->
+  <div class="flex border-b border-slate-200">
+    <button onclick="switchTab('active')" id="tab-active"
+      class="flex-1 py-2.5 text-sm font-medium text-indigo-600 border-b-2 border-indigo-600">
+      Активные (2)
+    </button>
+    <button onclick="switchTab('history')" id="tab-history"
+      class="flex-1 py-2.5 text-sm font-medium text-slate-400 border-b-2 border-transparent">
+      История (3)
+    </button>
+    <button onclick="switchTab('stats')" id="tab-stats"
+      class="flex-1 py-2.5 text-sm font-medium text-slate-400 border-b-2 border-transparent">
+      Статистика
+    </button>
+  </div>
 
-      <!-- tappable active card -->
-      <div class="bg-white border border-amber-200 rounded-xl p-4 active:bg-amber-50 cursor-pointer">
-        <div class="flex items-start justify-between gap-2">
-          <div class="flex-1 min-w-0">
+  <!-- TAB: АКТИВНЫЕ -->
+  <div id="section-active">
+    <div class="space-y-3 pt-1">
+
+      <!-- Не начата: 0/4, пустая шкала, кнопка редактировать -->
+      <div class="bg-white border border-amber-200 rounded-xl p-4">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div>
             <div class="font-medium">Ноги. День 1</div>
-            <div class="text-xs text-slate-500 mt-0.5">30 апр. · 4 упражнения</div>
+            <div class="text-xs text-slate-400 mt-0.5">чт, 30 апр.</div>
           </div>
-          <div class="flex flex-col items-end gap-1.5 shrink-0">
-            <span class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">В процессе</span>
-            <span class="text-xs text-indigo-500">Просмотр →</span>
+          <span class="text-xs text-slate-400 font-medium shrink-0">0 / 4</span>
+        </div>
+
+        <div class="flex items-center gap-2 mb-3">
+          <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-slate-200 rounded-full" style="width:0%"></div>
           </div>
+          <span class="text-xs text-slate-400 font-medium w-8 text-right">—</span>
+        </div>
+        <div class="space-y-2 mb-3">
+          <div class="text-xs"><div class="text-slate-700 font-medium">Приседания со штангой</div><div class="text-slate-400 mt-0.5">4×8 · 80кг</div></div>
+          <div class="text-xs"><div class="text-slate-700 font-medium">Жим ногами</div><div class="text-slate-400 mt-0.5">4×12 · 120кг</div></div>
+          <div class="text-xs"><div class="text-slate-700 font-medium">Разгибание ног</div><div class="text-slate-400 mt-0.5">3×15 · 40кг</div></div>
+          <div class="text-xs"><div class="text-slate-700 font-medium">Планка</div><div class="text-slate-400 mt-0.5">3×60сек</div></div>
+        </div>
+        <div class="pt-2 border-t border-slate-100">
+          <button class="w-full text-sm text-indigo-600 border border-indigo-200 rounded-lg py-2 font-medium">
+            Редактировать тренировку
+          </button>
         </div>
       </div>
 
-      <div class="bg-white border border-amber-200 rounded-xl p-4 cursor-pointer">
-        <div class="flex items-start justify-between gap-2">
-          <div class="flex-1 min-w-0">
+      <!-- Выполняется: 2/3, янтарная шкала, замок -->
+      <div class="bg-white border border-amber-200 rounded-xl p-4">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div>
             <div class="font-medium">тест 5</div>
-            <div class="text-xs text-slate-500 mt-0.5">Открытая дата · 3 упражнения</div>
+            <div class="text-xs text-slate-400 mt-0.5">Начата: пн, 27 апр.</div>
           </div>
-          <div class="flex flex-col items-end gap-1.5 shrink-0">
-            <span class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">В процессе</span>
-            <span class="text-xs text-indigo-500">Просмотр →</span>
+          <span class="text-xs text-amber-600 font-medium shrink-0">2 / 3</span>
+        </div>
+
+        <div class="flex items-center gap-2 mb-3">
+          <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-amber-400 rounded-full" style="width:67%"></div>
           </div>
+          <span class="text-xs text-amber-600 font-medium w-8 text-right">67%</span>
+        </div>
+        <div class="space-y-2 mb-3">
+          <div class="text-xs"><div class="text-slate-700 font-medium">Жим лёжа</div><div class="text-slate-400 mt-0.5">4×8 · 90кг</div></div>
+          <div class="text-xs"><div class="text-slate-700 font-medium">Тяга верхнего блока</div><div class="text-slate-400 mt-0.5">3×12 · 60кг</div></div>
+          <div class="text-xs"><div class="text-slate-700 font-medium">Подтягивания</div><div class="text-slate-400 mt-0.5">3×8</div></div>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex items-center gap-1.5">
+          <svg class="w-3 h-3 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <span class="text-xs text-slate-400">Клиент выполняет — редактирование недоступно</span>
         </div>
       </div>
 
     </div>
   </div>
 
-  <!-- ПРОГРЕСС -->
-  <div>
-    <div class="text-xs text-slate-400 uppercase tracking-widest mb-2">Прогресс по упражнениям</div>
-    <div class="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
+  <!-- TAB: ИСТОРИЯ -->
+  <div id="section-history" class="hidden">
+    <div class="space-y-3 pt-1">
 
-      <div class="flex items-center justify-between px-4 py-3">
-        <div>
-          <div class="text-sm font-medium">Жим лёжа</div>
-          <div class="text-xs text-slate-400 mt-0.5">Последний: 80 кг · 3×10</div>
-        </div>
-        <span class="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full flex items-center gap-1">↑ прогресс</span>
-      </div>
-
-      <div class="flex items-center justify-between px-4 py-3">
-        <div>
-          <div class="text-sm font-medium">Приседания</div>
-          <div class="text-xs text-slate-400 mt-0.5">Последний: 70 кг · 3×12</div>
-        </div>
-        <span class="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full flex items-center gap-1">→ застой</span>
-      </div>
-
-      <div class="flex items-center justify-between px-4 py-3">
-        <div>
-          <div class="text-sm font-medium">Тяга верхнего блока</div>
-          <div class="text-xs text-slate-400 mt-0.5">Последний: 55 кг · 4×10</div>
-        </div>
-        <span class="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full flex items-center gap-1">↑ прогресс</span>
-      </div>
-
-      <div class="flex items-center justify-between px-4 py-3">
-        <div>
-          <div class="text-sm font-medium">Румынская тяга</div>
-          <div class="text-xs text-slate-400 mt-0.5">Последний: 60 кг · 3×10</div>
-        </div>
-        <span class="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full flex items-center gap-1">↓ снижение</span>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ИСТОРИЯ -->
-  <div>
-    <div class="text-xs text-slate-400 uppercase tracking-widest mb-2">История</div>
-    <div class="space-y-2">
-
-      <!-- completed card — tappable, with copy action -->
-      <div class="bg-white border border-slate-200 rounded-xl p-4 cursor-pointer">
-        <div class="flex items-start justify-between gap-2 mb-3">
+      <!-- completed card — 4/4 = 100% -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4">
+        <div class="flex items-start justify-between gap-2 mb-2">
           <div>
             <div class="font-medium">ткст 4</div>
-            <div class="text-xs text-slate-400 mt-0.5">27 апр. · 4 упражнения</div>
+            <div class="text-xs text-slate-400 mt-0.5">пн, 27 апр.</div>
           </div>
-          <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 shrink-0">✓ Выполнена</span>
+          <span class="text-xs text-green-700 font-medium shrink-0">4 / 4</span>
         </div>
-        <!-- results summary -->
-        <div class="flex gap-2 flex-wrap mb-3">
-          <span class="text-xs bg-slate-50 border border-slate-100 rounded px-2 py-1">Жим лёжа 3×10 · 80кг</span>
-          <span class="text-xs bg-slate-50 border border-slate-100 rounded px-2 py-1">Приседания 3×12 · 60кг</span>
-          <span class="text-xs text-slate-400">+2 ещё</span>
+        <div class="flex items-center gap-2 mb-3">
+          <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-green-500 rounded-full" style="width:100%"></div>
+          </div>
+          <span class="text-xs text-green-700 font-medium w-8 text-right">100%</span>
         </div>
-        <!-- actions -->
-        <div class="flex gap-2 pt-2 border-t border-slate-100">
-          <button class="text-xs text-indigo-600 font-medium">Посмотреть результаты →</button>
-          <div class="flex-1"></div>
-          <button class="text-xs text-slate-500 border border-slate-200 rounded-lg px-2 py-1">
+        <div class="space-y-2 mb-3">
+          <!-- вес вырос → зелёный -->
+          <div class="text-xs">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-700 font-medium">Жим лёжа</span>
+              <span class="text-slate-400 font-medium shrink-0">✓</span>
+            </div>
+            <div class="flex items-center gap-1.5 mt-0.5 text-slate-400">
+              <span>план: 3×10 · 75кг</span>
+              <span>→</span>
+              <span class="text-slate-800">факт: 3×10 · <strong class="text-green-600">80кг</strong></span>
+            </div>
+          </div>
+          <!-- совпадает → чёрный обычный -->
+          <div class="text-xs">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-700 font-medium">Приседания</span>
+              <span class="text-slate-400 font-medium shrink-0">✓</span>
+            </div>
+            <div class="flex items-center gap-1.5 mt-0.5 text-slate-400">
+              <span>план: 3×12 · 60кг</span>
+              <span>→</span>
+              <span class="text-slate-800">факт: 3×12 · 60кг</span>
+            </div>
+          </div>
+          <!-- не выполнено -->
+          <div class="text-xs">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-700 font-medium">Тяга верхнего блока</span>
+              <span class="text-slate-300 font-medium shrink-0">—</span>
+            </div>
+            <div class="flex items-center gap-1.5 mt-0.5 text-slate-400">
+              <span>план: 4×10 · 50кг</span>
+              <span>→</span>
+              <span class="text-slate-400">не выполнено</span>
+            </div>
+          </div>
+          <!-- совпадает -->
+          <div class="text-xs">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-700 font-medium">Планка</span>
+              <span class="text-slate-400 font-medium shrink-0">✓</span>
+            </div>
+            <div class="flex items-center gap-1.5 mt-0.5 text-slate-400">
+              <span>план: 3×60сек</span>
+              <span>→</span>
+              <span class="text-slate-800">факт: 3×60сек</span>
+            </div>
+          </div>
+        </div>
+        <div class="pt-2 border-t border-slate-100">
+          <button class="w-full text-sm text-slate-600 border border-slate-200 rounded-lg py-2 font-medium">
             Повторить тренировку
           </button>
         </div>
       </div>
 
-      <div class="bg-white border border-slate-200 rounded-xl p-4 cursor-pointer">
-        <div class="flex items-start justify-between gap-2 mb-3">
+      <!-- 8-exercise example — 6/8 = 75% -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4">
+        <div class="flex items-start justify-between gap-2 mb-2">
           <div>
-            <div class="font-medium">тест 3</div>
-            <div class="text-xs text-slate-400 mt-0.5">26 апр. · 3 упражнения</div>
+            <div class="font-medium">Ноги. Объём</div>
+            <div class="text-xs text-slate-400 mt-0.5">пт, 24 апр.</div>
           </div>
-          <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 shrink-0">✓ Выполнена</span>
+          <span class="text-xs text-amber-600 font-medium shrink-0">6 / 8</span>
         </div>
-        <div class="flex gap-2 pt-2 border-t border-slate-100">
-          <button class="text-xs text-indigo-600 font-medium">Посмотреть результаты →</button>
-          <div class="flex-1"></div>
-          <button class="text-xs text-slate-500 border border-slate-200 rounded-lg px-2 py-1">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-amber-400 rounded-full" style="width:75%"></div>
+          </div>
+          <span class="text-xs text-amber-600 font-medium w-8 text-right">75%</span>
+        </div>
+        <div class="space-y-2 mb-3">
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Приседания со штангой</span><span class="text-slate-400 font-medium">✓</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 4×8 · 80кг</span><span>→</span><span class="text-slate-800">факт: 4×8 · 80кг</span></div></div>
+          <!-- вес вырос → зелёный -->
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Жим ногами</span><span class="text-slate-400 font-medium">✓</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 4×12 · 120кг</span><span>→</span><span class="text-slate-800">факт: 4×12 · <strong class="text-green-600">130кг</strong></span></div></div>
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Румынская тяга</span><span class="text-slate-300 font-medium">—</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 3×10 · 60кг</span><span>→</span><span class="text-slate-400">не выполнено</span></div></div>
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Разгибание ног</span><span class="text-slate-400 font-medium">✓</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 3×15 · 40кг</span><span>→</span><span class="text-slate-800">факт: 3×15 · 40кг</span></div></div>
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Сгибание ног лёжа</span><span class="text-slate-400 font-medium">✓</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 3×15 · 35кг</span><span>→</span><span class="text-slate-800">факт: 3×15 · 35кг</span></div></div>
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Икры стоя</span><span class="text-slate-400 font-medium">✓</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 4×20</span><span>→</span><span class="text-slate-800">факт: 4×20</span></div></div>
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Отведение в тренажёре</span><span class="text-slate-400 font-medium">✓</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 3×15 · 30кг</span><span>→</span><span class="text-slate-800">факт: 3×15 · 30кг</span></div></div>
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Планка</span><span class="text-slate-300 font-medium">—</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 3×60сек</span><span>→</span><span class="text-slate-400">не выполнено</span></div></div>
+        </div>
+        <div class="pt-2 border-t border-slate-100">
+          <button class="w-full text-sm text-slate-600 border border-slate-200 rounded-lg py-2 font-medium">
+            Повторить тренировку
+          </button>
+        </div>
+      </div>
+
+      <!-- 2/5 = 40% — low completion -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div>
+            <div class="font-medium">Грудь и трицепс</div>
+            <div class="text-xs text-slate-400 mt-0.5">ср, 22 апр.</div>
+          </div>
+          <span class="text-xs text-red-500 font-medium shrink-0">2 / 5</span>
+        </div>
+        <div class="flex items-center gap-2 mb-3">
+          <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-red-400 rounded-full" style="width:40%"></div>
+          </div>
+          <span class="text-xs text-red-500 font-medium w-8 text-right">40%</span>
+        </div>
+        <div class="space-y-2 mb-3">
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Жим лёжа</span><span class="text-slate-400 font-medium">✓</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 4×8 · 90кг</span><span>→</span><span class="text-slate-800">факт: 4×8 · 90кг</span></div></div>
+          <!-- повторения просели 12→10 → красный -->
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Жим гантелей под углом</span><span class="text-slate-400 font-medium">✓</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 3×12 · 28кг</span><span>→</span><span class="text-slate-800">факт: 3×<strong class="text-red-500">10</strong> · 28кг</span></div></div>
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Разводка гантелей</span><span class="text-slate-300 font-medium">—</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 3×15 · 18кг</span><span>→</span><span class="text-slate-400">не выполнено</span></div></div>
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Французский жим</span><span class="text-slate-300 font-medium">—</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 3×12 · 30кг</span><span>→</span><span class="text-slate-400">не выполнено</span></div></div>
+          <div class="text-xs"><div class="flex justify-between"><span class="text-slate-700 font-medium">Отжимания на брусьях</span><span class="text-slate-300 font-medium">—</span></div><div class="flex gap-1.5 mt-0.5 text-slate-400"><span>план: 3×10</span><span>→</span><span class="text-slate-400">не выполнено</span></div></div>
+        </div>
+        <div class="pt-2 border-t border-slate-100">
+          <button class="w-full text-sm text-slate-600 border border-slate-200 rounded-lg py-2 font-medium">
             Повторить тренировку
           </button>
         </div>
       </div>
 
     </div>
+  </div>
+
+  <!-- TAB: СТАТИСТИКА -->
+  <div id="section-stats" class="hidden pt-2">
+    <div class="text-center py-12 text-slate-400 text-sm">Раздел в разработке — обсудим отдельно</div>
   </div>
 
   <p class="text-center text-xs text-slate-300 pb-8">— предложение —</p>
 </div>
 
 <script>
+  function switchTab(t) {
+    ['active','history','stats'].forEach(s => {
+      document.getElementById('section-' + s).classList.toggle('hidden', s !== t)
+      const btn = document.getElementById('tab-' + s)
+      btn.className = s === t
+        ? 'flex-1 py-2.5 text-sm font-medium text-indigo-600 border-b-2 border-indigo-600'
+        : 'flex-1 py-2.5 text-sm font-medium text-slate-400 border-b-2 border-transparent'
+    })
+  }
+
   function show(v) {
     document.getElementById('view-old').classList.toggle('hidden', v !== 'old')
     document.getElementById('view-new').classList.toggle('hidden', v !== 'new')

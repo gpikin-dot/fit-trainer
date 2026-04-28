@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitTrainer — UX Варианты дашборда</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  * { -webkit-font-smoothing: antialiased; }
+  body { background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; }
+  .phone { width: 390px; height: 844px; border-radius: 50px; overflow: hidden; position: relative; box-shadow: 0 40px 80px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.1); }
+  .phone-inner { width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; -ms-overflow-style: none; scrollbar-width: none; }
+  .phone-inner::-webkit-scrollbar { display: none; }
+  .tab { cursor: pointer; transition: all 0.2s; }
+  .tab.active { background: #1e293b; color: white; }
+  .tab:not(.active) { color: #64748b; }
+  .label { writing-mode: initial; }
+
+  /* Animations */
+  @keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 0.4; }
+    100% { transform: scale(1); opacity: 0.8; }
+  }
+  .pulse { animation: pulse-ring 2s ease-in-out infinite; }
+
+  @keyframes slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .slide-up { animation: slide-up 0.4s ease-out forwards; }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .shimmer {
+    background: linear-gradient(90deg, #1e293b 25%, #2d3f55 50%, #1e293b 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  /* Progress bar */
+  .progress-bar { transition: width 1s ease-out; }
+
+  /* Muscle group colors */
+  .cat-legs { background: #3b82f6; }
+  .cat-chest { background: #f97316; }
+  .cat-back { background: #8b5cf6; }
+  .cat-arms { background: #10b981; }
+  .cat-full { background: #ec4899; }
+  .cat-core { background: #f59e0b; }
+</style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-12 px-4 gap-8">
+
+  <!-- Header -->
+  <div class="text-center mb-4">
+    <h1 class="text-white text-3xl font-bold mb-2">FitTrainer — UX Концепции</h1>
+    <p class="text-slate-400 text-sm">Три философии клиентского дашборда</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-2 bg-slate-900 rounded-2xl p-1.5 border border-slate-800">
+    <button onclick="showVariant(1)" id="tab1" class="tab active px-6 py-2.5 rounded-xl text-sm font-medium">A — Один фокус</button>
+    <button onclick="showVariant(2)" id="tab2" class="tab px-6 py-2.5 rounded-xl text-sm font-medium">B — Программа</button>
+    <button onclick="showVariant(3)" id="tab3" class="tab px-6 py-2.5 rounded-xl text-sm font-medium">C — Тренер рядом</button>
+  </div>
+
+  <!-- Phones container -->
+  <div class="flex gap-16 items-start flex-wrap justify-center">
+
+    <!-- VARIANT A: Один фокус -->
+    <div id="variant1" class="flex flex-col items-center gap-4">
+      <div class="text-center">
+        <div class="text-white font-semibold text-lg mb-1">A — «Один фокус»</div>
+        <div class="text-slate-400 text-xs max-w-xs">В каждый момент времени — одно действие.<br>Всё остальное — шум.</div>
+      </div>
+      <div class="phone bg-white">
+        <div class="phone-inner bg-gray-50">
+          <!-- Status bar -->
+          <div class="flex justify-between items-center px-8 pt-4 pb-2 bg-gray-50">
+            <span class="text-xs font-semibold text-slate-800">9:41</span>
+            <div class="flex gap-1.5 items-center">
+              <div class="w-4 h-2.5 border border-slate-700 rounded-sm relative"><div class="absolute right-0.5 top-0.5 bottom-0.5 left-0.5 bg-slate-700 rounded-sm" style="right: 20%"></div></div>
+            </div>
+          </div>
+
+          <!-- Greeting -->
+          <div class="px-6 pt-4 pb-6">
+            <div class="text-slate-400 text-sm mb-0.5">Доброе утро,</div>
+            <div class="text-slate-900 text-2xl font-bold">Алексей 👋</div>
+          </div>
+
+          <!-- Main workout card — HERO -->
+          <div class="mx-4 mb-6 rounded-3xl overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);">
+            <!-- Category badge -->
+            <div class="px-6 pt-6 pb-2">
+              <span class="text-xs font-semibold text-blue-400 uppercase tracking-widest">Сегодня · Ноги</span>
+            </div>
+
+            <!-- Workout name -->
+            <div class="px-6 pb-4">
+              <h2 class="text-white text-2xl font-bold leading-tight mb-1">Силовая А</h2>
+              <div class="flex items-center gap-3 text-slate-400 text-sm">
+                <span>6 упражнений</span>
+                <span class="w-1 h-1 rounded-full bg-slate-600"></span>
+                <span>~45 мин</span>
+              </div>
+            </div>
+
+            <!-- Exercise preview -->
+            <div class="px-6 pb-5">
+              <div class="flex flex-col gap-1.5">
+                <div class="flex items-center gap-2 text-sm text-slate-300">
+                  <div class="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"></div>
+                  Приседания со штангой · 4×8
+                </div>
+                <div class="flex items-center gap-2 text-sm text-slate-300">
+                  <div class="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"></div>
+                  Жим ногами · 3×12
+                </div>
+                <div class="flex items-center gap-2 text-sm text-slate-400">
+                  <div class="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></div>
+                  + ещё 4 упражнения
+                </div>
+              </div>
+            </div>
+
+            <!-- CTA -->
+            <div class="px-4 pb-4">
+              <button class="w-full bg-emerald-400 text-slate-900 font-bold py-4 rounded-2xl text-base flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                Начать тренировку
+              </button>
+            </div>
+          </div>
+
+          <!-- What's next (collapsed) -->
+          <div class="px-4 mb-4">
+            <div class="text-xs text-slate-400 uppercase tracking-widest mb-2 px-1">На этой неделе</div>
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+              <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                <div>
+                  <div class="text-xs text-slate-400">Среда</div>
+                  <div class="font-medium text-sm text-slate-800">Силовая Б · Верх</div>
+                </div>
+                <div class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-lg">6 упр.</div>
+              </div>
+              <div class="flex items-center justify-between px-4 py-3">
+                <div>
+                  <div class="text-xs text-slate-400">Пятница</div>
+                  <div class="font-medium text-sm text-slate-800">Кардио + Пресс</div>
+                </div>
+                <div class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-lg">5 упр.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress this week -->
+          <div class="px-4 mb-6">
+            <div class="bg-white rounded-2xl border border-slate-200 p-4">
+              <div class="flex justify-between items-center mb-3">
+                <span class="text-sm font-medium text-slate-700">Прогресс недели</span>
+                <span class="text-sm font-bold text-emerald-600">1 / 3</span>
+              </div>
+              <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-400 rounded-full" style="width: 33%"></div>
+              </div>
+              <div class="flex justify-between mt-2">
+                <span class="text-xs text-slate-400">Пн</span>
+                <span class="text-xs text-slate-400">Вт</span>
+                <span class="text-xs text-slate-400">Ср</span>
+                <span class="text-xs text-slate-400">Чт</span>
+                <span class="text-xs text-slate-400">Пт</span>
+                <span class="text-xs text-slate-400">Сб</span>
+                <span class="text-xs text-slate-400">Вс</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="h-8"></div>
+        </div>
+      </div>
+
+      <!-- Key insight -->
+      <div class="bg-slate-900 border border-slate-700 rounded-2xl p-4 max-w-xs">
+        <div class="text-emerald-400 text-xs font-semibold uppercase tracking-widest mb-2">Философия</div>
+        <p class="text-slate-300 text-sm leading-relaxed">Один вопрос — одно действие. Как Headspace или Duolingo. Клиент не выбирает — он просто нажимает «Начать».</p>
+        <div class="mt-3 pt-3 border-t border-slate-700">
+          <div class="text-slate-400 text-xs">✓ Минимум решений &nbsp;·&nbsp; ✓ Чёткий приоритет</div>
+          <div class="text-slate-500 text-xs mt-1">— Скрывает сложность программы от клиента</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT B: Программа -->
+    <div id="variant2" class="flex flex-col items-center gap-4 hidden">
+      <div class="text-center">
+        <div class="text-white font-semibold text-lg mb-1">B — «Программа»</div>
+        <div class="text-slate-400 text-xs max-w-xs">Клиент видит весь план как профессионал.<br>Полная картина — мотивирует системностью.</div>
+      </div>
+      <div class="phone bg-white">
+        <div class="phone-inner" style="background: #f8fafc;">
+          <!-- Status bar -->
+          <div class="flex justify-between items-center px-8 pt-4 pb-2" style="background: #f8fafc;">
+            <span class="text-xs font-semibold text-slate-800">9:41</span>
+            <div class="flex gap-1.5 items-center">
+              <div class="w-4 h-2.5 border border-slate-700 rounded-sm relative"><div class="absolute right-0.5 top-0.5 bottom-0.5 left-0.5 bg-slate-700 rounded-sm" style="right: 20%"></div></div>
+            </div>
+          </div>
+
+          <!-- Header stats bar -->
+          <div class="px-5 pt-4 pb-5">
+            <div class="flex justify-between items-center mb-4">
+              <div>
+                <div class="text-slate-500 text-xs mb-0.5">Апрель · Неделя 4</div>
+                <div class="text-slate-900 text-xl font-bold">Моя программа</div>
+              </div>
+              <div class="relative w-14 h-14">
+                <svg width="56" height="56" viewBox="0 0 56 56" class="-rotate-90">
+                  <circle cx="28" cy="28" r="22" fill="none" stroke="#e2e8f0" stroke-width="5"/>
+                  <circle cx="28" cy="28" r="22" fill="none" stroke="#10b981" stroke-width="5" stroke-linecap="round"
+                    stroke-dasharray="138.2" stroke-dashoffset="92"/>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-slate-900 text-sm font-bold leading-none">2/3</span>
+                  <span class="text-slate-400 text-[9px] leading-none">нед.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Week strip -->
+            <div class="flex gap-2 justify-between">
+              <div class="flex flex-col items-center gap-1">
+                <div class="text-[10px] text-slate-400">Пн</div>
+                <div class="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#10b981"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </div>
+              </div>
+              <div class="flex flex-col items-center gap-1">
+                <div class="text-[10px] text-slate-400">Вт</div>
+                <div class="w-8 h-8 rounded-xl bg-slate-200 flex items-center justify-center">
+                  <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                </div>
+              </div>
+              <div class="flex flex-col items-center gap-1">
+                <div class="text-[10px] font-bold text-slate-900">Ср</div>
+                <div class="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center ring-2 ring-emerald-400 ring-offset-1">
+                  <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                </div>
+              </div>
+              <div class="flex flex-col items-center gap-1">
+                <div class="text-[10px] text-slate-400">Чт</div>
+                <div class="w-8 h-8 rounded-xl bg-slate-200 flex items-center justify-center">
+                  <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                </div>
+              </div>
+              <div class="flex flex-col items-center gap-1">
+                <div class="text-[10px] text-slate-400">Пт</div>
+                <div class="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#10b981"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </div>
+              </div>
+              <div class="flex flex-col items-center gap-1">
+                <div class="text-[10px] text-slate-400">Сб</div>
+                <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
+                  <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                </div>
+              </div>
+              <div class="flex flex-col items-center gap-1">
+                <div class="text-[10px] text-slate-400">Вс</div>
+                <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
+                  <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Workouts list -->
+          <div class="px-5">
+            <div class="text-xs text-slate-400 uppercase tracking-widest mb-3">Тренировки программы</div>
+
+            <!-- TODAY — active card -->
+            <div class="rounded-3xl overflow-hidden mb-3" style="background: #0f172a;">
+              <div class="p-5">
+                <div class="flex items-start justify-between mb-3">
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                      <span class="text-emerald-400 text-xs font-semibold uppercase tracking-wider">Сегодня</span>
+                    </div>
+                    <div class="text-white text-lg font-bold">Силовая А</div>
+                    <div class="text-slate-400 text-sm mt-0.5">Ноги · 6 упражнений · 45 мин</div>
+                  </div>
+                  <div class="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center text-xl">🦵</div>
+                </div>
+                <!-- Mini exercise list -->
+                <div class="flex gap-1.5 flex-wrap mb-4">
+                  <span class="text-[11px] bg-white/10 text-slate-300 px-2 py-1 rounded-lg">Приседания 4×8</span>
+                  <span class="text-[11px] bg-white/10 text-slate-300 px-2 py-1 rounded-lg">Жим ногами 3×12</span>
+                  <span class="text-[11px] bg-white/10 text-slate-400 px-2 py-1 rounded-lg">+4</span>
+                </div>
+                <button class="w-full bg-emerald-400 text-slate-900 font-bold py-3.5 rounded-2xl text-sm">
+                  ▶ Начать тренировку
+                </button>
+              </div>
+            </div>
+
+            <!-- Completed card -->
+            <div class="bg-white rounded-3xl border border-slate-200 mb-3 overflow-hidden">
+              <div class="p-5">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <span class="text-emerald-600 text-xs font-semibold">Выполнена · Пт 25 апр</span>
+                    </div>
+                    <div class="text-slate-700 text-base font-semibold">Силовая Б</div>
+                    <div class="text-slate-400 text-sm">Верх · 5 упражнений</div>
+                  </div>
+                  <div class="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#10b981"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                  </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-100 flex gap-4 text-xs text-slate-400">
+                  <span>📊 Объём: 4 200 кг</span>
+                  <span>⏱ 42 мин</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Future card -->
+            <div class="bg-white rounded-3xl border border-slate-200 mb-3 overflow-hidden opacity-70">
+              <div class="p-5">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <div class="text-slate-400 text-xs mb-1">Пятница · 2 мая</div>
+                    <div class="text-slate-700 text-base font-semibold">Кардио + Пресс</div>
+                    <div class="text-slate-400 text-sm">5 упражнений · 30 мин</div>
+                  </div>
+                  <div class="w-10 h-10 rounded-2xl bg-pink-50 flex items-center justify-center text-xl">🔥</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Future card 2 -->
+            <div class="bg-white rounded-3xl border border-slate-200 mb-3 overflow-hidden opacity-50">
+              <div class="p-5 flex items-center justify-between">
+                <div>
+                  <div class="text-slate-400 text-xs mb-1">Открытая дата</div>
+                  <div class="text-slate-600 text-base font-semibold">Функциональная</div>
+                  <div class="text-slate-400 text-sm">7 упражнений</div>
+                </div>
+                <div class="w-10 h-10 rounded-2xl bg-purple-50 flex items-center justify-center text-xl">⚡</div>
+              </div>
+            </div>
+
+          </div>
+          <div class="h-8"></div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-700 rounded-2xl p-4 max-w-xs">
+        <div class="text-blue-400 text-xs font-semibold uppercase tracking-widest mb-2">Философия</div>
+        <p class="text-slate-300 text-sm leading-relaxed">Клиент видит всю программу как профессионал. Контекст мотивирует: вижу прогресс, вижу план, понимаю систему.</p>
+        <div class="mt-3 pt-3 border-t border-slate-700">
+          <div class="text-slate-400 text-xs">✓ Видна система &nbsp;·&nbsp; ✓ Мотивирует прогресс</div>
+          <div class="text-slate-500 text-xs mt-1">— Больше информации, чуть сложнее сканировать</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT C: Тренер рядом -->
+    <div id="variant3" class="flex flex-col items-center gap-4 hidden">
+      <div class="text-center">
+        <div class="text-white font-semibold text-lg mb-1">C — «Тренер рядом»</div>
+        <div class="text-slate-400 text-xs max-w-xs">Приложение говорит с клиентом напрямую.<br>Как живой тренер — коротко и по делу.</div>
+      </div>
+      <div class="phone bg-white">
+        <div class="phone-inner bg-white">
+          <!-- Status bar -->
+          <div class="flex justify-between items-center px-8 pt-4 pb-2 bg-white">
+            <span class="text-xs font-semibold text-slate-800">9:41</span>
+            <div class="flex gap-1.5 items-center">
+              <div class="w-4 h-2.5 border border-slate-700 rounded-sm relative"><div class="absolute right-0.5 top-0.5 bottom-0.5 left-0.5 bg-slate-700 rounded-sm" style="right: 20%"></div></div>
+            </div>
+          </div>
+
+          <!-- Streak + greeting -->
+          <div class="px-6 pt-4 pb-6" style="background: linear-gradient(180deg, #fff 0%, #f0fdf4 100%);">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <div class="text-slate-400 text-sm">Среда, 30 апреля</div>
+                <div class="text-slate-900 text-2xl font-bold mt-0.5">Привет, Алексей!</div>
+              </div>
+              <div class="flex flex-col items-center bg-orange-50 border border-orange-200 rounded-2xl px-3 py-2">
+                <span class="text-2xl leading-none">🔥</span>
+                <span class="text-xs font-bold text-orange-600">5 дней</span>
+              </div>
+            </div>
+
+            <!-- Direct message from "trainer" -->
+            <div class="bg-emerald-900 rounded-2xl px-4 py-3 flex items-start gap-3">
+              <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-sm shrink-0">М</div>
+              <div>
+                <div class="text-emerald-300 text-xs mb-0.5">Максим · тренер</div>
+                <div class="text-white text-sm leading-snug">Сегодня ноги — твой любимый день! Готов?</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main CTA block -->
+          <div class="px-5 -mt-3">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <!-- Workout identity -->
+              <div class="p-5 pb-4">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">🦵</div>
+                  <div>
+                    <div class="font-bold text-slate-900 text-lg leading-tight">Силовая А</div>
+                    <div class="text-slate-400 text-sm">6 упражнений · ~45 мин</div>
+                  </div>
+                </div>
+
+                <!-- Exercise chips with order -->
+                <div class="space-y-2 mb-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">1</div>
+                    <div class="text-sm text-slate-700">Приседания со штангой</div>
+                    <div class="ml-auto text-xs text-slate-400">4×8</div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">2</div>
+                    <div class="text-sm text-slate-700">Жим ногами</div>
+                    <div class="ml-auto text-xs text-slate-400">3×12</div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">3</div>
+                    <div class="text-sm text-slate-700">Выпады с гантелями</div>
+                    <div class="ml-auto text-xs text-slate-400">3×10</div>
+                  </div>
+                  <div class="flex items-center gap-3 opacity-50">
+                    <div class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">···</div>
+                    <div class="text-sm text-slate-500">+ 3 упражнения</div>
+                  </div>
+                </div>
+
+                <!-- Big start button -->
+                <button class="w-full font-bold py-4 rounded-2xl text-base text-white" style="background: linear-gradient(135deg, #10b981, #059669);">
+                  Поехали! →
+                </button>
+              </div>
+
+              <!-- Last time note -->
+              <div class="border-t border-slate-100 px-5 py-3 bg-slate-50 flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span class="text-xs text-slate-400">Прошлый раз: 23 апр · объём 3 800 кг</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coming up -->
+          <div class="px-5 mt-5">
+            <div class="text-xs text-slate-400 uppercase tracking-widest mb-2">Следующие</div>
+            <div class="flex gap-3">
+              <div class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-3">
+                <div class="text-[10px] text-slate-400 mb-0.5">Пятница</div>
+                <div class="text-sm font-semibold text-slate-700">Кардио</div>
+                <div class="text-[11px] text-slate-400">5 упр.</div>
+              </div>
+              <div class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-3">
+                <div class="text-[10px] text-slate-400 mb-0.5">Следующая</div>
+                <div class="text-sm font-semibold text-slate-700">Верх тела</div>
+                <div class="text-[11px] text-slate-400">6 упр.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="h-8"></div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-700 rounded-2xl p-4 max-w-xs">
+        <div class="text-purple-400 text-xs font-semibold uppercase tracking-widest mb-2">Философия</div>
+        <p class="text-slate-300 text-sm leading-relaxed">Приложение говорит с клиентом голосом тренера. Персональное сообщение + стрик + вся нужная инфа в одной карточке.</p>
+        <div class="mt-3 pt-3 border-t border-slate-700">
+          <div class="text-slate-400 text-xs">✓ Ощущение поддержки &nbsp;·&nbsp; ✓ Стрик мотивирует</div>
+          <div class="text-slate-500 text-xs mt-1">— Нужна интеграция с тренером (сообщения)</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom comparison -->
+  <div class="mt-8 bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-3xl w-full">
+    <h2 class="text-white font-bold text-lg mb-4">Сравнение подходов</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-slate-400 text-xs uppercase tracking-wider">
+            <th class="text-left pb-3 font-medium">Критерий</th>
+            <th class="text-center pb-3 font-medium">A · Один фокус</th>
+            <th class="text-center pb-3 font-medium">B · Программа</th>
+            <th class="text-center pb-3 font-medium">C · Тренер рядом</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800">
+          <tr>
+            <td class="py-3 text-slate-300">Скорость до действия</td>
+            <td class="py-3 text-center text-emerald-400 font-bold">⚡ Мгновенно</td>
+            <td class="py-3 text-center text-yellow-400">Быстро</td>
+            <td class="py-3 text-center text-emerald-400 font-bold">⚡ Мгновенно</td>
+          </tr>
+          <tr>
+            <td class="py-3 text-slate-300">Мотивация</td>
+            <td class="py-3 text-center text-slate-400">Нейтральная</td>
+            <td class="py-3 text-center text-yellow-400">Через прогресс</td>
+            <td class="py-3 text-center text-emerald-400 font-bold">Личная</td>
+          </tr>
+          <tr>
+            <td class="py-3 text-slate-300">Понимание программы</td>
+            <td class="py-3 text-center text-slate-400">Минимум</td>
+            <td class="py-3 text-center text-emerald-400 font-bold">Полное</td>
+            <td class="py-3 text-center text-yellow-400">Достаточное</td>
+          </tr>
+          <tr>
+            <td class="py-3 text-slate-300">Сложность разработки</td>
+            <td class="py-3 text-center text-emerald-400 font-bold">Низкая</td>
+            <td class="py-3 text-center text-yellow-400">Средняя</td>
+            <td class="py-3 text-center text-red-400">Высокая (сообщения)</td>
+          </tr>
+          <tr>
+            <td class="py-3 text-slate-300">Для кого</td>
+            <td class="py-3 text-center text-slate-300 text-xs">Новички,<br>не думающие</td>
+            <td class="py-3 text-center text-slate-300 text-xs">Опытные,<br>систематичные</td>
+            <td class="py-3 text-center text-slate-300 text-xs">Все — при<br>активном тренере</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="text-slate-600 text-xs pb-8">FitTrainer UX Concepts · 2026</div>
+
+</body>
+<script>
+function showVariant(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('variant'+i).classList.add('hidden');
+    document.getElementById('tab'+i).classList.remove('active');
+  });
+  document.getElementById('variant'+n).classList.remove('hidden');
+  document.getElementById('tab'+n).classList.add('active');
+}
+</script>
+</html>

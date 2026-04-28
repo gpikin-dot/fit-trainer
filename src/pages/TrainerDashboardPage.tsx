@@ -46,6 +46,7 @@ export default function TrainerDashboardPage() {
   const { profile } = useAuth()
   const [tab, setTab] = useState<'today' | 'clients' | 'library'>('today')
   const [workouts, setWorkouts] = useState<Workout[]>([])
+  const [workoutStats, setWorkoutStats] = useState<Map<string, { exerciseCount: number; usageCount: number }>>(new Map())
   const [clients, setClients] = useState<ClientStat[]>([])
   const [todayItems, setTodayItems] = useState<TodayItem[]>([])
   const [upcomingItems, setUpcomingItems] = useState<ScheduledItem[]>([])
@@ -73,8 +74,29 @@ export default function TrainerDashboardPage() {
       supabase.from('invites').select('*').eq('trainer_id', profile.id),
     ])
 
-    setWorkouts(workoutsData ?? [])
+    const wList = workoutsData ?? []
+    setWorkouts(wList)
     setInvites(invitesData ?? [])
+
+    // Load exercise counts and usage counts per workout
+    if (wList.length > 0) {
+      const wIds = wList.map(w => w.id)
+      const [{ data: exCounts }, { data: usageCounts }] = await Promise.all([
+        supabase.from('exercises').select('workout_id').in('workout_id', wIds),
+        supabase.from('assigned_workouts').select('workout_id').in('workout_id', wIds),
+      ])
+      const stats = new Map<string, { exerciseCount: number; usageCount: number }>()
+      for (const w of wList) stats.set(w.id, { exerciseCount: 0, usageCount: 0 })
+      for (const e of exCounts ?? []) {
+        const s = stats.get(e.workout_id)
+        if (s) s.exerciseCount++
+      }
+      for (const a of usageCounts ?? []) {
+        const s = stats.get(a.workout_id)
+        if (s) s.usageCount++
+      }
+      setWorkoutStats(stats)
+    }
 
     const clientList = clientsData ?? []
     if (clientList.length === 0) {
@@ -204,7 +226,7 @@ export default function TrainerDashboardPage() {
         {([
           { key: 'today', label: 'Сегодня' },
           { key: 'clients', label: 'Клиенты' },
-          { key: 'library', label: 'Библиотека' },
+          { key: 'library', label: 'Шаблоны' },
         ] as const).map(({ key, label }) => (
           <button key={key} onClick={() => setTab(key)}
             className={`flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === key ? 'text-indigo-600 border-indigo-600' : 'text-slate-400 border-transparent'}`}>
@@ -348,35 +370,54 @@ export default function TrainerDashboardPage() {
           </div>
       )}
 
-      {/* LIBRARY */}
-      {tab === 'library' && (
-        <div>
-          {workouts.length > 0 && (
-            <div className="space-y-2 mb-3">
-              {workouts.map(w => (
-                <div key={w.id} onClick={() => navigate(`/trainer/workout/${w.id}`)}
-                  className="bg-white border border-slate-200 rounded-xl p-4 cursor-pointer flex items-center justify-between">
-                  <div>
-                    <div className="font-medium text-sm">{w.name}</div>
-                    <div className="text-xs text-slate-400 mt-0.5">{formatDate(w.created_at)}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={e => toggleFavorite(e, w)}
-                      className={`p-1 rounded transition-colors ${w.is_favorite ? 'text-amber-400 hover:text-amber-500' : 'text-slate-200 hover:text-amber-300'}`}>
-                      <Star className="w-4 h-4" fill={w.is_favorite ? 'currentColor' : 'none'} />
-                    </button>
-                    <ChevronRight className="w-4 h-4 text-slate-300" />
-                  </div>
+      {/* ШАБЛОНЫ */}
+      {tab === 'library' && (() => {
+        const favorites = workouts.filter(w => w.is_favorite)
+        const rest = workouts.filter(w => !w.is_favorite)
+        const WorkoutRow = (w: Workout) => {
+          const stats = workoutStats.get(w.id)
+          return (
+            <div key={w.id} onClick={() => navigate(`/trainer/workout/${w.id}`)}
+              className="bg-white border border-slate-200 rounded-xl p-4 cursor-pointer flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-sm">{w.name}</div>
+                <div className="text-xs text-slate-400 mt-0.5">
+                  {stats?.exerciseCount ?? 0} упр.
+                  {(stats?.usageCount ?? 0) > 0 && ` · использована ${stats!.usageCount} ${stats!.usageCount === 1 ? 'раз' : 'раза'}`}
                 </div>
-              ))}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={e => toggleFavorite(e, w)}
+                  className={`p-1 rounded transition-colors ${w.is_favorite ? 'text-amber-400 hover:text-amber-500' : 'text-slate-200 hover:text-amber-300'}`}>
+                  <Star className="w-4 h-4" fill={w.is_favorite ? 'currentColor' : 'none'} />
+                </button>
+                <ChevronRight className="w-4 h-4 text-slate-300" />
+              </div>
             </div>
-          )}
-          <button onClick={handleCreateWorkout}
-            className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-3 rounded-xl">
-            <Plus className="w-4 h-4" /> Создать тренировку
-          </button>
-        </div>
-      )}
+          )
+        }
+        return (
+          <div>
+            {favorites.length > 0 && (
+              <div className="mb-4">
+                <div className="text-xs text-slate-400 uppercase tracking-widest mb-2">Избранные</div>
+                <div className="space-y-2">{favorites.map(WorkoutRow)}</div>
+              </div>
+            )}
+            {rest.length > 0 && (
+              <div className="mb-3">
+                {favorites.length > 0 && <div className="text-xs text-slate-400 uppercase tracking-widest mb-2">Все шаблоны</div>}
+                <div className="space-y-2">{rest.map(WorkoutRow)}</div>
+              </div>
+            )}
+            {workouts.length === 0 && <div className="text-center py-8 text-slate-400 text-sm">Нет шаблонов. Создайте первый!</div>}
+            <button onClick={handleCreateWorkout}
+              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-3 rounded-xl mt-1">
+              <Plus className="w-4 h-4" /> Новый шаблон
+            </button>
+          </div>
+        )
+      })()}
 
       {showInviteModal && latestInvite && (
         <InviteModal invite={latestInvite} onClose={() => setShowInviteModal(false)} />

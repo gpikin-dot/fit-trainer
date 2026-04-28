@@ -99,8 +99,25 @@ export interface Subscription {
   cancelled_at: string | null
 }
 
+export interface SessionExercise {
+  id: string
+  assigned_workout_id: string
+  library_exercise_id: string
+  order: number
+  sets: number
+  reps: number
+  weight_kg: number
+  rest_sec: number | null
+  trainer_note: string | null
+  created_at: string
+}
+
 // Joined types for UI convenience
 export interface ExerciseWithLibrary extends Exercise {
+  exercise_library: ExerciseLibrary
+}
+
+export interface SessionExerciseWithLibrary extends SessionExercise {
   exercise_library: ExerciseLibrary
 }
 

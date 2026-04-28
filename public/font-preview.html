@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Font Preview — FitTrainer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&family=VT323&family=Orbitron:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f1f5f9; padding: 24px; }
+    h1 { font-family: monospace; font-size: 14px; color: #64748b; margin-bottom: 24px; letter-spacing: 0.1em; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .card {
+      background: white;
+      border-radius: 16px;
+      border: 2px solid #e2e8f0;
+      padding: 20px;
+      position: relative;
+    }
+    .card:hover { border-color: #6366f1; }
+    .badge {
+      position: absolute;
+      top: 12px; right: 12px;
+      font-family: monospace;
+      font-size: 10px;
+      background: #f1f5f9;
+      color: #94a3b8;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+    .font-name {
+      font-family: monospace;
+      font-size: 11px;
+      color: #6366f1;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+
+    /* === FONT 1: Space Mono === */
+    .f1 .headline { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; color: #0f172a; }
+    .f1 .sub      { font-family: 'Space Mono', monospace; font-size: 13px; color: #64748b; margin-top: 4px; }
+    .f1 .body     { font-family: 'Space Mono', monospace; font-size: 12px; color: #334155; margin-top: 10px; line-height: 1.6; }
+    .f1 .btn      { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; background: #4f46e5; color: white; padding: 8px 16px; border-radius: 8px; display: inline-block; margin-top: 12px; }
+
+    /* === FONT 2: JetBrains Mono === */
+    .f2 .headline { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: #0f172a; }
+    .f2 .sub      { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #64748b; margin-top: 4px; }
+    .f2 .body     { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #334155; margin-top: 10px; line-height: 1.6; }
+    .f2 .btn      { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; background: #4f46e5; color: white; padding: 8px 16px; border-radius: 8px; display: inline-block; margin-top: 12px; }
+
+    /* === FONT 3: IBM Plex Mono === */
+    .f3 .headline { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 700; color: #0f172a; }
+    .f3 .sub      { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #64748b; margin-top: 4px; }
+    .f3 .body     { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #334155; margin-top: 10px; line-height: 1.6; }
+    .f3 .btn      { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; background: #4f46e5; color: white; padding: 8px 16px; border-radius: 8px; display: inline-block; margin-top: 12px; }
+
+    /* === FONT 4: Share Tech Mono === */
+    .f4 .headline { font-family: 'Share Tech Mono', monospace; font-size: 26px; color: #0f172a; }
+    .f4 .sub      { font-family: 'Share Tech Mono', monospace; font-size: 14px; color: #64748b; margin-top: 4px; }
+    .f4 .body     { font-family: 'Share Tech Mono', monospace; font-size: 13px; color: #334155; margin-top: 10px; line-height: 1.6; }
+    .f4 .btn      { font-family: 'Share Tech Mono', monospace; font-size: 13px; background: #4f46e5; color: white; padding: 8px 16px; border-radius: 8px; display: inline-block; margin-top: 12px; }
+
+    /* === FONT 5: VT323 (CRT retro) === */
+    .f5 .headline { font-family: 'VT323', monospace; font-size: 36px; color: #0f172a; }
+    .f5 .sub      { font-family: 'VT323', monospace; font-size: 20px; color: #64748b; margin-top: 4px; }
+    .f5 .body     { font-family: 'VT323', monospace; font-size: 18px; color: #334155; margin-top: 10px; line-height: 1.5; }
+    .f5 .btn      { font-family: 'VT323', monospace; font-size: 20px; background: #4f46e5; color: white; padding: 6px 16px; border-radius: 8px; display: inline-block; margin-top: 12px; }
+
+    /* === FONT 6: Orbitron === */
+    .f6 .headline { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 700; color: #0f172a; }
+    .f6 .sub      { font-family: 'Orbitron', sans-serif; font-size: 11px; color: #64748b; margin-top: 4px; }
+    .f6 .body     { font-family: 'Orbitron', sans-serif; font-size: 10px; color: #334155; margin-top: 10px; line-height: 1.7; }
+    .f6 .btn      { font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700; background: #4f46e5; color: white; padding: 8px 16px; border-radius: 8px; display: inline-block; margin-top: 12px; letter-spacing: 0.05em; }
+
+    .divider { height: 1px; background: #f1f5f9; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>FITTRAINER — FONT OPTIONS</h1>
+  <div class="grid">
+
+    <div class="card f1">
+      <div class="font-name">Space Mono</div>
+      <div class="badge">популярный</div>
+      <div class="headline">Панель тренера</div>
+      <div class="sub">12 упражнений · 3 клиента</div>
+      <div class="divider"></div>
+      <div class="body">Жим штанги лёжа<br>4 × 8 · 80 кг · 90 сек</div>
+      <div class="btn">+ Создать тренировку</div>
+    </div>
+
+    <div class="card f2">
+      <div class="font-name">JetBrains Mono</div>
+      <div class="badge">чёткий</div>
+      <div class="headline">Панель тренера</div>
+      <div class="sub">12 упражнений · 3 клиента</div>
+      <div class="divider"></div>
+      <div class="body">Жим штанги лёжа<br>4 × 8 · 80 кг · 90 сек</div>
+      <div class="btn">+ Создать тренировку</div>
+    </div>
+
+    <div class="card f3">
+      <div class="font-name">IBM Plex Mono</div>
+      <div class="badge">IBM-стиль</div>
+      <div class="headline">Панель тренера</div>
+      <div class="sub">12 упражнений · 3 клиента</div>
+      <div class="divider"></div>
+      <div class="body">Жим штанги лёжа<br>4 × 8 · 80 кг · 90 сек</div>
+      <div class="btn">+ Создать тренировку</div>
+    </div>
+
+    <div class="card f4">
+      <div class="font-name">Share Tech Mono</div>
+      <div class="badge">лёгкий</div>
+      <div class="headline">Панель тренера</div>
+      <div class="sub">12 упражнений · 3 клиента</div>
+      <div class="divider"></div>
+      <div class="body">Жим штанги лёжа<br>4 × 8 · 80 кг · 90 сек</div>
+      <div class="btn">+ Создать тренировку</div>
+    </div>
+
+    <div class="card f5">
+      <div class="font-name">VT323</div>
+      <div class="badge">ретро CRT</div>
+      <div class="headline">Панель тренера</div>
+      <div class="sub">12 упражнений · 3 клиента</div>
+      <div class="divider"></div>
+      <div class="body">Жим штанги лёжа<br>4 × 8 · 80 кг · 90 сек</div>
+      <div class="btn">+ Создать тренировку</div>
+    </div>
+
+    <div class="card f6">
+      <div class="font-name">Orbitron</div>
+      <div class="badge">sci-fi</div>
+      <div class="headline">Панель тренера</div>
+      <div class="sub">12 упражнений · 3 клиента</div>
+      <div class="divider"></div>
+      <div class="body">Жим штанги лёжа<br>4 × 8 · 80 кг · 90 сек</div>
+      <div class="btn">+ Создать тренировку</div>
+    </div>
+
+  </div>
+</body>
+</html>

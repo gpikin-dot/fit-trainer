@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Edit, Trash2, UserPlus, Copy } from 'lucide-react'
+import { ArrowLeft, Edit, Trash2, Copy } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
-import { Modal, ErrorMessage, formatDate } from '../components/UI'
+import { ErrorMessage, formatDate } from '../components/UI'
 import type { Workout, Exercise, ExerciseLibrary, AssignedWorkout, Profile } from '../types/database'
 
 export default function WorkoutDetailPage() {
@@ -14,11 +14,6 @@ export default function WorkoutDetailPage() {
   const [workout, setWorkout] = useState<Workout | null>(null)
   const [exercises, setExercises] = useState<(Exercise & { exercise_library: ExerciseLibrary })[]>([])
   const [assignments, setAssignments] = useState<(AssignedWorkout & { profile: Profile })[]>([])
-  const [clients, setClients] = useState<Profile[]>([])
-  const [showAssignModal, setShowAssignModal] = useState(false)
-  const [dateType, setDateType] = useState<'open' | 'specific'>('open')
-  const [assignDate, setAssignDate] = useState('')
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -27,12 +22,10 @@ export default function WorkoutDetailPage() {
       supabase.from('workouts').select('*').eq('id', id).single(),
       supabase.from('exercises').select('*, exercise_library:exercises_library(*)').eq('workout_id', id).order('order'),
       supabase.from('assigned_workouts').select('*, profile:profiles(*)').eq('workout_id', id),
-      supabase.from('profiles').select('*').eq('trainer_id', profile.id),
-    ]).then(([w, e, a, c]) => {
+    ]).then(([w, e, a]) => {
       setWorkout(w.data)
       setExercises(e.data ?? [])
       setAssignments(a.data ?? [])
-      setClients(c.data ?? [])
     })
   }, [id, profile])
 
@@ -67,33 +60,15 @@ export default function WorkoutDetailPage() {
     navigate('/trainer')
   }
 
-  useEffect(() => {
-    if (showAssignModal && availableClients.length === 1) {
-      setSelectedClientId(availableClients[0].id)
-    }
-  }, [showAssignModal])
-
-  function closeAssignModal() {
-    setShowAssignModal(false)
-    setDateType('open')
-    setAssignDate('')
-    setSelectedClientId(null)
-  }
-
-  async function handleAssign() {
-    if (!selectedClientId) return
-    const payload: Record<string, unknown> = { workout_id: id, client_id: selectedClientId }
-    if (dateType === 'specific' && assignDate) payload.planned_date = assignDate
-    const { data, error: err } = await supabase.from('assigned_workouts').insert(payload).select('*, profile:profiles(*)').single()
-    if (err) { setError(err.message); return }
-    if (data) setAssignments(prev => [...prev, data])
-    closeAssignModal()
-  }
-
-  const assignedClientIds = assignments.map(a => a.client_id)
-  const availableClients = clients.filter(c => !assignedClientIds.includes(c.id))
-
   if (!workout) return <Layout><div className="text-center py-12 text-slate-400">Загрузка...</div></Layout>
+
+  // Уникальные клиенты с количеством использований
+  const clientUsage = new Map<string, { name: string; count: number; clientId: string }>()
+  for (const a of assignments) {
+    const name = a.profile?.name ?? '—'
+    const existing = clientUsage.get(a.client_id)
+    clientUsage.set(a.client_id, { name, clientId: a.client_id, count: (existing?.count ?? 0) + 1 })
+  }
 
   return (
     <Layout>
@@ -101,9 +76,9 @@ export default function WorkoutDetailPage() {
         <Link to="/trainer" className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-3">
           <ArrowLeft className="w-4 h-4" /> Назад
         </Link>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 mb-4">
           <button onClick={() => navigate(`/trainer/workout/${id}/edit`)} className="flex items-center justify-center gap-1 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 px-2 py-2 rounded-lg">
-            <Edit className="w-4 h-4 shrink-0" /> <span className="truncate">Редактировать</span>
+            <Edit className="w-4 h-4 shrink-0" /> <span className="truncate">Изменить</span>
           </button>
           <button onClick={handleCopy} className="flex items-center justify-center gap-1 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 px-2 py-2 rounded-lg">
             <Copy className="w-4 h-4 shrink-0" /> <span className="truncate">Копировать</span>
@@ -115,12 +90,22 @@ export default function WorkoutDetailPage() {
       </div>
 
       <h1 className="text-2xl font-semibold mb-1">{workout.name}</h1>
-      <p className="text-sm text-slate-500 mb-5">Отдых по умолчанию: {workout.default_rest_sec} сек · {formatDate(workout.created_at)}</p>
+      <p className="text-sm text-slate-500 mb-4">
+        {exercises.length} упражнений · отдых {workout.default_rest_sec} сек
+      </p>
 
       {error && <ErrorMessage text={error} />}
 
+      {/* Главная кнопка */}
+      <button
+        onClick={() => navigate(`/trainer/assign?workoutId=${id}`)}
+        className="w-full mb-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-sm">
+        Назначить клиенту
+      </button>
+
+      {/* Упражнения */}
       <div className="mb-6">
-        <h2 className="font-semibold mb-3">Упражнения ({exercises.length})</h2>
+        <h2 className="font-semibold mb-3">Упражнения</h2>
         {exercises.length === 0
           ? <p className="text-sm text-slate-400">Нет упражнений</p>
           : <div className="space-y-2">
@@ -138,83 +123,26 @@ export default function WorkoutDetailPage() {
         }
       </div>
 
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold">Назначена клиентам ({assignments.length})</h2>
-          <button onClick={() => setShowAssignModal(true)} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800">
-            <UserPlus className="w-4 h-4" /> Назначить
-          </button>
-        </div>
-        {assignments.length === 0
-          ? <p className="text-sm text-slate-400">Ещё никому не назначена</p>
-          : <div className="space-y-1">
-            {assignments.map(a => (
-              <div key={a.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0 text-sm">
-                <span>{a.profile?.name ?? '—'}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-400 text-xs">{formatDate(a.assigned_at)}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${a.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                    {a.status === 'completed' ? '✓ Выполнена' : 'В процессе'}
-                  </span>
+      {/* Кто использовал */}
+      {clientUsage.size > 0 && (
+        <div>
+          <h2 className="font-semibold mb-3">Кто использовал</h2>
+          <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
+            {Array.from(clientUsage.values()).map(({ name, clientId, count }) => (
+              <div key={clientId}
+                onClick={() => navigate(`/trainer/client/${clientId}`)}
+                className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-slate-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-semibold text-slate-400">{name.charAt(0).toUpperCase()}</span>
+                  </div>
+                  <span className="text-sm font-medium">{name}</span>
                 </div>
+                <span className="text-xs text-slate-400">{count} {count === 1 ? 'раз' : 'раза'}</span>
               </div>
             ))}
           </div>
-        }
-      </div>
-
-      {showAssignModal && (
-        <Modal onClose={closeAssignModal}>
-          <h2 className="text-xl font-semibold mb-4">Назначить клиенту</h2>
-
-          {availableClients.length === 0
-            ? <p className="text-sm text-slate-500 mb-4">Все ваши клиенты уже получили эту тренировку.</p>
-            : <>
-              {/* Step 1: client */}
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">1. Выберите клиента</p>
-              <div className="space-y-1 mb-4">
-                {availableClients.map(c => (
-                  <button key={c.id} onClick={() => setSelectedClientId(c.id)}
-                    className={`w-full text-left rounded-lg p-3 border transition-colors ${selectedClientId === c.id ? 'border-indigo-500 bg-indigo-50 text-indigo-800' : 'border-slate-200 hover:border-slate-300'}`}>
-                    <div className="font-medium text-sm">{c.name}</div>
-                  </button>
-                ))}
-              </div>
-
-              {/* Step 2: date */}
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">2. Дата тренировки</p>
-              <div className="flex gap-2 mb-3">
-                <button onClick={() => setDateType('open')}
-                  className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${dateType === 'open' ? 'bg-indigo-50 border-indigo-400 text-indigo-700 font-medium' : 'border-slate-200 text-slate-500'}`}>
-                  Открытая дата
-                </button>
-                <button onClick={() => setDateType('specific')}
-                  className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${dateType === 'specific' ? 'bg-indigo-50 border-indigo-400 text-indigo-700 font-medium' : 'border-slate-200 text-slate-500'}`}>
-                  Конкретная дата
-                </button>
-              </div>
-              {dateType === 'open' && (
-                <p className="text-xs text-slate-400 mb-3">Клиент сможет выполнить тренировку в любой день.</p>
-              )}
-              {dateType === 'specific' && (
-                <input type="date" value={assignDate}
-                  onChange={e => setAssignDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
-                  className="border border-slate-300 rounded-lg px-3 py-3 text-base font-[inherit] bg-white mb-3 min-h-[48px]" />
-              )}
-
-              {/* Confirm */}
-              <button
-                onClick={handleAssign}
-                disabled={!selectedClientId || (dateType === 'specific' && !assignDate)}
-                className="w-full py-3 rounded-xl bg-indigo-600 text-white font-medium text-sm transition-opacity disabled:opacity-40 active:opacity-80 mb-2">
-                Назначить
-              </button>
-            </>
-          }
-          <button onClick={closeAssignModal} className="w-full text-sm text-slate-500 hover:text-slate-700 py-1">Отмена</button>
-        </Modal>
+        </div>
       )}
     </Layout>
   )

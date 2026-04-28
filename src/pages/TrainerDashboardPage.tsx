@@ -209,7 +209,7 @@ export default function TrainerDashboardPage() {
 
   if (loading) return (
     <Layout>
-      <div className="text-center py-12 text-[var(--slate-400)] text-[11px]">Загрузка...</div>
+      <div className="text-center py-12 text-[var(--slate-400)] text-[var(--fs-xs)]">Загрузка...</div>
     </Layout>
   )
 
@@ -219,8 +219,8 @@ export default function TrainerDashboardPage() {
       <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[14px]">
         <div className="pt-[11px] pb-0 flex items-center justify-between">
           <div>
-            <div className="text-[9px] text-[var(--slate-400)]">{getGreeting()}</div>
-            <div className="text-[15px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{profile?.name}</div>
+            <div className="text-[var(--fs-2xs)] text-[var(--slate-400)]">{getGreeting()}</div>
+            <div className="text-[var(--fs-lg)] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{profile?.name}</div>
           </div>
           <button onClick={signOut} className="text-[var(--slate-400)] hover:text-[var(--slate-500)] p-1">
             <LogOut className="w-4 h-4" />
@@ -237,7 +237,7 @@ export default function TrainerDashboardPage() {
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={`flex-1 py-[8px] text-[10px] font-semibold text-center border-b-2 -mb-[1.5px] transition-colors ${
+              className={`flex-1 py-[8px] text-[var(--fs-2xs)] font-semibold text-center border-b-2 -mb-[1.5px] transition-colors ${
                 tab === key ? 'text-[var(--indigo-500)] border-[var(--indigo-500)]' : 'text-[var(--slate-400)] border-transparent'
               }`}
             >
@@ -250,7 +250,7 @@ export default function TrainerDashboardPage() {
       {/* Body */}
       <div className="px-0 pt-[11px] pb-[14px]">
         {error && (
-          <div className="text-[10px] text-red-500 mb-2">{error}</div>
+          <div className="text-[var(--fs-2xs)] text-red-500 mb-2">{error}</div>
         )}
 
         {/* TODAY */}
@@ -258,7 +258,7 @@ export default function TrainerDashboardPage() {
           <div>
             {todayItems.length > 0 && (
               <div>
-                <div className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
+                <div className="text-[0.5rem] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
                   Тренировки сегодня
                 </div>
                 {todayItems.map(item => (
@@ -268,25 +268,25 @@ export default function TrainerDashboardPage() {
                     className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px] cursor-pointer"
                   >
                     <div className="flex items-center gap-[8px]">
-                      <div className="w-[28px] h-[28px] rounded-full bg-[var(--indigo-50)] flex items-center justify-center shrink-0 text-[11px] font-bold text-[var(--indigo-500)]">
+                      <div className="w-[28px] h-[28px] rounded-full bg-[var(--indigo-50)] flex items-center justify-center shrink-0 text-[var(--fs-xs)] font-bold text-[var(--indigo-500)]">
                         {item.clientName.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[11px] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
-                        <div className="text-[9px] text-[var(--slate-400)] mt-[1px] truncate">{item.workoutName}</div>
+                        <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
+                        <div className="text-[var(--fs-2xs)] text-[var(--slate-400)] mt-[1px] truncate">{item.workoutName}</div>
                         <div className="mt-[4px]">
                           {item.started ? (
-                            <span className="text-[9px] font-semibold bg-[var(--green-50)] text-[var(--green-600)] px-[7px] py-[2px] rounded-[20px]">
+                            <span className="text-[var(--fs-2xs)] font-semibold bg-[var(--green-50)] text-[var(--green-600)] px-[7px] py-[2px] rounded-[20px]">
                               ● Начата
                             </span>
                           ) : (
-                            <span className="text-[9px] font-semibold bg-[var(--slate-50)] text-[var(--slate-400)] px-[7px] py-[2px] rounded-[20px]">
+                            <span className="text-[var(--fs-2xs)] font-semibold bg-[var(--slate-50)] text-[var(--slate-400)] px-[7px] py-[2px] rounded-[20px]">
                               ● Не начата
                             </span>
                           )}
                         </div>
                       </div>
-                      <span className="text-[var(--slate-300)] text-[14px]">›</span>
+                      <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
                     </div>
                   </div>
                 ))}
@@ -295,7 +295,7 @@ export default function TrainerDashboardPage() {
 
             {upcomingItems.length > 0 && (
               <div className="mt-[8px]">
-                <div className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
+                <div className="text-[0.5rem] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
                   Ближайшие дни
                 </div>
                 <div className="bg-white border border-[var(--border)] rounded-[10px] overflow-hidden">
@@ -308,14 +308,14 @@ export default function TrainerDashboardPage() {
                         className={`px-[11px] py-[7px] flex items-center gap-2 cursor-pointer ${idx < upcomingItems.length - 1 ? 'border-b border-[var(--slate-50)]' : ''}`}
                       >
                         <div className="w-[26px] shrink-0 text-center">
-                          <div className="text-[8px] text-[var(--slate-400)] uppercase">{DAYS_SHORT[d.getDay()]}</div>
-                          <div className="text-[13px] font-bold text-[var(--slate-900)]">{d.getDate()}</div>
+                          <div className="text-[0.5rem] text-[var(--slate-400)] uppercase">{DAYS_SHORT[d.getDay()]}</div>
+                          <div className="text-[var(--fs-md)] font-bold text-[var(--slate-900)]">{d.getDate()}</div>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-[11px] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
-                          <div className="text-[9px] text-[var(--slate-400)] mt-[1px]">{item.workoutName}</div>
+                          <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
+                          <div className="text-[var(--fs-2xs)] text-[var(--slate-400)] mt-[1px]">{item.workoutName}</div>
                         </div>
-                        <span className="text-[var(--slate-300)] text-[14px]">›</span>
+                        <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
                       </div>
                     )
                   })}
@@ -325,7 +325,7 @@ export default function TrainerDashboardPage() {
 
             {openDateItems.length > 0 && (
               <div className="mt-[8px]">
-                <div className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
+                <div className="text-[0.5rem] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
                   Открытая дата
                 </div>
                 <div className="bg-white border border-[var(--border)] rounded-[10px] overflow-hidden">
@@ -336,10 +336,10 @@ export default function TrainerDashboardPage() {
                       className={`px-[11px] py-[7px] flex items-center gap-2 cursor-pointer ${idx < openDateItems.length - 1 ? 'border-b border-[var(--slate-50)]' : ''}`}
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="text-[11px] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
-                        <div className="text-[9px] text-[var(--slate-400)] mt-[1px]">{item.workoutName}</div>
+                        <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
+                        <div className="text-[var(--fs-2xs)] text-[var(--slate-400)] mt-[1px]">{item.workoutName}</div>
                       </div>
-                      <span className="text-[var(--slate-300)] text-[14px]">›</span>
+                      <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
                     </div>
                   ))}
                 </div>
@@ -347,7 +347,7 @@ export default function TrainerDashboardPage() {
             )}
 
             {todayItems.length === 0 && upcomingItems.length === 0 && openDateItems.length === 0 && (
-              <div className="text-center text-[11px] text-[var(--slate-400)] leading-[1.6] py-[28px]">
+              <div className="text-center text-[var(--fs-xs)] text-[var(--slate-400)] leading-[1.6] py-[28px]">
                 Нет активных тренировок на сегодня.<br />
                 Назначьте клиентам через их карточку.
               </div>
@@ -360,13 +360,13 @@ export default function TrainerDashboardPage() {
           <div>
             <button
               onClick={handleCreateInvite}
-              className="border-[1.5px] border-dashed border-[var(--indigo-300)] bg-[var(--indigo-50)] rounded-[10px] px-[10px] py-[10px] text-[10px] font-bold text-[var(--indigo-500)] w-full mb-[11px]"
+              className="border-[1.5px] border-dashed border-[var(--indigo-300)] bg-[var(--indigo-50)] rounded-[10px] px-[10px] py-[10px] text-[var(--fs-2xs)] font-bold text-[var(--indigo-500)] w-full mb-[11px]"
             >
               + Пригласить нового клиента
             </button>
 
             {clients.length === 0 ? (
-              <div className="text-center text-[11px] text-[var(--slate-400)] leading-[1.6] py-[28px]">
+              <div className="text-center text-[var(--fs-xs)] text-[var(--slate-400)] leading-[1.6] py-[28px]">
                 Клиентов пока нет.<br />
                 Пригласите первого.
               </div>
@@ -397,25 +397,25 @@ export default function TrainerDashboardPage() {
                       isMissed ? 'border-[var(--red-200)] bg-[var(--red-50)]' : 'border-[var(--border)] bg-white'
                     }`}
                   >
-                    <div className={`w-[28px] h-[28px] rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold ${
+                    <div className={`w-[28px] h-[28px] rounded-full flex items-center justify-center shrink-0 text-[var(--fs-xs)] font-bold ${
                       isMissed ? 'bg-[var(--red-50)] text-[var(--red-500)]' : 'bg-[var(--indigo-50)] text-[var(--indigo-500)]'
                     }`}>
                       {c.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between gap-1 items-center">
-                        <span className="text-[11px] font-semibold text-[var(--slate-900)]">{c.name}</span>
+                        <span className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{c.name}</span>
                         {c.compliance !== null && (
-                          <span className={`text-[9px] font-bold px-[7px] py-[2px] rounded-[20px] shrink-0 ${compBadge.bg} ${compBadge.text}`}>
+                          <span className={`text-[var(--fs-2xs)] font-bold px-[7px] py-[2px] rounded-[20px] shrink-0 ${compBadge.bg} ${compBadge.text}`}>
                             {compBadge.label}
                           </span>
                         )}
                       </div>
-                      <div className={`text-[9px] mt-[2px] ${isMissed ? 'text-[var(--red-400)]' : 'text-[var(--slate-400)]'}`}>
+                      <div className={`text-[var(--fs-2xs)] mt-[2px] ${isMissed ? 'text-[var(--red-400)]' : 'text-[var(--slate-400)]'}`}>
                         {subtitle}
                       </div>
                     </div>
-                    <span className="text-[var(--slate-300)] text-[14px]">›</span>
+                    <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
                   </div>
                 )
               })
@@ -438,16 +438,16 @@ export default function TrainerDashboardPage() {
               >
                 <span
                   onClick={e => toggleFavorite(e, w)}
-                  className={`text-[13px] shrink-0 ${w.is_favorite ? 'text-[var(--amber-500)]' : 'text-[var(--slate-200)]'}`}
+                  className={`text-[var(--fs-md)] shrink-0 ${w.is_favorite ? 'text-[var(--amber-500)]' : 'text-[var(--slate-200)]'}`}
                 >★</span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[11px] font-semibold text-[var(--slate-900)]">{w.name}</div>
-                  <div className="text-[9px] text-[var(--slate-400)] mt-[1px]">
+                  <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{w.name}</div>
+                  <div className="text-[var(--fs-2xs)] text-[var(--slate-400)] mt-[1px]">
                     {stats?.exerciseCount ?? 0} упр.
                     {(stats?.usageCount ?? 0) > 0 && ` · ${stats!.usageCount} раз`}
                   </div>
                 </div>
-                <span className="text-[var(--slate-300)] text-[14px]">›</span>
+                <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
               </div>
             )
           }
@@ -456,7 +456,7 @@ export default function TrainerDashboardPage() {
             <div>
               {favorites.length > 0 && (
                 <div>
-                  <div className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
+                  <div className="text-[0.5rem] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
                     Избранные
                   </div>
                   {favorites.map(WorkoutRow)}
@@ -466,7 +466,7 @@ export default function TrainerDashboardPage() {
               {favorites.length > 0 && rest.length > 0 && (
                 <div className="flex items-center gap-[6px] my-[7px]">
                   <div className="flex-1 h-[1px] bg-[var(--border)]" />
-                  <span className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.06em]">Все шаблоны</span>
+                  <span className="text-[0.5rem] font-bold text-[var(--slate-400)] uppercase tracking-[0.06em]">Все шаблоны</span>
                   <div className="flex-1 h-[1px] bg-[var(--border)]" />
                 </div>
               )}
@@ -474,7 +474,7 @@ export default function TrainerDashboardPage() {
               {rest.length > 0 && (
                 <div>
                   {favorites.length === 0 && (
-                    <div className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
+                    <div className="text-[0.5rem] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
                       Все шаблоны
                     </div>
                   )}
@@ -483,14 +483,14 @@ export default function TrainerDashboardPage() {
               )}
 
               {workouts.length === 0 && (
-                <div className="text-center text-[11px] text-[var(--slate-400)] leading-[1.6] py-[28px]">
+                <div className="text-center text-[var(--fs-xs)] text-[var(--slate-400)] leading-[1.6] py-[28px]">
                   Нет шаблонов.<br />Создайте первый!
                 </div>
               )}
 
               <button
                 onClick={handleCreateWorkout}
-                className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[11px] font-bold rounded-[9px] py-[10px] mt-[8px] flex items-center justify-center gap-1"
+                className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[var(--fs-xs)] font-bold rounded-[9px] py-[10px] mt-[8px] flex items-center justify-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" /> Новый шаблон
               </button>
@@ -518,17 +518,17 @@ function InviteModal({ invite, onClose }: { invite: Invite; onClose: () => void 
 
   return (
     <Modal onClose={onClose}>
-      <h2 className="text-[13px] font-bold text-[var(--slate-900)] mb-1">Приглашение создано</h2>
-      <p className="text-[9px] text-[var(--slate-500)] leading-[1.5] mb-3">
+      <h2 className="text-[var(--fs-md)] font-bold text-[var(--slate-900)] mb-1">Приглашение создано</h2>
+      <p className="text-[var(--fs-2xs)] text-[var(--slate-500)] leading-[1.5] mb-3">
         Отправьте эту ссылку клиенту. Действует 7 дней, использовать можно один раз.
       </p>
       <div className="bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[7px] px-[9px] py-[7px]">
-        <span className="text-[9px] font-mono text-[var(--slate-600)] break-all">{link}</span>
+        <span className="text-[var(--fs-2xs)] font-mono text-[var(--slate-600)] break-all">{link}</span>
       </div>
       <div className="flex gap-[6px] mt-3">
         <button
           onClick={copy}
-          className="flex-1 bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[10px] font-bold rounded-[8px] py-[9px] flex items-center justify-center gap-1"
+          className="flex-1 bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[var(--fs-2xs)] font-bold rounded-[8px] py-[9px] flex items-center justify-center gap-1"
         >
           {copied ? (
             <><Check className="w-3.5 h-3.5" /> ✓ Скопировано</>
@@ -538,7 +538,7 @@ function InviteModal({ invite, onClose }: { invite: Invite; onClose: () => void 
         </button>
         <button
           onClick={onClose}
-          className="text-[10px] text-[var(--slate-500)] px-[4px] py-[9px]"
+          className="text-[var(--fs-2xs)] text-[var(--slate-500)] px-[4px] py-[9px]"
         >
           Закрыть
         </button>

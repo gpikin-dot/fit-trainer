@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Star, Check, Calendar, X } from 'lucide-react'
+import { ArrowLeft, Star, Calendar } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
@@ -30,12 +30,7 @@ type DateChoice = 'today' | 'tomorrow' | 'pick' | 'none'
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function initials(name: string) {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map(p => p[0])
-    .join('')
-    .toUpperCase()
+  return name.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()
 }
 
 function localDate(offsetDays = 0) {
@@ -57,32 +52,25 @@ function plural(n: number, one: string, few: string, many: string) {
 
 function StepDots({ step }: { step: Step }) {
   const steps: Step[] = ['selectClient', 'selectTemplate', 'customize', 'date']
-  // For flows that skip selectClient or selectTemplate we still show 3 meaningful dots:
-  // customize and date are always steps 2 and 3 (indices 2 and 3)
   const idx = steps.indexOf(step)
-  const dots = [0, 1, 2] // represent customize-adjacent steps
   return (
-    <div className="flex items-center justify-center gap-2 mb-6">
-      {dots.map(i => (
+    <div className="flex items-center justify-center gap-[5px] py-[8px] mb-2">
+      {[0, 1, 2].map(i => (
         <span
           key={i}
-          className={`w-2 h-2 rounded-full transition-colors ${
-            i < idx
-              ? 'bg-indigo-600'
-              : i === idx
-              ? 'bg-indigo-600'
-              : 'bg-slate-200'
-          }`}
+          className={`w-[6px] h-[6px] rounded-full transition-colors ${i <= idx ? 'bg-[#6366F1]' : 'bg-[#E2E8F0]'}`}
         />
       ))}
     </div>
   )
 }
 
-function Avatar({ name, size = 'sm' }: { name: string; size?: 'sm' | 'md' }) {
-  const cls = size === 'md' ? 'w-10 h-10 text-base' : 'w-9 h-9 text-sm'
+function Avatar({ name, size = 28 }: { name: string; size?: number }) {
   return (
-    <div className={`${cls} rounded-full bg-slate-100 flex items-center justify-center font-medium text-slate-600 shrink-0`}>
+    <div
+      className="rounded-full bg-[#EEF2FF] flex items-center justify-center font-bold text-[#6366F1] shrink-0"
+      style={{ width: size, height: size, fontSize: size <= 24 ? 9 : size <= 28 ? 11 : 13 }}
+    >
       {initials(name)}
     </div>
   )
@@ -92,9 +80,9 @@ function BackButton({ onClick, label = 'Назад' }: { onClick: () => void; la
   return (
     <button
       onClick={onClick}
-      className="text-indigo-600 flex items-center gap-1 text-sm hover:text-indigo-800 mb-4"
+      className="text-[10px] font-semibold text-[#6366F1] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
     >
-      <ArrowLeft className="w-4 h-4" /> {label}
+      <ArrowLeft className="w-3 h-3" /> {label}
     </button>
   )
 }
@@ -108,9 +96,8 @@ export default function AssignWorkoutFlow() {
 
   const qWorkoutId = searchParams.get('workoutId')
   const qClientId = searchParams.get('clientId')
-  const qRepeatFrom = searchParams.get('repeatFrom') // session_exercises source
+  const qRepeatFrom = searchParams.get('repeatFrom')
 
-  // Determine initial step
   function initStep(): Step {
     if (qRepeatFrom && qWorkoutId && qClientId) return 'date'
     if (qWorkoutId && qClientId) return 'customize'
@@ -119,31 +106,19 @@ export default function AssignWorkoutFlow() {
   }
 
   const [step, setStep] = useState<Step>(initStep)
-
-  // Selected IDs
   const [selectedClientId, setSelectedClientId] = useState<string | null>(qClientId)
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(qWorkoutId)
-
-  // Data
   const [clients, setClients] = useState<Profile[]>([])
   const [workouts, setWorkouts] = useState<Workout[]>([])
-  const [workoutTimeCounts, setWorkoutTimeCounts] = useState<Record<string, number>>({}) // clientId+workoutId → count
+  const [workoutTimeCounts, setWorkoutTimeCounts] = useState<Record<string, number>>({})
   const [exercises, setExercises] = useState<ExerciseConfig[]>([])
-
-  // Cached names for display
   const [workoutName, setWorkoutName] = useState('')
   const [clientName, setClientName] = useState('')
-
-  // Date step
   const [dateChoice, setDateChoice] = useState<DateChoice>('today')
   const [pickedDate, setPickedDate] = useState(localDate(2))
-
-  // UI state
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-
-  // ── Load data on mount ───────────────────────────────────────────────────
 
   useEffect(() => {
     if (!profile) return
@@ -157,40 +132,28 @@ export default function AssignWorkoutFlow() {
     setError('')
 
     try {
-      // Always load clients for trainer
       const { data: clientData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('trainer_id', profile.id)
-        .order('name')
+        .from('profiles').select('*').eq('trainer_id', profile.id).order('name')
       setClients(clientData ?? [])
 
-      // Always load workouts for trainer
       const { data: workoutData } = await supabase
-        .from('workouts')
-        .select('*')
-        .eq('trainer_id', profile.id)
-        .order('name')
+        .from('workouts').select('*').eq('trainer_id', profile.id).order('name')
       setWorkouts(workoutData ?? [])
 
-      // Preload workout counts per client if we know the client
       if (selectedClientId && workoutData) {
         await loadWorkoutCounts(selectedClientId, workoutData.map(w => w.id))
       }
 
-      // Preload workout name if known
       if (selectedWorkoutId) {
         const found = (workoutData ?? []).find(w => w.id === selectedWorkoutId)
         if (found) setWorkoutName(found.name)
       }
 
-      // Preload client name if known
       if (selectedClientId) {
         const found = (clientData ?? []).find(c => c.id === selectedClientId)
         if (found) setClientName(found.name)
       }
 
-      // Load exercises for customize step
       if ((qWorkoutId && qClientId) || qRepeatFrom) {
         await loadExercises()
       }
@@ -204,11 +167,8 @@ export default function AssignWorkoutFlow() {
   async function loadWorkoutCounts(clientId: string, workoutIds: string[]) {
     if (workoutIds.length === 0) return
     const { data } = await supabase
-      .from('assigned_workouts')
-      .select('workout_id')
-      .eq('client_id', clientId)
-      .in('workout_id', workoutIds)
-      .eq('status', 'completed')
+      .from('assigned_workouts').select('workout_id')
+      .eq('client_id', clientId).in('workout_id', workoutIds).eq('status', 'completed')
 
     const counts: Record<string, number> = {}
     for (const row of data ?? []) {
@@ -223,59 +183,35 @@ export default function AssignWorkoutFlow() {
     if (!sourceWorkoutId) return
 
     if (qRepeatFrom) {
-      // Load from session_exercises of that assigned workout
       const { data } = await supabase
-        .from('session_exercises')
-        .select('*, exercise_library:exercises_library(*)')
-        .eq('assigned_workout_id', qRepeatFrom)
-        .order('order')
-
+        .from('session_exercises').select('*, exercise_library:exercises_library(*)')
+        .eq('assigned_workout_id', qRepeatFrom).order('order')
       if (data) {
-        setExercises(
-          data.map((se: any) => ({
-            library_exercise_id: se.library_exercise_id,
-            library: se.exercise_library,
-            order: se.order,
-            sets: se.sets,
-            reps: se.reps,
-            weight_kg: se.weight_kg,
-            rest_sec: se.rest_sec,
-            trainer_note: se.trainer_note ?? '',
-            origSets: se.sets,
-            origReps: se.reps,
-            origWeight: se.weight_kg,
-          }))
-        )
+        setExercises(data.map((se: any) => ({
+          library_exercise_id: se.library_exercise_id,
+          library: se.exercise_library,
+          order: se.order,
+          sets: se.sets, reps: se.reps, weight_kg: se.weight_kg,
+          rest_sec: se.rest_sec, trainer_note: se.trainer_note ?? '',
+          origSets: se.sets, origReps: se.reps, origWeight: se.weight_kg,
+        })))
       }
     } else {
-      // Load from template exercises
       const { data } = await supabase
-        .from('exercises')
-        .select('*, exercise_library:exercises_library(*)')
-        .eq('workout_id', sourceWorkoutId)
-        .order('order')
-
+        .from('exercises').select('*, exercise_library:exercises_library(*)')
+        .eq('workout_id', sourceWorkoutId).order('order')
       if (data) {
-        setExercises(
-          data.map((e: any) => ({
-            library_exercise_id: e.library_exercise_id,
-            library: e.exercise_library,
-            order: e.order,
-            sets: e.sets,
-            reps: e.reps,
-            weight_kg: e.weight_kg,
-            rest_sec: e.rest_sec,
-            trainer_note: e.trainer_note ?? '',
-            origSets: e.sets,
-            origReps: e.reps,
-            origWeight: e.weight_kg,
-          }))
-        )
+        setExercises(data.map((e: any) => ({
+          library_exercise_id: e.library_exercise_id,
+          library: e.exercise_library,
+          order: e.order,
+          sets: e.sets, reps: e.reps, weight_kg: e.weight_kg,
+          rest_sec: e.rest_sec, trainer_note: e.trainer_note ?? '',
+          origSets: e.sets, origReps: e.reps, origWeight: e.weight_kg,
+        })))
       }
     }
   }
-
-  // ── Step transitions ─────────────────────────────────────────────────────
 
   async function handleClientSelected() {
     if (!selectedClientId) return
@@ -291,28 +227,18 @@ export default function AssignWorkoutFlow() {
     if (workout) setWorkoutName(workout.name)
     setLoading(true)
 
-    // Load exercises for this template
     const { data } = await supabase
-      .from('exercises')
-      .select('*, exercise_library:exercises_library(*)')
-      .eq('workout_id', workoutId)
-      .order('order')
+      .from('exercises').select('*, exercise_library:exercises_library(*)')
+      .eq('workout_id', workoutId).order('order')
 
-    setExercises(
-      (data ?? []).map((e: any) => ({
-        library_exercise_id: e.library_exercise_id,
-        library: e.exercise_library,
-        order: e.order,
-        sets: e.sets,
-        reps: e.reps,
-        weight_kg: e.weight_kg,
-        rest_sec: e.rest_sec,
-        trainer_note: e.trainer_note ?? '',
-        origSets: e.sets,
-        origReps: e.reps,
-        origWeight: e.weight_kg,
-      }))
-    )
+    setExercises((data ?? []).map((e: any) => ({
+      library_exercise_id: e.library_exercise_id,
+      library: e.exercise_library,
+      order: e.order,
+      sets: e.sets, reps: e.reps, weight_kg: e.weight_kg,
+      rest_sec: e.rest_sec, trainer_note: e.trainer_note ?? '',
+      origSets: e.sets, origReps: e.reps, origWeight: e.weight_kg,
+    })))
     setLoading(false)
     setStep('customize')
   }
@@ -321,14 +247,12 @@ export default function AssignWorkoutFlow() {
     if (step === 'selectClient') { navigate(-1); return }
     if (step === 'selectTemplate') {
       if (qWorkoutId) { navigate(-1); return }
-      setStep('selectClient')
-      return
+      setStep('selectClient'); return
     }
     if (step === 'customize') {
       if (qRepeatFrom || (qWorkoutId && qClientId)) { navigate(-1); return }
       if (qWorkoutId) { setStep('selectClient'); return }
-      setStep('selectTemplate')
-      return
+      setStep('selectTemplate'); return
     }
     if (step === 'date') {
       if (qRepeatFrom) { navigate(-1); return }
@@ -337,18 +261,12 @@ export default function AssignWorkoutFlow() {
   }
 
   function updateExercise(idx: number, patch: Partial<ExerciseConfig>) {
-    setExercises(prev =>
-      prev.map((ex, i) => (i === idx ? { ...ex, ...patch } : ex))
-    )
+    setExercises(prev => prev.map((ex, i) => (i === idx ? { ...ex, ...patch } : ex)))
   }
 
   function removeExercise(idx: number) {
-    setExercises(prev =>
-      prev.filter((_, i) => i !== idx).map((ex, i) => ({ ...ex, order: i }))
-    )
+    setExercises(prev => prev.filter((_, i) => i !== idx).map((ex, i) => ({ ...ex, order: i })))
   }
-
-  // ── Submit ───────────────────────────────────────────────────────────────
 
   async function handleAssign() {
     if (!selectedClientId || !selectedWorkoutId) return
@@ -364,14 +282,8 @@ export default function AssignWorkoutFlow() {
 
       const { data: aw, error: awErr } = await supabase
         .from('assigned_workouts')
-        .insert({
-          workout_id: selectedWorkoutId,
-          client_id: selectedClientId,
-          planned_date: plannedDate,
-          status: 'pending',
-        })
-        .select()
-        .single()
+        .insert({ workout_id: selectedWorkoutId, client_id: selectedClientId, planned_date: plannedDate, status: 'pending' })
+        .select().single()
 
       if (awErr || !aw) throw new Error(awErr?.message ?? 'Ошибка создания записи')
 
@@ -380,12 +292,8 @@ export default function AssignWorkoutFlow() {
           exercises.map(ex => ({
             assigned_workout_id: aw.id,
             library_exercise_id: ex.library_exercise_id,
-            order: ex.order,
-            sets: ex.sets,
-            reps: ex.reps,
-            weight_kg: ex.weight_kg,
-            rest_sec: ex.rest_sec,
-            trainer_note: ex.trainer_note || null,
+            order: ex.order, sets: ex.sets, reps: ex.reps, weight_kg: ex.weight_kg,
+            rest_sec: ex.rest_sec, trainer_note: ex.trainer_note || null,
           }))
         )
         if (seErr) throw new Error(seErr.message)
@@ -398,50 +306,43 @@ export default function AssignWorkoutFlow() {
     }
   }
 
-  // ── Derived values ───────────────────────────────────────────────────────
-
   const modifiedCount = exercises.filter(
-    ex =>
-      ex.sets !== ex.origSets ||
-      ex.reps !== ex.origReps ||
-      ex.weight_kg !== ex.origWeight
+    ex => ex.sets !== ex.origSets || ex.reps !== ex.origReps || ex.weight_kg !== ex.origWeight
   ).length
 
   const favoriteWorkouts = workouts.filter(w => w.is_favorite)
   const otherWorkouts = workouts.filter(w => !w.is_favorite)
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  // Row/input style for customize step
+  const numInput = 'bg-[#F8FAFC] border border-[#E2E8F0] rounded-[6px] px-[4px] py-[5px] text-[11px] font-bold text-[#0F172A] text-center w-full outline-none focus:border-indigo-400'
+  const noteInput = 'bg-[#F8FAFC] border border-[#E2E8F0] rounded-[6px] px-[7px] py-[5px] text-[9px] text-[#475569] italic w-full outline-none focus:border-indigo-400 text-left'
 
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center py-20 text-slate-400 text-sm">
-          Загрузка...
-        </div>
+        <div className="flex items-center justify-center py-20 text-[#94A3B8] text-[11px]">Загрузка...</div>
       </Layout>
     )
   }
 
   return (
     <Layout>
-      <div className="max-w-lg mx-auto">
+      <div className="pt-[11px] pb-[14px]">
         <StepDots step={step} />
 
         {/* ── Step: selectClient ──────────────────────────────────────────── */}
         {step === 'selectClient' && (
           <>
             <BackButton onClick={handleBack} label={workoutName || 'Назад'} />
-            <h1 className="text-xl font-semibold mb-1">Выбрать клиента</h1>
+            <h1 className="text-[15px] font-bold text-[#0F172A]">Выбрать клиента</h1>
             {workoutName && (
-              <p className="text-sm text-slate-500 mb-5">{workoutName}</p>
+              <p className="text-[10px] text-[#94A3B8] mb-5">{workoutName}</p>
             )}
 
             {clients.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 text-sm">
-                У вас пока нет клиентов
-              </div>
+              <div className="text-center py-12 text-[#94A3B8] text-[11px]">У вас пока нет клиентов</div>
             ) : (
-              <div className="space-y-2 mb-6">
+              <div className="mb-5">
                 {clients.map(client => {
                   const count = selectedWorkoutId
                     ? (workoutTimeCounts[`${client.id}:${selectedWorkoutId}`] ?? 0)
@@ -451,22 +352,25 @@ export default function AssignWorkoutFlow() {
                     <button
                       key={client.id}
                       onClick={() => setSelectedClientId(client.id)}
-                      className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${
-                        selected
-                          ? 'border-indigo-500 bg-indigo-50'
-                          : 'bg-white border-slate-200 hover:border-indigo-300 hover:shadow-sm'
+                      className={`bg-white border-[1.5px] rounded-[10px] px-[10px] py-[8px] mb-[4px] flex items-center gap-[7px] cursor-pointer w-full text-left transition-colors ${
+                        selected ? 'border-[#6366F1] bg-[#EEF2FF]' : 'border-[#E8EDF3]'
                       }`}
                     >
-                      <Avatar name={client.name} />
+                      <Avatar name={client.name} size={28} />
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">{client.name}</div>
-                        {count > 0 && (
-                          <div className="text-xs text-slate-400 mt-0.5">
-                            {plural(count, 'раз', 'раза', 'раз')} делал эту тренировку
-                          </div>
-                        )}
+                        <div className="text-[11px] font-semibold text-[#0F172A]">{client.name}</div>
+                        <div className="text-[9px] text-[#94A3B8] mt-[1px]">
+                          {count > 0
+                            ? `${plural(count, 'раз', 'раза', 'раз')} делал эту тренировку`
+                            : 'не делал'
+                          }
+                        </div>
                       </div>
-                      {selected && <Check className="w-5 h-5 text-indigo-600 shrink-0" />}
+                      {selected ? (
+                        <div className="w-[16px] h-[16px] rounded-full bg-[#6366F1] flex items-center justify-center text-white text-[9px] shrink-0">✓</div>
+                      ) : (
+                        <span className="text-[#CBD5E1] text-[14px]">›</span>
+                      )}
                     </button>
                   )
                 })}
@@ -478,7 +382,7 @@ export default function AssignWorkoutFlow() {
             <button
               onClick={handleClientSelected}
               disabled={!selectedClientId}
-              className="w-full bg-indigo-600 text-white font-medium py-3 rounded-xl disabled:opacity-40 hover:bg-indigo-700 transition-colors"
+              className="w-full bg-[#6366F1] hover:bg-[#4338CA] text-white text-[11px] font-bold rounded-[9px] py-[10px] disabled:opacity-40"
             >
               Далее
             </button>
@@ -489,64 +393,44 @@ export default function AssignWorkoutFlow() {
         {step === 'selectTemplate' && (
           <>
             <BackButton onClick={handleBack} label={clientName || 'Назад'} />
-            <h1 className="text-xl font-semibold mb-1">Назначить тренировку</h1>
+            <h1 className="text-[15px] font-bold text-[#0F172A]">Назначить тренировку</h1>
             {clientName && (
-              <p className="text-sm text-slate-500 mb-5">{clientName}</p>
+              <p className="text-[10px] text-[#94A3B8] mb-5">{clientName}</p>
             )}
 
             {favoriteWorkouts.length > 0 && (
-              <>
-                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                  Избранные
-                </h2>
-                <div className="space-y-2 mb-4">
-                  {favoriteWorkouts.map(w => {
-                    const count = selectedClientId
-                      ? (workoutTimeCounts[`${selectedClientId}:${w.id}`] ?? 0)
-                      : 0
-                    return (
-                      <WorkoutRow
-                        key={w.id}
-                        workout={w}
-                        count={count}
-                        onSelect={() => handleTemplateSelected(w.id)}
-                      />
-                    )
-                  })}
-                </div>
-              </>
+              <div>
+                <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.06em] mb-[5px]">Избранные</div>
+                {favoriteWorkouts.map(w => {
+                  const count = selectedClientId ? (workoutTimeCounts[`${selectedClientId}:${w.id}`] ?? 0) : 0
+                  return (
+                    <WorkoutSelectRow key={w.id} workout={w} count={count} onSelect={() => handleTemplateSelected(w.id)} />
+                  )
+                })}
+              </div>
             )}
 
-            <div className="flex items-center gap-3 my-4">
-              <div className="flex-1 h-px bg-slate-200" />
-              <span className="text-xs text-slate-400 font-medium">Все шаблоны</span>
-              <div className="flex-1 h-px bg-slate-200" />
+            <div className="flex items-center gap-[6px] my-[7px]">
+              <div className="flex-1 h-[1px] bg-[#E8EDF3]" />
+              <span className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.06em]">Все шаблоны</span>
+              <div className="flex-1 h-[1px] bg-[#E8EDF3]" />
             </div>
 
-            <div className="space-y-2 mb-4">
+            <div>
               {otherWorkouts.map(w => {
-                const count = selectedClientId
-                  ? (workoutTimeCounts[`${selectedClientId}:${w.id}`] ?? 0)
-                  : 0
+                const count = selectedClientId ? (workoutTimeCounts[`${selectedClientId}:${w.id}`] ?? 0) : 0
                 return (
-                  <WorkoutRow
-                    key={w.id}
-                    workout={w}
-                    count={count}
-                    onSelect={() => handleTemplateSelected(w.id)}
-                  />
+                  <WorkoutSelectRow key={w.id} workout={w} count={count} onSelect={() => handleTemplateSelected(w.id)} />
                 )
               })}
               {workouts.length === 0 && (
-                <div className="text-center py-8 text-slate-400 text-sm">
-                  У вас нет шаблонов тренировок
-                </div>
+                <div className="text-center py-8 text-[#94A3B8] text-[11px]">У вас нет шаблонов тренировок</div>
               )}
             </div>
 
             <button
               onClick={() => navigate('/trainer/workout/new')}
-              className="w-full border border-dashed border-slate-300 text-slate-500 text-sm py-3 rounded-xl hover:border-indigo-400 hover:text-indigo-600 transition-colors"
+              className="w-full border border-dashed border-[#C7D2FE] text-[#6366F1] text-[10px] font-bold py-[9px] rounded-[9px] mt-[6px]"
             >
               + Создать новый шаблон
             </button>
@@ -559,194 +443,125 @@ export default function AssignWorkoutFlow() {
         {step === 'customize' && (
           <>
             <BackButton onClick={handleBack} label="Выбор клиента" />
-            <h1 className="text-xl font-semibold mb-4">Настройка упражнений</h1>
+            <h1 className="text-[15px] font-bold text-[#0F172A]">Настройка упражнений</h1>
 
-            {/* Client chip */}
             {clientName && (
-              <div className="flex items-center gap-2 mb-3">
-                <Avatar name={clientName} size="md" />
-                <div>
-                  <div className="font-medium text-sm">{clientName}</div>
-                </div>
+              <div className="flex items-center gap-[6px] bg-[#F8FAFC] border border-[#E2E8F0] rounded-[8px] px-[8px] py-[5px] mb-[7px] mt-[6px]">
+                <Avatar name={clientName} size={22} />
+                <span className="text-[10px] font-semibold text-[#0F172A]">{clientName}</span>
               </div>
             )}
 
-            {/* Template label */}
             {workoutName && (
-              <div className="bg-slate-100 text-slate-600 text-sm font-medium px-3 py-2 rounded-lg mb-5 inline-block">
+              <div className="bg-[#F1F5F9] text-[#64748B] text-[9px] font-semibold rounded-[6px] px-[9px] py-[4px] inline-block mb-[8px]">
                 {workoutName}
               </div>
             )}
 
             {exercises.length === 0 ? (
-              <div className="text-center py-8 text-slate-400 text-sm">
-                В шаблоне нет упражнений
-              </div>
+              <div className="text-center py-8 text-[#94A3B8] text-[11px]">В шаблоне нет упражнений</div>
             ) : (
-              <div className="space-y-3 mb-6">
+              <div className="mb-5">
                 {exercises.map((ex, idx) => {
                   const setsModified = ex.sets !== ex.origSets
                   const repsModified = ex.reps !== ex.origReps
                   const weightModified = ex.weight_kg !== ex.origWeight
-
-                  const fieldCls = (modified: boolean) =>
-                    `w-full rounded px-2 py-1 text-sm border ${
-                      modified
-                        ? 'bg-indigo-50 border-indigo-200'
-                        : 'border-slate-300 bg-white'
-                    } focus:outline-none focus:ring-2 focus:ring-indigo-400`
-
                   const exType = ex.library.exercise_type ?? 'strength'
 
+                  const modNumInput = (modified: boolean) =>
+                    `${numInput} ${modified ? 'bg-[#EEF2FF] border-[#C7D2FE]' : ''}`
+
                   return (
-                    <div key={idx} className="bg-white border border-slate-200 rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="font-medium text-sm">
-                          {idx + 1}. {ex.library.name_ru}
-                        </span>
+                    <div key={idx} className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
+                      <div className="flex justify-between mb-[8px]">
+                        <span className="text-[11px] font-bold text-[#0F172A]">{idx + 1}. {ex.library.name_ru}</span>
                         <button
                           onClick={() => removeExercise(idx)}
-                          className="text-slate-300 hover:text-red-400 transition-colors"
-                          aria-label="Удалить"
+                          className="text-[#CBD5E1] hover:text-[#EF4444] text-[13px] bg-transparent border-none p-0 leading-none"
                         >
-                          <X className="w-4 h-4" />
+                          ✕
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {exType === 'cardio_time' ? (
-                          <>
+                      {exType === 'cardio_time' ? (
+                        <>
+                          <div className="grid grid-cols-3 gap-[4px] mb-[4px]">
                             <div>
-                              <label className="text-xs text-slate-500">Интервалы</label>
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                value={isNaN(ex.sets) ? '' : ex.sets}
+                              <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Интервалы</label>
+                              <input type="text" inputMode="numeric" value={isNaN(ex.sets) ? '' : ex.sets}
                                 onChange={e => updateExercise(idx, { sets: parseInt(e.target.value) || 0 })}
                                 onBlur={() => { if (!ex.sets || ex.sets < 1) updateExercise(idx, { sets: 1 }) }}
-                                onFocus={e => e.target.select()}
-                                className={`mt-1 ${fieldCls(setsModified)}`}
-                              />
+                                onFocus={e => e.target.select()} className={modNumInput(setsModified)} />
                             </div>
                             <div>
-                              <label className="text-xs text-slate-500">Длит. (мин)</label>
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                value={isNaN(ex.reps) ? '' : ex.reps}
+                              <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Длит. (мин)</label>
+                              <input type="text" inputMode="numeric" value={isNaN(ex.reps) ? '' : ex.reps}
                                 onChange={e => updateExercise(idx, { reps: parseInt(e.target.value) || 0 })}
                                 onBlur={() => { if (!ex.reps || ex.reps < 1) updateExercise(idx, { reps: 1 }) }}
-                                onFocus={e => e.target.select()}
-                                className={`mt-1 ${fieldCls(repsModified)}`}
-                              />
+                                onFocus={e => e.target.select()} className={modNumInput(repsModified)} />
                             </div>
                             <div>
-                              <label className="text-xs text-slate-500">Дистанция (км)</label>
-                              <input
-                                type="text"
-                                inputMode="decimal"
-                                value={ex.weight_kg}
+                              <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Дистанция (км)</label>
+                              <input type="text" inputMode="decimal" value={ex.weight_kg}
                                 onChange={e => updateExercise(idx, { weight_kg: parseFloat(e.target.value.replace(',', '.')) || 0 })}
-                                onFocus={e => e.target.select()}
-                                placeholder="0"
-                                className={`mt-1 ${fieldCls(weightModified)}`}
-                              />
+                                onFocus={e => e.target.select()} placeholder="0" className={modNumInput(weightModified)} />
                             </div>
-                          </>
-                        ) : exType === 'cardio_reps' ? (
-                          <>
-                            <div>
-                              <label className="text-xs text-slate-500">Подходы</label>
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                value={isNaN(ex.sets) ? '' : ex.sets}
-                                onChange={e => updateExercise(idx, { sets: parseInt(e.target.value) || 0 })}
-                                onBlur={() => { if (!ex.sets || ex.sets < 1) updateExercise(idx, { sets: 1 }) }}
-                                onFocus={e => e.target.select()}
-                                className={`mt-1 ${fieldCls(setsModified)}`}
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-slate-500">Повторения</label>
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                value={isNaN(ex.reps) ? '' : ex.reps}
-                                onChange={e => updateExercise(idx, { reps: parseInt(e.target.value) || 0 })}
-                                onBlur={() => { if (!ex.reps || ex.reps < 1) updateExercise(idx, { reps: 1 }) }}
-                                onFocus={e => e.target.select()}
-                                className={`mt-1 ${fieldCls(repsModified)}`}
-                              />
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div>
-                              <label className="text-xs text-slate-500">Подходы</label>
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                value={isNaN(ex.sets) ? '' : ex.sets}
-                                onChange={e => updateExercise(idx, { sets: parseInt(e.target.value) || 0 })}
-                                onBlur={() => { if (!ex.sets || ex.sets < 1) updateExercise(idx, { sets: 1 }) }}
-                                onFocus={e => e.target.select()}
-                                className={`mt-1 ${fieldCls(setsModified)}`}
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-slate-500">Повторения</label>
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                value={isNaN(ex.reps) ? '' : ex.reps}
-                                onChange={e => updateExercise(idx, { reps: parseInt(e.target.value) || 0 })}
-                                onBlur={() => { if (!ex.reps || ex.reps < 1) updateExercise(idx, { reps: 1 }) }}
-                                onFocus={e => e.target.select()}
-                                className={`mt-1 ${fieldCls(repsModified)}`}
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-slate-500">Вес (кг)</label>
-                              <input
-                                type="text"
-                                inputMode="decimal"
-                                value={ex.weight_kg}
-                                onChange={e => updateExercise(idx, { weight_kg: parseFloat(e.target.value.replace(',', '.')) || 0 })}
-                                onFocus={e => e.target.select()}
-                                className={`mt-1 ${fieldCls(weightModified)}`}
-                              />
-                            </div>
-                          </>
-                        )}
-                      </div>
+                          </div>
+                        </>
+                      ) : exType === 'cardio_reps' ? (
+                        <div className="grid grid-cols-3 gap-[4px] mb-[4px]">
+                          <div>
+                            <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Подходы</label>
+                            <input type="text" inputMode="numeric" value={isNaN(ex.sets) ? '' : ex.sets}
+                              onChange={e => updateExercise(idx, { sets: parseInt(e.target.value) || 0 })}
+                              onBlur={() => { if (!ex.sets || ex.sets < 1) updateExercise(idx, { sets: 1 }) }}
+                              onFocus={e => e.target.select()} className={modNumInput(setsModified)} />
+                          </div>
+                          <div>
+                            <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Повторения</label>
+                            <input type="text" inputMode="numeric" value={isNaN(ex.reps) ? '' : ex.reps}
+                              onChange={e => updateExercise(idx, { reps: parseInt(e.target.value) || 0 })}
+                              onBlur={() => { if (!ex.reps || ex.reps < 1) updateExercise(idx, { reps: 1 }) }}
+                              onFocus={e => e.target.select()} className={modNumInput(repsModified)} />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-[4px] mb-[4px]">
+                          <div>
+                            <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Подходы</label>
+                            <input type="text" inputMode="numeric" value={isNaN(ex.sets) ? '' : ex.sets}
+                              onChange={e => updateExercise(idx, { sets: parseInt(e.target.value) || 0 })}
+                              onBlur={() => { if (!ex.sets || ex.sets < 1) updateExercise(idx, { sets: 1 }) }}
+                              onFocus={e => e.target.select()} className={modNumInput(setsModified)} />
+                          </div>
+                          <div>
+                            <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Повторы</label>
+                            <input type="text" inputMode="numeric" value={isNaN(ex.reps) ? '' : ex.reps}
+                              onChange={e => updateExercise(idx, { reps: parseInt(e.target.value) || 0 })}
+                              onBlur={() => { if (!ex.reps || ex.reps < 1) updateExercise(idx, { reps: 1 }) }}
+                              onFocus={e => e.target.select()} className={modNumInput(repsModified)} />
+                          </div>
+                          <div>
+                            <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Вес, кг</label>
+                            <input type="text" inputMode="decimal" value={ex.weight_kg}
+                              onChange={e => updateExercise(idx, { weight_kg: parseFloat(e.target.value.replace(',', '.')) || 0 })}
+                              onFocus={e => e.target.select()} className={modNumInput(weightModified)} />
+                          </div>
+                        </div>
+                      )}
 
-                      <div className="grid grid-cols-2 gap-3 mt-3">
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4px' }}>
                         <div>
-                          <label className="text-xs text-slate-500">Отдых (сек)</label>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={ex.rest_sec ?? ''}
-                            onChange={e =>
-                              updateExercise(idx, {
-                                rest_sec: e.target.value ? parseInt(e.target.value) : null,
-                              })
-                            }
-                            onFocus={e => e.target.select()}
-                            placeholder="по умолч."
-                            className="mt-1 w-full border border-slate-300 bg-white rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                          />
+                          <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Отдых</label>
+                          <input type="text" inputMode="numeric" value={ex.rest_sec ?? ''}
+                            onChange={e => updateExercise(idx, { rest_sec: e.target.value ? parseInt(e.target.value) : null })}
+                            onFocus={e => e.target.select()} placeholder="—" className={numInput} />
                         </div>
                         <div>
-                          <label className="text-xs text-slate-500">Комментарий</label>
-                          <input
-                            type="text"
-                            value={ex.trainer_note}
+                          <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Комментарий</label>
+                          <input type="text" value={ex.trainer_note}
                             onChange={e => updateExercise(idx, { trainer_note: e.target.value })}
-                            placeholder="Необязательно"
-                            className="mt-1 w-full border border-slate-300 bg-white rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                          />
+                            placeholder="Необязательно" className={noteInput} />
                         </div>
                       </div>
                     </div>
@@ -759,7 +574,7 @@ export default function AssignWorkoutFlow() {
 
             <button
               onClick={() => setStep('date')}
-              className="w-full bg-indigo-600 text-white font-medium py-3 rounded-xl hover:bg-indigo-700 transition-colors"
+              className="w-full bg-[#6366F1] hover:bg-[#4338CA] text-white text-[11px] font-bold rounded-[9px] py-[10px]"
             >
               Далее
             </button>
@@ -770,93 +585,88 @@ export default function AssignWorkoutFlow() {
         {step === 'date' && (
           <>
             <BackButton onClick={handleBack} label="Настройка" />
-            <h1 className="text-xl font-semibold mb-5">Дата тренировки</h1>
+            <h1 className="text-[16px] font-bold text-[#0F172A]">Дата тренировки</h1>
 
-            {/* Summary card */}
-            <div className="bg-white border border-slate-200 rounded-xl p-4 mb-3">
-              <div className="font-medium text-sm mb-1">{workoutName}</div>
-              <div className="text-sm text-slate-500">{clientName}</div>
-              <div className="flex items-center gap-3 mt-2 flex-wrap">
-                <span className="text-xs text-slate-400">
+            {/* Summary */}
+            <div className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[8px] mt-[10px]">
+              <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.06em] mb-[4px]">ИТОГ</div>
+              <div className="text-[11px] font-bold text-[#0F172A]">
+                {workoutName} → {clientName}
+              </div>
+              <div className="flex gap-[5px] flex-wrap mt-[5px]">
+                <span className="text-[9px] text-[#64748B]">
                   {plural(exercises.length, 'упражнение', 'упражнения', 'упражнений')}
                 </span>
                 {modifiedCount > 0 && (
-                  <span className="text-xs bg-indigo-50 text-indigo-600 border border-indigo-200 px-2 py-0.5 rounded-full">
+                  <span className="text-[9px] font-semibold bg-[#EEF2FF] text-[#4338CA] rounded-[20px] px-[7px] py-[2px] border border-[#C7D2FE]">
                     {modifiedCount} изменено
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Template notice */}
-            <div className="flex items-center gap-2 text-xs text-slate-500 mb-5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-              <span>ℹ</span>
-              <span>Шаблон тренировки не изменится — только эта сессия.</span>
+            {/* Notice */}
+            <div className="bg-[#F8FAFC] border border-[#E8EDF3] rounded-[8px] px-[9px] py-[6px] mb-[8px]">
+              <span className="text-[9px] text-[#64748B] flex gap-[5px]">
+                <span>ℹ</span>
+                <span>Шаблон не изменится — только эта сессия.</span>
+              </span>
             </div>
 
-            {/* Date choices */}
-            <div className="space-y-2 mb-6">
-              {(
-                [
-                  { value: 'today', label: 'Сегодня', sub: localDate(0) },
-                  { value: 'tomorrow', label: 'Завтра', sub: localDate(1) },
-                  { value: 'pick', label: 'Выбрать дату', sub: null },
-                  { value: 'none', label: 'Без даты', sub: null },
-                ] as { value: DateChoice; label: string; sub: string | null }[]
-              ).map(opt => {
-                const active = dateChoice === opt.value
-                return (
-                  <button
-                    key={opt.value}
-                    onClick={() => setDateChoice(opt.value)}
-                    className={`w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${
-                      active
-                        ? 'border-indigo-500 bg-indigo-50'
-                        : 'bg-white border-slate-200 hover:border-indigo-300'
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors ${
-                        active ? 'border-indigo-600' : 'border-slate-300'
-                      }`}
-                    >
-                      {active && <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />}
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium">{opt.label}</div>
-                      {opt.sub && (
-                        <div className="text-xs text-slate-400 mt-0.5">
-                          {new Date(opt.sub + 'T00:00:00').toLocaleDateString('ru-RU', {
-                            day: 'numeric',
-                            month: 'long',
-                          })}
-                        </div>
-                      )}
-                    </div>
-                    {opt.value === 'pick' && active && (
-                      <input
-                        type="date"
-                        value={pickedDate}
-                        min={localDate(0)}
-                        onChange={e => setPickedDate(e.target.value)}
-                        onClick={e => e.stopPropagation()}
-                        className="ml-auto text-sm border border-indigo-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                      />
+            {/* Date options */}
+            {(
+              [
+                { value: 'today', label: 'Сегодня', sub: localDate(0) },
+                { value: 'tomorrow', label: 'Завтра', sub: localDate(1) },
+                { value: 'pick', label: 'Выбрать дату', sub: null },
+                { value: 'none', label: 'Без даты', sub: null },
+              ] as { value: DateChoice; label: string; sub: string | null }[]
+            ).map(opt => {
+              const active = dateChoice === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setDateChoice(opt.value)}
+                  className={`w-full flex items-center gap-[8px] cursor-pointer text-left border-[1.5px] rounded-[9px] px-[10px] py-[8px] mb-[4px] transition-colors ${
+                    active ? 'border-[#6366F1] bg-[#EEF2FF]' : 'border-[#E8EDF3] bg-white'
+                  }`}
+                >
+                  <div className={`w-[14px] h-[14px] rounded-full border-2 shrink-0 flex items-center justify-center ${
+                    active ? 'border-[#6366F1]' : 'border-[#D1D5DB]'
+                  }`}>
+                    {active && <div className="w-[7px] h-[7px] bg-[#6366F1] rounded-full" />}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[11px] font-semibold text-[#0F172A]">{opt.label}</div>
+                    {opt.sub && (
+                      <div className="text-[9px] text-[#64748B] mt-[1px]">
+                        {new Date(opt.sub + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                      </div>
                     )}
-                    {opt.value === 'pick' && !active && (
-                      <Calendar className="ml-auto w-4 h-4 text-slate-300" />
-                    )}
-                  </button>
-                )
-              })}
-            </div>
+                  </div>
+                  {opt.value === 'pick' && active && (
+                    <input
+                      type="date"
+                      value={pickedDate}
+                      min={localDate(0)}
+                      onChange={e => setPickedDate(e.target.value)}
+                      onClick={e => e.stopPropagation()}
+                      className="text-[10px] border border-[#C7D2FE] rounded-[6px] px-2 py-1 bg-white outline-none"
+                    />
+                  )}
+                  {opt.value === 'pick' && !active && (
+                    <Calendar className="w-4 h-4 text-[#CBD5E1]" />
+                  )}
+                </button>
+              )
+            })}
 
             {error && <ErrorMessage text={error} />}
 
             <button
               onClick={handleAssign}
               disabled={submitting || (dateChoice === 'pick' && !pickedDate)}
-              className="w-full bg-indigo-600 text-white font-medium py-3 rounded-xl disabled:opacity-40 hover:bg-indigo-700 transition-colors"
+              className="w-full bg-[#6366F1] text-white rounded-[10px] py-[11px] text-[12px] font-bold mt-[8px] disabled:opacity-40 hover:bg-[#4338CA]"
             >
               {submitting ? 'Назначаем...' : 'Назначить тренировку'}
             </button>
@@ -867,9 +677,9 @@ export default function AssignWorkoutFlow() {
   )
 }
 
-// ─── WorkoutRow helper ────────────────────────────────────────────────────────
+// ─── WorkoutSelectRow helper ──────────────────────────────────────────────────
 
-function WorkoutRow({
+function WorkoutSelectRow({
   workout,
   count,
   onSelect,
@@ -881,20 +691,20 @@ function WorkoutRow({
   return (
     <button
       onClick={onSelect}
-      className="w-full flex items-center gap-3 p-4 rounded-xl border bg-white border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all text-left"
+      className="bg-white border-[1.5px] border-[#E8EDF3] rounded-[10px] px-[10px] py-[8px] mb-[4px] flex items-center gap-[7px] cursor-pointer w-full text-left"
     >
       {workout.is_favorite && (
-        <Star className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
+        <Star className="w-3.5 h-3.5 text-[#F59E0B] fill-[#F59E0B] shrink-0" />
       )}
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-sm truncate">{workout.name}</div>
+        <div className="text-[11px] font-semibold text-[#0F172A] truncate">{workout.name}</div>
       </div>
       {count > 0 && (
-        <span className="shrink-0 text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+        <span className="text-[9px] bg-[#F1F5F9] text-[#64748B] rounded-[20px] px-[7px] py-[2px] shrink-0">
           {count} раз
         </span>
       )}
-      <ArrowLeft className="w-4 h-4 text-slate-300 rotate-180 shrink-0" />
+      <span className="text-[#CBD5E1] text-[14px]">›</span>
     </button>
   )
 }

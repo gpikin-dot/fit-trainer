@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Trash2, Search } from 'lucide-react'
+import { ArrowLeft, Plus, Search } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
-import { Input, Modal, ErrorMessage } from '../components/UI'
+import { Modal, ErrorMessage } from '../components/UI'
 import { canAddExercise } from '../lib/planLimits'
 import type { ExerciseLibrary, Exercise } from '../types/database'
 
@@ -151,146 +151,209 @@ export default function CreateWorkoutPage() {
     return matchCat && matchSearch
   })
 
+  const numInput = 'bg-[#F8FAFC] border border-[#E2E8F0] rounded-[6px] px-[4px] py-[5px] text-[11px] font-bold text-[#0F172A] text-center w-full outline-none focus:border-indigo-400'
+  const noteInput = 'bg-[#F8FAFC] border border-[#E2E8F0] rounded-[6px] px-[7px] py-[5px] text-[9px] text-[#475569] italic w-full outline-none focus:border-indigo-400 text-left'
+
   return (
     <Layout>
-      <Link to={isEdit ? `/trainer/workout/${id}` : '/trainer'} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 mb-4">
-        <ArrowLeft className="w-4 h-4" /> {isEdit ? 'К шаблону' : 'Шаблоны'}
-      </Link>
-      <h1 className="text-2xl font-semibold mb-5">{isEdit ? 'Редактировать тренировку' : 'Новая тренировка'}</h1>
+      <div className="pt-[11px] pb-[14px]">
+        <Link
+          to={isEdit ? `/trainer/workout/${id}` : '/trainer'}
+          className="text-[10px] font-semibold text-[#6366F1] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
+        >
+          <ArrowLeft className="w-3 h-3" /> {isEdit ? 'К шаблону' : 'Шаблоны'}
+        </Link>
 
-      <div className="space-y-4 mb-6">
-        <Input label="Название" value={name} onChange={v => { setName(v); setError('') }} placeholder="Например: Ноги. День 1" />
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Время отдыха между подходами (сек)</label>
-          <input type="text" inputMode="numeric" value={defaultRest}
+        <h1 className="text-[16px] font-bold text-[#0F172A] mb-[13px]">
+          {isEdit ? 'Редактировать тренировку' : 'Новая тренировка'}
+        </h1>
+
+        {/* Form fields */}
+        <div className="mb-[10px]">
+          <label className="block text-[9px] font-bold text-[#64748B] uppercase tracking-[0.04em] mb-1">
+            Название
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => { setName(e.target.value); setError('') }}
+            placeholder="Например: Ноги. День 1"
+            className="w-full border border-[#E2E8F0] rounded-[7px] px-[9px] py-[7px] text-[11px] text-[#0F172A] bg-[#F8FAFC] outline-none focus:border-indigo-400"
+          />
+        </div>
+
+        <div className="mb-[13px]">
+          <label className="block text-[9px] font-bold text-[#64748B] uppercase tracking-[0.04em] mb-1">
+            Отдых между подходами (сек)
+          </label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={defaultRest}
             onChange={e => setDefaultRest(e.target.value)}
             onBlur={() => { if (!defaultRest || parseInt(defaultRest) < 1) setDefaultRest('90') }}
             onFocus={e => e.target.select()}
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-[#E2E8F0] rounded-[7px] px-[9px] py-[7px] text-[11px] text-[#0F172A] bg-[#F8FAFC] outline-none focus:border-indigo-400"
+          />
         </div>
 
-      </div>
+        {error && <ErrorMessage text={error} />}
 
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-semibold">Упражнения ({exercises.length})</h2>
-        <button onClick={() => setShowLibraryModal(true)} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800">
-          <Plus className="w-4 h-4" /> Добавить
-        </button>
-      </div>
-
-      {error && <ErrorMessage text={error} />}
-
-      <div className="space-y-3 mb-6">
+        {/* Exercises */}
         {exercises.map((ex, idx) => {
           const exType = ex.library.exercise_type ?? 'strength'
-          const numInput = 'w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1'
           return (
-            <div key={ex.tempId} className="bg-white border border-slate-200 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-medium text-sm">{idx + 1}. {ex.library.name_ru}</span>
-                <button onClick={() => removeExercise(ex.tempId)} className="text-slate-400 hover:text-red-500">
-                  <Trash2 className="w-4 h-4" />
+            <div key={ex.tempId} className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
+              {/* Header */}
+              <div className="flex justify-between mb-[8px]">
+                <span className="text-[11px] font-bold text-[#0F172A]">{idx + 1}. {ex.library.name_ru}</span>
+                <button
+                  onClick={() => removeExercise(ex.tempId)}
+                  className="text-[#CBD5E1] hover:text-[#EF4444] text-[13px] bg-transparent border-none p-0 leading-none"
+                >
+                  ✕
                 </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {exType === 'cardio_time' ? (
-                  <>
+
+              {exType === 'cardio_time' ? (
+                <>
+                  <div className="grid grid-cols-3 gap-[4px] mb-[4px]">
                     <div>
-                      <label className="text-xs text-slate-500">Интервалы</label>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Интервалы</label>
                       <input type="text" inputMode="numeric" value={isNaN(ex.sets) ? '' : ex.sets}
                         onChange={e => updateExercise(ex.tempId, { sets: parseInt(e.target.value) })}
                         onBlur={() => { if (!ex.sets || ex.sets < 1) updateExercise(ex.tempId, { sets: 1 }) }}
                         onFocus={e => e.target.select()} className={numInput} />
                     </div>
                     <div>
-                      <label className="text-xs text-slate-500">Длит. (мин)</label>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Длит. (мин)</label>
                       <input type="text" inputMode="numeric" value={isNaN(ex.reps) ? '' : ex.reps}
                         onChange={e => updateExercise(ex.tempId, { reps: parseInt(e.target.value) })}
                         onBlur={() => { if (!ex.reps || ex.reps < 1) updateExercise(ex.tempId, { reps: 1 }) }}
                         onFocus={e => e.target.select()} className={numInput} />
                     </div>
                     <div>
-                      <label className="text-xs text-slate-500">Дистанция (км)</label>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Дистанция (км)</label>
                       <input type="text" inputMode="decimal" value={ex.weight_kg}
                         onChange={e => updateExercise(ex.tempId, { weight_kg: e.target.value })}
                         onFocus={e => e.target.select()} placeholder="0" className={numInput} />
                     </div>
-                  </>
-                ) : exType === 'cardio_reps' ? (
-                  <>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4px' }}>
                     <div>
-                      <label className="text-xs text-slate-500">Подходы</label>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Отдых (сек)</label>
+                      <input type="text" inputMode="numeric" value={ex.rest_sec ?? ''}
+                        onChange={e => updateExercise(ex.tempId, { rest_sec: e.target.value ? parseInt(e.target.value) : null })}
+                        onFocus={e => e.target.select()} placeholder="—" className={numInput} />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Комментарий</label>
+                      <input type="text" value={ex.trainer_note}
+                        onChange={e => updateExercise(ex.tempId, { trainer_note: e.target.value })}
+                        placeholder="Необязательно" className={noteInput} />
+                    </div>
+                  </div>
+                  <div className="mt-[4px]">
+                    <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Целевой пульс (уд/мин)</label>
+                    <input type="text" inputMode="numeric"
+                      value={ex.target_heart_rate_bpm ?? ''}
+                      onChange={e => updateExercise(ex.tempId, { target_heart_rate_bpm: e.target.value ? parseInt(e.target.value) : null })}
+                      onFocus={e => e.target.select()} placeholder="Не задан"
+                      className={numInput} />
+                  </div>
+                </>
+              ) : exType === 'cardio_reps' ? (
+                <>
+                  <div className="grid grid-cols-3 gap-[4px] mb-[4px]">
+                    <div>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Подходы</label>
                       <input type="text" inputMode="numeric" value={isNaN(ex.sets) ? '' : ex.sets}
                         onChange={e => updateExercise(ex.tempId, { sets: parseInt(e.target.value) })}
                         onBlur={() => { if (!ex.sets || ex.sets < 1) updateExercise(ex.tempId, { sets: 1 }) }}
                         onFocus={e => e.target.select()} className={numInput} />
                     </div>
                     <div>
-                      <label className="text-xs text-slate-500">Повторения</label>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Повторения</label>
                       <input type="text" inputMode="numeric" value={isNaN(ex.reps) ? '' : ex.reps}
                         onChange={e => updateExercise(ex.tempId, { reps: parseInt(e.target.value) })}
                         onBlur={() => { if (!ex.reps || ex.reps < 1) updateExercise(ex.tempId, { reps: 1 }) }}
                         onFocus={e => e.target.select()} className={numInput} />
                     </div>
-                  </>
-                ) : (
-                  <>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4px' }}>
                     <div>
-                      <label className="text-xs text-slate-500">Подходы</label>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Отдых (сек)</label>
+                      <input type="text" inputMode="numeric" value={ex.rest_sec ?? ''}
+                        onChange={e => updateExercise(ex.tempId, { rest_sec: e.target.value ? parseInt(e.target.value) : null })}
+                        onFocus={e => e.target.select()} placeholder="—" className={numInput} />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Комментарий</label>
+                      <input type="text" value={ex.trainer_note}
+                        onChange={e => updateExercise(ex.tempId, { trainer_note: e.target.value })}
+                        placeholder="Необязательно" className={noteInput} />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="grid grid-cols-3 gap-[4px] mb-[4px]">
+                    <div>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Подходы</label>
                       <input type="text" inputMode="numeric" value={isNaN(ex.sets) ? '' : ex.sets}
                         onChange={e => updateExercise(ex.tempId, { sets: parseInt(e.target.value) })}
                         onBlur={() => { if (!ex.sets || ex.sets < 1) updateExercise(ex.tempId, { sets: 1 }) }}
                         onFocus={e => e.target.select()} className={numInput} />
                     </div>
                     <div>
-                      <label className="text-xs text-slate-500">Повторения</label>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Повторы</label>
                       <input type="text" inputMode="numeric" value={isNaN(ex.reps) ? '' : ex.reps}
                         onChange={e => updateExercise(ex.tempId, { reps: parseInt(e.target.value) })}
                         onBlur={() => { if (!ex.reps || ex.reps < 1) updateExercise(ex.tempId, { reps: 1 }) }}
                         onFocus={e => e.target.select()} className={numInput} />
                     </div>
                     <div>
-                      <label className="text-xs text-slate-500">Вес (кг)</label>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Вес, кг</label>
                       <input type="text" inputMode="decimal" value={ex.weight_kg}
                         onChange={e => updateExercise(ex.tempId, { weight_kg: e.target.value })}
                         onFocus={e => e.target.select()} className={numInput} />
                     </div>
-                  </>
-                )}
-                <div>
-                  <label className="text-xs text-slate-500">Отдых (сек)</label>
-                  <input type="text" inputMode="numeric" value={ex.rest_sec ?? ''}
-                    onChange={e => updateExercise(ex.tempId, { rest_sec: e.target.value ? parseInt(e.target.value) : null })}
-                    onFocus={e => e.target.select()} placeholder="по умолч." className={numInput} />
-                </div>
-              </div>
-              <div className="mt-2 grid grid-cols-2 gap-3">
-                {exType === 'cardio_time' && (
-                  <div>
-                    <label className="text-xs text-slate-500">Целевой пульс (уд/мин)</label>
-                    <input type="text" inputMode="numeric"
-                      value={ex.target_heart_rate_bpm ?? ''}
-                      onChange={e => updateExercise(ex.tempId, { target_heart_rate_bpm: e.target.value ? parseInt(e.target.value) : null })}
-                      onFocus={e => e.target.select()}
-                      placeholder="Не задан"
-                      className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" />
                   </div>
-                )}
-                <div className={exType === 'cardio_time' ? '' : 'col-span-2'}>
-                  <label className="text-xs text-slate-500">Комментарий тренера</label>
-                  <input type="text" value={ex.trainer_note} onChange={e => updateExercise(ex.tempId, { trainer_note: e.target.value })}
-                    placeholder="Необязательно" className="w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1" />
-                </div>
-              </div>
-
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4px' }}>
+                    <div>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Отдых</label>
+                      <input type="text" inputMode="numeric" value={ex.rest_sec ?? ''}
+                        onChange={e => updateExercise(ex.tempId, { rest_sec: e.target.value ? parseInt(e.target.value) : null })}
+                        onFocus={e => e.target.select()} placeholder="—" className={numInput} />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Комментарий</label>
+                      <input type="text" value={ex.trainer_note}
+                        onChange={e => updateExercise(ex.tempId, { trainer_note: e.target.value })}
+                        placeholder="Необязательно" className={noteInput} />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )
         })}
-      </div>
 
-      <button onClick={handleSave} disabled={saving} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium py-3 rounded-xl">
-        {saving ? 'Сохранение...' : (isEdit ? 'Сохранить изменения' : 'Создать тренировку')}
-      </button>
+        <button
+          onClick={() => setShowLibraryModal(true)}
+          className="border-[1.5px] border-dashed border-[#C7D2FE] bg-white rounded-[8px] py-[8px] text-[10px] font-bold text-[#6366F1] w-full flex items-center justify-center gap-1 my-[6px]"
+        >
+          <Plus className="w-3.5 h-3.5" /> Добавить упражнение
+        </button>
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full bg-[#6366F1] hover:bg-[#4338CA] disabled:opacity-50 text-white text-[11px] font-bold rounded-[9px] py-[10px]"
+        >
+          {saving ? 'Сохранение...' : (isEdit ? 'Сохранить изменения' : 'Создать тренировку')}
+        </button>
+      </div>
 
       {showLibraryModal && (
         <Modal onClose={() => { setShowLibraryModal(false); setSelectedLibraryIds(new Set()) }}>

@@ -1,4 +1,4 @@
-import { Dumbbell, LogOut, Volume2, VolumeX, Plus, Pause, Play, SkipForward } from 'lucide-react'
+import { Volume2, VolumeX, Plus, Pause, Play, SkipForward } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useTimer } from '../contexts/TimerContext'
@@ -10,7 +10,7 @@ export default function Layout({ children, fullHeight = false }: {
   children: React.ReactNode
   fullHeight?: boolean
 }) {
-  const { profile, signOut } = useAuth()
+  const { profile } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const {
@@ -19,43 +19,17 @@ export default function Layout({ children, fullHeight = false }: {
     togglePause, addTime, skipTimer, setSoundEnabled,
   } = useTimer()
 
-  const homeUrl = profile?.role === 'client' ? '/client' : '/trainer'
   const isOnWorkoutPage = location.pathname.startsWith('/client/workout/')
   const showCompactTimer = timerActive && !isOnWorkoutPage
 
   const ringOffset = timerTotal > 0 ? RING_C * (1 - timerSec / timerTotal) : 0
 
   return (
-    <div className={`${fullHeight ? 'h-dvh flex flex-col' : 'min-h-screen'} bg-slate-50 text-slate-900`}>
-      <header className="bg-white border-b border-slate-200 shrink-0">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <button onClick={() => navigate(homeUrl)} className="flex items-center gap-2 hover:opacity-75 transition-opacity">
-            <Dumbbell className={`w-6 h-6 ${profile?.role === 'client' ? 'text-emerald-600' : 'text-indigo-600'}`} />
-            <span className="font-semibold">FitTrainer</span>
-          </button>
-          {profile && (
-            <div className="flex items-center gap-3">
-              <div className="text-sm text-slate-600 hidden sm:block">
-                {profile.name}
-                <span className="text-slate-400 ml-1">
-                  · {profile.role === 'trainer' ? 'тренер' : 'клиент'}
-                </span>
-              </div>
-              <button
-                onClick={signOut}
-                className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900"
-              >
-                <LogOut className="w-4 h-4" /> Выйти
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
-
+    <div className={`${fullHeight ? 'h-dvh flex flex-col' : 'min-h-screen'} bg-[#EEF1F6] text-[#0F172A]`}>
       <main className={
         fullHeight
-          ? 'flex-1 min-h-0 flex flex-col max-w-5xl mx-auto w-full'
-          : 'max-w-5xl mx-auto px-4 py-6'
+          ? 'flex-1 min-h-0 flex flex-col max-w-[390px] mx-auto w-full'
+          : 'max-w-[390px] mx-auto px-[13px]'
       }>
         {children}
       </main>
@@ -63,7 +37,7 @@ export default function Layout({ children, fullHeight = false }: {
       {/* Compact floating timer — shown on all pages except the workout page */}
       {showCompactTimer && (
         <div
-          className="fixed bottom-4 right-4 z-50 bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.14)] border border-slate-100 overflow-hidden"
+          className="fixed bottom-4 right-4 z-50 bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.14)] border border-[#F1F5F9] overflow-hidden"
           style={{ transform: 'translateZ(0)', willChange: 'transform' }}
         >
           <button
@@ -84,41 +58,41 @@ export default function Layout({ children, fullHeight = false }: {
                   style={{ transition: 'stroke-dashoffset 1s linear' }}
                 />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-900">
+              <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#0F172A]">
                 {fmt(timerSec)}
               </div>
             </div>
             <div className="text-left">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider">отдых</div>
+              <div className="text-[10px] text-[#94A3B8] uppercase tracking-wider">отдых</div>
               {timerNextEx && (
-                <div className="text-xs text-slate-600 max-w-[120px] truncate">{timerNextEx}</div>
+                <div className="text-xs text-[#64748B] max-w-[120px] truncate">{timerNextEx}</div>
               )}
               <div className="text-[10px] text-emerald-600 mt-0.5">вернуться →</div>
             </div>
           </button>
 
-          <div className="flex border-t border-slate-100">
+          <div className="flex border-t border-[#F1F5F9]">
             <button
               onClick={() => setSoundEnabled(e => !e)}
-              className="flex-1 py-2 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+              className="flex-1 py-2 flex items-center justify-center text-[#94A3B8] hover:text-[#64748B] hover:bg-[#F8FAFC]"
             >
               {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
             </button>
             <button
               onClick={() => addTime(30)}
-              className="flex-1 py-2 flex items-center justify-center gap-1 text-[10px] text-slate-500 hover:bg-slate-50 border-l border-slate-100"
+              className="flex-1 py-2 flex items-center justify-center gap-1 text-[10px] text-[#64748B] hover:bg-[#F8FAFC] border-l border-[#F1F5F9]"
             >
               <Plus className="w-3 h-3" />30
             </button>
             <button
               onClick={togglePause}
-              className="flex-1 py-2 flex items-center justify-center text-slate-500 hover:bg-slate-50 border-l border-slate-100"
+              className="flex-1 py-2 flex items-center justify-center text-[#64748B] hover:bg-[#F8FAFC] border-l border-[#F1F5F9]"
             >
               {timerPaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
             </button>
             <button
               onClick={() => { skipTimer(); assignedWorkoutId && navigate(`/client/workout/${assignedWorkoutId}`) }}
-              className="flex-1 py-2 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 border-l border-slate-100"
+              className="flex-1 py-2 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 border-l border-[#F1F5F9]"
             >
               <SkipForward className="w-3.5 h-3.5" />
             </button>

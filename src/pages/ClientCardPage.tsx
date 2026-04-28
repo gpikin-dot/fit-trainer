@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import type { Profile, AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult } from '../types/database'

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, ChevronRight, Copy, Check, Star, LogOut } from 'lucide-react'
+import { Plus, Copy, Check, Star, LogOut } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
@@ -199,8 +199,6 @@ export default function TrainerDashboardPage() {
     if (!check.allowed) { setError(check.reason ?? 'Нельзя создать тренировку'); return }
     navigate('/trainer/workout/new')
   }
-
-  const activeInvites = invites.filter(i => !i.used_by && new Date(i.expires_at) > new Date())
 
   if (loading) return (
     <Layout>

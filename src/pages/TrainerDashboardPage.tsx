@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, UserPlus, ChevronRight, Copy, Check, Star } from 'lucide-react'
+import { Plus, ChevronRight, Copy, Check, Star, LogOut } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
-import { EmptyState, Modal, ErrorMessage } from '../components/UI'
+import { Modal } from '../components/UI'
 import { canCreateWorkout, canInviteClient } from '../lib/planLimits'
 import type { Workout, Profile, Invite } from '../types/database'
 
@@ -43,7 +43,7 @@ interface ClientStat extends Profile {
 
 export default function TrainerDashboardPage() {
   const navigate = useNavigate()
-  const { profile } = useAuth()
+  const { profile, signOut } = useAuth()
   const [tab, setTab] = useState<'today' | 'clients' | 'library'>('today')
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [workoutStats, setWorkoutStats] = useState<Map<string, { exerciseCount: number; usageCount: number }>>(new Map())
@@ -78,7 +78,6 @@ export default function TrainerDashboardPage() {
     setWorkouts(wList)
     setInvites(invitesData ?? [])
 
-    // Load exercise counts and usage counts per workout
     if (wList.length > 0) {
       const wIds = wList.map(w => w.id)
       const [{ data: exCounts }, { data: usageCounts }] = await Promise.all([
@@ -203,221 +202,309 @@ export default function TrainerDashboardPage() {
 
   const activeInvites = invites.filter(i => !i.used_by && new Date(i.expires_at) > new Date())
 
-  if (loading) return <Layout><div className="text-center py-12 text-slate-400">Загрузка...</div></Layout>
+  if (loading) return (
+    <Layout>
+      <div className="text-center py-12 text-[#94A3B8] text-[11px]">Загрузка...</div>
+    </Layout>
+  )
 
   return (
     <Layout>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5 gap-2">
-        <div>
-          <div className="text-xs text-slate-400 mb-0.5">Добрый день,</div>
-          <h1 className="text-xl font-semibold">{profile?.name ?? 'Тренер'}</h1>
+      {/* Sticky header */}
+      <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[14px]">
+        <div className="pt-[11px] pb-0 flex items-center justify-between">
+          <div>
+            <div className="text-[9px] text-[#94A3B8]">Добрый день,</div>
+            <div className="text-[15px] font-bold text-[#0F172A] tracking-[-0.01em]">{profile?.name}</div>
+          </div>
+          <div className="flex items-center gap-[7px]">
+            <button
+              onClick={handleCreateInvite}
+              className="border-[1.5px] border-dashed border-[#A5B4FC] bg-[#EEF2FF] rounded-[10px] px-[10px] py-[7px] text-[10px] font-bold text-[#6366F1]"
+            >
+              + Пригласить
+            </button>
+            <button onClick={signOut} className="text-[#94A3B8] hover:text-[#64748B] p-1">
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-        <button onClick={handleCreateInvite}
-          className="flex items-center gap-1.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-medium px-3 py-2 rounded-lg">
-          <UserPlus className="w-3.5 h-3.5" /> Пригласить
-        </button>
+
+        {/* Tabs */}
+        <div className="flex mt-[8px]" style={{ borderBottom: '1.5px solid #F1F5F9' }}>
+          {([
+            { key: 'today', label: 'Сегодня' },
+            { key: 'clients', label: 'Клиенты' },
+            { key: 'library', label: 'Шаблоны' },
+          ] as const).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`flex-1 py-[8px] text-[10px] font-semibold text-center border-b-2 -mb-[1.5px] transition-colors ${
+                tab === key ? 'text-[#6366F1] border-[#6366F1]' : 'text-[#94A3B8] border-transparent'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {error && <ErrorMessage text={error} />}
+      {/* Body */}
+      <div className="px-0 pt-[11px] pb-[14px]">
+        {error && (
+          <div className="text-[10px] text-red-500 mb-2">{error}</div>
+        )}
 
-      {/* Tabs */}
-      <div className="flex border-b border-slate-200 mb-4">
-        {([
-          { key: 'today', label: 'Сегодня' },
-          { key: 'clients', label: 'Клиенты' },
-          { key: 'library', label: 'Шаблоны' },
-        ] as const).map(({ key, label }) => (
-          <button key={key} onClick={() => setTab(key)}
-            className={`flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === key ? 'text-indigo-600 border-indigo-600' : 'text-slate-400 border-transparent'}`}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* TODAY */}
-      {tab === 'today' && (
-        <div className="space-y-5">
-          {todayItems.length > 0 && (
-            <div>
-              <div className="text-xs text-slate-400 uppercase tracking-widest mb-2">Тренировки сегодня</div>
-              <div className="space-y-2">
+        {/* TODAY */}
+        {tab === 'today' && (
+          <div>
+            {todayItems.length > 0 && (
+              <div>
+                <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-[5px]">
+                  Тренировки сегодня
+                </div>
                 {todayItems.map(item => (
-                  <div key={item.assignId} onClick={() => navigate(`/trainer/client/${item.clientId}`)}
-                    className="bg-white border border-slate-200 rounded-xl p-4 cursor-pointer">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                          <span className="text-sm font-semibold text-slate-500">{item.clientName.charAt(0).toUpperCase()}</span>
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm">{item.clientName}</div>
-                          <div className={`text-xs mt-0.5 ${item.started ? 'text-emerald-600' : 'text-amber-500'}`}>
-                            {item.workoutName} · {item.started
-                              ? `${item.completedCount} / ${item.exerciseCount} упр.`
-                              : 'ещё не начал'}
-                          </div>
+                  <div
+                    key={item.assignId}
+                    onClick={() => navigate(`/trainer/client/${item.clientId}`)}
+                    className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[5px] cursor-pointer"
+                  >
+                    <div className="flex items-center gap-[8px]">
+                      <div className="w-[28px] h-[28px] rounded-full bg-[#EEF2FF] flex items-center justify-center shrink-0 text-[11px] font-bold text-[#6366F1]">
+                        {item.clientName.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[11px] font-semibold text-[#0F172A]">{item.clientName}</div>
+                        <div className="text-[9px] text-[#94A3B8] mt-[1px] truncate">{item.workoutName}</div>
+                        <div className="mt-[4px]">
+                          {item.started ? (
+                            <span className="text-[9px] font-semibold bg-[#F0FDF4] text-[#16A34A] px-[7px] py-[2px] rounded-[20px]">
+                              ● Начата
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-semibold bg-[#F8FAFC] text-[#94A3B8] px-[7px] py-[2px] rounded-[20px]">
+                              ● Не начата
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+                      <span className="text-[#CBD5E1] text-[14px]">›</span>
                     </div>
-                    {item.started && (
-                      <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-400 rounded-full"
-                          style={{ width: `${item.exerciseCount > 0 ? Math.round(item.completedCount / item.exerciseCount * 100) : 0}%` }} />
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
 
-          {upcomingItems.length > 0 && (
-            <div>
-              <div className="text-xs text-slate-400 uppercase tracking-widest mb-2">Ближайшие дни</div>
-              <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
-                {upcomingItems.map(item => {
-                  const d = new Date(item.plannedDate + 'T00:00:00')
-                  return (
-                    <div key={item.assignId} onClick={() => navigate(`/trainer/client/${item.clientId}`)}
-                      className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-slate-50">
-                      <div className="flex items-center gap-3">
-                        <div className="text-center w-8 shrink-0">
-                          <div className="text-[10px] text-slate-400">{DAYS_SHORT[d.getDay()]}</div>
-                          <div className="text-sm font-semibold text-slate-700">{d.getDate()}</div>
+            {upcomingItems.length > 0 && (
+              <div className="mt-[8px]">
+                <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-[5px]">
+                  Ближайшие дни
+                </div>
+                <div className="bg-white border border-[#E8EDF3] rounded-[10px] overflow-hidden">
+                  {upcomingItems.map((item, idx) => {
+                    const d = new Date(item.plannedDate + 'T00:00:00')
+                    return (
+                      <div
+                        key={item.assignId}
+                        onClick={() => navigate(`/trainer/client/${item.clientId}`)}
+                        className={`px-[11px] py-[7px] flex items-center gap-2 cursor-pointer ${idx < upcomingItems.length - 1 ? 'border-b border-[#F8FAFC]' : ''}`}
+                      >
+                        <div className="w-[26px] shrink-0 text-center">
+                          <div className="text-[8px] text-[#94A3B8] uppercase">{DAYS_SHORT[d.getDay()]}</div>
+                          <div className="text-[13px] font-bold text-[#0F172A]">{d.getDate()}</div>
                         </div>
-                        <div>
-                          <div className="text-sm font-medium text-slate-800">{item.clientName}</div>
-                          <div className="text-xs text-slate-400">{item.workoutName}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[11px] font-semibold text-[#0F172A]">{item.clientName}</div>
+                          <div className="text-[9px] text-[#94A3B8] mt-[1px]">{item.workoutName}</div>
                         </div>
+                        <span className="text-[#CBD5E1] text-[14px]">›</span>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-slate-300" />
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {openDateItems.length > 0 && (
-            <div>
-              <div className="text-xs text-slate-400 uppercase tracking-widest mb-2">Открытая дата</div>
-              <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
-                {openDateItems.map(item => (
-                  <div key={item.assignId} onClick={() => navigate(`/trainer/client/${item.clientId}`)}
-                    className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-slate-50">
-                    <div>
-                      <div className="text-sm font-medium text-slate-800">{item.clientName}</div>
-                      <div className="text-xs text-slate-400">{item.workoutName}</div>
+            {openDateItems.length > 0 && (
+              <div className="mt-[8px]">
+                <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-[5px]">
+                  Открытая дата
+                </div>
+                <div className="bg-white border border-[#E8EDF3] rounded-[10px] overflow-hidden">
+                  {openDateItems.map((item, idx) => (
+                    <div
+                      key={item.assignId}
+                      onClick={() => navigate(`/trainer/client/${item.clientId}`)}
+                      className={`px-[11px] py-[7px] flex items-center gap-2 cursor-pointer ${idx < openDateItems.length - 1 ? 'border-b border-[#F8FAFC]' : ''}`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[11px] font-semibold text-[#0F172A]">{item.clientName}</div>
+                        <div className="text-[9px] text-[#94A3B8] mt-[1px]">{item.workoutName}</div>
+                      </div>
+                      <span className="text-[#CBD5E1] text-[14px]">›</span>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-300" />
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {todayItems.length === 0 && upcomingItems.length === 0 && openDateItems.length === 0 && (
-            <EmptyState text="Нет активных тренировок. Назначьте клиентам через их карточку." />
-          )}
-        </div>
-      )}
+            {todayItems.length === 0 && upcomingItems.length === 0 && openDateItems.length === 0 && (
+              <div className="text-center text-[11px] text-[#94A3B8] leading-[1.6] py-[28px]">
+                Нет активных тренировок на сегодня.<br />
+                Назначьте клиентам через их карточку.
+              </div>
+            )}
+          </div>
+        )}
 
-      {/* CLIENTS */}
-      {tab === 'clients' && (
-        clients.length === 0
-          ? <EmptyState text={activeInvites.length > 0 ? 'Клиенты ещё не приняли приглашение.' : 'Нет клиентов. Нажмите «Пригласить».'} />
-          : <div className="space-y-2">
-            {clients.map(c => {
-              const compClass = c.compliance === null
-                ? 'bg-slate-100 text-slate-400'
-                : c.compliance >= 80 ? 'bg-green-100 text-green-700'
-                : c.compliance >= 50 ? 'bg-amber-100 text-amber-700'
-                : 'bg-red-100 text-red-600'
+        {/* CLIENTS */}
+        {tab === 'clients' && (
+          <div>
+            <button
+              onClick={handleCreateInvite}
+              className="border-[1.5px] border-dashed border-[#A5B4FC] bg-[#EEF2FF] rounded-[10px] px-[10px] py-[10px] text-[10px] font-bold text-[#6366F1] w-full mb-[11px]"
+            >
+              + Пригласить нового клиента
+            </button>
 
-              const subtitle = c.missedCount > 0
-                ? <span className="text-red-400">Пропустил {c.missedCount} {c.missedCount === 1 ? 'тренировку' : 'тренировки'}</span>
-                : c.nextWorkoutDate
-                  ? `Следующая: ${fmtDate(c.nextWorkoutDate)}`
-                  : c.lastWorkoutDate
-                    ? `Последняя: ${fmtDate(c.lastWorkoutDate)}`
-                    : 'Нет тренировок'
+            {clients.length === 0 ? (
+              <div className="text-center text-[11px] text-[#94A3B8] leading-[1.6] py-[28px]">
+                Клиентов пока нет.<br />
+                Пригласите первого.
+              </div>
+            ) : (
+              clients.map(c => {
+                const isMissed = c.compliance !== null && c.compliance < 60 && c.missedCount > 0
+                const compBadge = c.compliance === null
+                  ? { bg: 'bg-[#F1F5F9]', text: 'text-[#64748B]', label: '—' }
+                  : c.compliance >= 80
+                  ? { bg: 'bg-[#DCFCE7]', text: 'text-[#15803D]', label: `${c.compliance}%` }
+                  : c.compliance >= 60
+                  ? { bg: 'bg-[#FEF3C7]', text: 'text-[#92400E]', label: `${c.compliance}%` }
+                  : { bg: 'bg-[#FEE2E2]', text: 'text-[#991B1B]', label: `${c.compliance}%` }
 
-              return (
-                <div key={c.id} onClick={() => navigate(`/trainer/client/${c.id}`)}
-                  className={`bg-white border rounded-xl p-4 cursor-pointer ${c.missedCount > 0 ? 'border-red-100' : 'border-slate-200'}`}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                      <span className="text-sm font-semibold text-slate-500">{c.name.charAt(0).toUpperCase()}</span>
+                const subtitle = c.missedCount > 0
+                  ? `Пропустил ${c.missedCount} ${c.missedCount === 1 ? 'тренировку' : 'тренировки'}`
+                  : c.nextWorkoutDate
+                    ? `Следующая: ${fmtDate(c.nextWorkoutDate)}`
+                    : c.lastWorkoutDate
+                      ? `Последняя: ${fmtDate(c.lastWorkoutDate)}`
+                      : 'Нет тренировок'
+
+                return (
+                  <div
+                    key={c.id}
+                    onClick={() => navigate(`/trainer/client/${c.id}`)}
+                    className={`border rounded-[10px] px-[11px] py-[9px] mb-[5px] cursor-pointer flex items-center gap-[8px] ${
+                      isMissed ? 'border-[#FECACA] bg-[#FFF8F8]' : 'border-[#E8EDF3] bg-white'
+                    }`}
+                  >
+                    <div className={`w-[28px] h-[28px] rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold ${
+                      isMissed ? 'bg-[#FEF2F2] text-[#EF4444]' : 'bg-[#EEF2FF] text-[#6366F1]'
+                    }`}>
+                      {c.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-sm">{c.name}</span>
+                      <div className="flex justify-between gap-1 items-center">
+                        <span className="text-[11px] font-semibold text-[#0F172A]">{c.name}</span>
                         {c.compliance !== null && (
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${compClass}`}>
-                            {c.compliance}%
+                          <span className={`text-[9px] font-bold px-[7px] py-[2px] rounded-[20px] shrink-0 ${compBadge.bg} ${compBadge.text}`}>
+                            {compBadge.label}
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-slate-400 mt-0.5">{subtitle}</div>
+                      <div className={`text-[9px] mt-[2px] ${isMissed ? 'text-[#F87171]' : 'text-[#94A3B8]'}`}>
+                        {subtitle}
+                      </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+                    <span className="text-[#CBD5E1] text-[14px]">›</span>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        )}
+
+        {/* TEMPLATES */}
+        {tab === 'library' && (() => {
+          const favorites = workouts.filter(w => w.is_favorite)
+          const rest = workouts.filter(w => !w.is_favorite)
+
+          const WorkoutRow = (w: Workout) => {
+            const stats = workoutStats.get(w.id)
+            return (
+              <div
+                key={w.id}
+                onClick={() => navigate(`/trainer/workout/${w.id}`)}
+                className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[5px] flex items-center gap-[8px] cursor-pointer"
+              >
+                <span className={`text-[12px] shrink-0 ${w.is_favorite ? 'text-[#F59E0B]' : 'text-[#E2E8F0]'}`}>★</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] font-semibold text-[#0F172A]">{w.name}</div>
+                  <div className="text-[9px] text-[#94A3B8] mt-[1px]">
+                    {stats?.exerciseCount ?? 0} упр.
+                    {(stats?.usageCount ?? 0) > 0 && ` · ${stats!.usageCount} раз`}
                   </div>
                 </div>
-              )
-            })}
-          </div>
-      )}
-
-      {/* ШАБЛОНЫ */}
-      {tab === 'library' && (() => {
-        const favorites = workouts.filter(w => w.is_favorite)
-        const rest = workouts.filter(w => !w.is_favorite)
-        const WorkoutRow = (w: Workout) => {
-          const stats = workoutStats.get(w.id)
-          return (
-            <div key={w.id} onClick={() => navigate(`/trainer/workout/${w.id}`)}
-              className="bg-white border border-slate-200 rounded-xl p-4 cursor-pointer flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <div className="font-medium text-sm">{w.name}</div>
-                <div className="text-xs text-slate-400 mt-0.5">
-                  {stats?.exerciseCount ?? 0} упр.
-                  {(stats?.usageCount ?? 0) > 0 && ` · использована ${stats!.usageCount} ${stats!.usageCount === 1 ? 'раз' : 'раза'}`}
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button onClick={e => toggleFavorite(e, w)}
-                  className={`p-1 rounded transition-colors ${w.is_favorite ? 'text-amber-400 hover:text-amber-500' : 'text-slate-200 hover:text-amber-300'}`}>
-                  <Star className="w-4 h-4" fill={w.is_favorite ? 'currentColor' : 'none'} />
+                <button
+                  onClick={e => toggleFavorite(e, w)}
+                  className="p-1 shrink-0"
+                  aria-label="Избранное"
+                >
+                  <Star className={`w-3.5 h-3.5 ${w.is_favorite ? 'text-[#F59E0B]' : 'text-[#E2E8F0]'}`} fill={w.is_favorite ? 'currentColor' : 'none'} />
                 </button>
-                <ChevronRight className="w-4 h-4 text-slate-300" />
+                <span className="text-[#CBD5E1] text-[14px]">›</span>
               </div>
+            )
+          }
+
+          return (
+            <div>
+              {favorites.length > 0 && (
+                <div>
+                  <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-[5px]">
+                    Избранные
+                  </div>
+                  {favorites.map(WorkoutRow)}
+                </div>
+              )}
+
+              {favorites.length > 0 && rest.length > 0 && (
+                <div className="flex items-center gap-[6px] my-[7px]">
+                  <div className="flex-1 h-[1px] bg-[#E8EDF3]" />
+                  <span className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.06em]">Все шаблоны</span>
+                  <div className="flex-1 h-[1px] bg-[#E8EDF3]" />
+                </div>
+              )}
+
+              {rest.length > 0 && (
+                <div>
+                  {favorites.length === 0 && (
+                    <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-[5px]">
+                      Все шаблоны
+                    </div>
+                  )}
+                  {rest.map(WorkoutRow)}
+                </div>
+              )}
+
+              {workouts.length === 0 && (
+                <div className="text-center text-[11px] text-[#94A3B8] leading-[1.6] py-[28px]">
+                  Нет шаблонов.<br />Создайте первый!
+                </div>
+              )}
+
+              <button
+                onClick={handleCreateWorkout}
+                className="w-full bg-[#6366F1] hover:bg-[#4338CA] text-white text-[11px] font-bold rounded-[9px] py-[10px] mt-[8px] flex items-center justify-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" /> Новый шаблон
+              </button>
             </div>
           )
-        }
-        return (
-          <div>
-            {favorites.length > 0 && (
-              <div className="mb-4">
-                <div className="text-xs text-slate-400 uppercase tracking-widest mb-2">Избранные</div>
-                <div className="space-y-2">{favorites.map(WorkoutRow)}</div>
-              </div>
-            )}
-            {rest.length > 0 && (
-              <div className="mb-3">
-                {favorites.length > 0 && <div className="text-xs text-slate-400 uppercase tracking-widest mb-2">Все шаблоны</div>}
-                <div className="space-y-2">{rest.map(WorkoutRow)}</div>
-              </div>
-            )}
-            {workouts.length === 0 && <div className="text-center py-8 text-slate-400 text-sm">Нет шаблонов. Создайте первый!</div>}
-            <button onClick={handleCreateWorkout}
-              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-3 rounded-xl mt-1">
-              <Plus className="w-4 h-4" /> Новый шаблон
-            </button>
-          </div>
-        )
-      })()}
+        })()}
+      </div>
 
       {showInviteModal && latestInvite && (
         <InviteModal invite={latestInvite} onClose={() => setShowInviteModal(false)} />
@@ -438,15 +525,30 @@ function InviteModal({ invite, onClose }: { invite: Invite; onClose: () => void 
 
   return (
     <Modal onClose={onClose}>
-      <h2 className="text-xl font-semibold mb-2">Приглашение создано</h2>
-      <p className="text-sm text-slate-600 mb-4">Отправьте эту ссылку клиенту. Действует 7 дней, использовать можно один раз.</p>
-      <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 break-all text-sm font-mono">{link}</div>
-      <div className="flex gap-2 mt-4">
-        <button onClick={copy}
-          className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 rounded-lg">
-          {copied ? <><Check className="w-4 h-4" /> Скопировано</> : <><Copy className="w-4 h-4" /> Скопировать</>}
+      <h2 className="text-[13px] font-bold text-[#0F172A] mb-1">Приглашение создано</h2>
+      <p className="text-[9px] text-[#64748B] leading-[1.5] mb-3">
+        Отправьте эту ссылку клиенту. Действует 7 дней, использовать можно один раз.
+      </p>
+      <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[7px] px-[9px] py-[7px]">
+        <span className="text-[9px] font-mono text-[#475569] break-all">{link}</span>
+      </div>
+      <div className="flex gap-[6px] mt-3">
+        <button
+          onClick={copy}
+          className="flex-1 bg-[#6366F1] hover:bg-[#4338CA] text-white text-[10px] font-bold rounded-[8px] py-[9px] flex items-center justify-center gap-1"
+        >
+          {copied ? (
+            <><Check className="w-3.5 h-3.5" /> ✓ Скопировано</>
+          ) : (
+            <><Copy className="w-3.5 h-3.5" /> Скопировать</>
+          )}
         </button>
-        <button onClick={onClose} className="px-4 text-sm text-slate-600 hover:text-slate-900">Закрыть</button>
+        <button
+          onClick={onClose}
+          className="text-[10px] text-[#64748B] px-[4px] py-[9px]"
+        >
+          Закрыть
+        </button>
       </div>
     </Modal>
   )

@@ -60,9 +60,12 @@ export default function WorkoutDetailPage() {
     navigate('/trainer')
   }
 
-  if (!workout) return <Layout><div className="text-center py-12 text-slate-400">Загрузка...</div></Layout>
+  if (!workout) return (
+    <Layout>
+      <div className="text-center py-12 text-[#94A3B8] text-[11px]">Загрузка...</div>
+    </Layout>
+  )
 
-  // Уникальные клиенты с количеством использований
   const clientUsage = new Map<string, { name: string; count: number; clientId: string }>()
   for (const a of assignments) {
     const name = a.profile?.name ?? '—'
@@ -72,78 +75,101 @@ export default function WorkoutDetailPage() {
 
   return (
     <Layout>
-      <div className="mb-4">
-        <Link to="/trainer" className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 mb-3">
-          <ArrowLeft className="w-4 h-4" /> Шаблоны
+      <div className="pt-[11px] pb-[14px]">
+        <Link
+          to="/trainer"
+          className="text-[10px] font-semibold text-[#6366F1] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
+        >
+          <ArrowLeft className="w-3 h-3" /> Шаблоны
         </Link>
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <button onClick={() => navigate(`/trainer/workout/${id}/edit`)} className="flex items-center justify-center gap-1 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 px-2 py-2 rounded-lg">
-            <Edit className="w-4 h-4 shrink-0" /> <span className="truncate">Изменить</span>
+
+        {/* Action buttons */}
+        <div className="grid grid-cols-3 gap-[5px] mb-[13px]">
+          <button
+            onClick={() => navigate(`/trainer/workout/${id}/edit`)}
+            className="bg-white border border-[#E2E8F0] rounded-[8px] py-[8px] text-[9px] font-bold text-[#475569] flex items-center justify-center gap-1"
+          >
+            <Edit className="w-3.5 h-3.5 shrink-0" /> Изменить
           </button>
-          <button onClick={handleCopy} className="flex items-center justify-center gap-1 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 px-2 py-2 rounded-lg">
-            <Copy className="w-4 h-4 shrink-0" /> <span className="truncate">Копировать</span>
+          <button
+            onClick={handleCopy}
+            className="bg-white border border-[#E2E8F0] rounded-[8px] py-[8px] text-[9px] font-bold text-[#475569] flex items-center justify-center gap-1"
+          >
+            <Copy className="w-3.5 h-3.5 shrink-0" /> Копировать
           </button>
-          <button onClick={handleDelete} className="flex items-center justify-center gap-1 text-sm text-red-600 hover:text-red-800 border border-red-200 px-2 py-2 rounded-lg">
-            <Trash2 className="w-4 h-4 shrink-0" /> <span className="truncate">Удалить</span>
+          <button
+            onClick={handleDelete}
+            className="border border-[#FECACA] bg-[#FFF8F8] rounded-[8px] py-[8px] text-[9px] font-bold text-[#EF4444] flex items-center justify-center gap-1"
+          >
+            <Trash2 className="w-3.5 h-3.5 shrink-0" /> Удалить
           </button>
         </div>
-      </div>
 
-      <h1 className="text-2xl font-semibold mb-1">{workout.name}</h1>
-      <p className="text-sm text-slate-500 mb-4">
-        {exercises.length} упражнений · отдых {workout.default_rest_sec} сек
-      </p>
+        <h1 className="text-[16px] font-bold text-[#0F172A] mb-[1px]">{workout.name}</h1>
+        <p className="text-[9px] text-[#94A3B8] mb-[13px]">
+          {exercises.length} упражнений · отдых {workout.default_rest_sec} сек
+        </p>
 
-      {error && <ErrorMessage text={error} />}
+        {error && <ErrorMessage text={error} />}
 
-      {/* Главная кнопка */}
-      <button
-        onClick={() => navigate(`/trainer/assign?workoutId=${id}`)}
-        className="w-full mb-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-sm">
-        Назначить клиенту
-      </button>
+        {/* Assign button */}
+        <button
+          onClick={() => navigate(`/trainer/assign?workoutId=${id}`)}
+          className="w-full bg-[#6366F1] hover:bg-[#4338CA] text-white text-[11px] font-bold rounded-[9px] py-[10px] mb-[15px]"
+        >
+          Назначить клиенту
+        </button>
 
-      {/* Упражнения */}
-      <div className="mb-6">
-        <h2 className="font-semibold mb-3">Упражнения</h2>
-        {exercises.length === 0
-          ? <p className="text-sm text-slate-400">Нет упражнений</p>
-          : <div className="space-y-2">
-            {exercises.map((ex, i) => (
-              <div key={ex.id} className="bg-white border border-slate-200 rounded-xl p-4">
-                <div className="font-medium text-sm mb-1">{i + 1}. {ex.exercise_library.name_ru}</div>
-                <div className="text-sm text-slate-500">
-                  {ex.sets} × {ex.reps}{ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}
-                  {ex.rest_sec ? ` · отдых ${ex.rest_sec} сек` : ''}
-                </div>
-                {ex.trainer_note && <div className="text-xs text-indigo-700 mt-1 italic">{ex.trainer_note}</div>}
+        {/* Exercises */}
+        <div className="text-[9px] font-bold text-[#94A3B8] uppercase tracking-[0.07em] mb-[6px]">
+          Упражнения
+        </div>
+
+        {exercises.length === 0 ? (
+          <p className="text-[11px] text-[#94A3B8]">Нет упражнений</p>
+        ) : (
+          exercises.map((ex, i) => (
+            <div key={ex.id} className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
+              <div className="text-[11px] font-bold text-[#0F172A] mb-[3px]">
+                {i + 1}. {ex.exercise_library.name_ru}
               </div>
-            ))}
-          </div>
-        }
-      </div>
+              <div className="text-[9px] text-[#64748B]">
+                {ex.sets} × {ex.reps}{ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}
+                {ex.rest_sec ? ` · отдых ${ex.rest_sec} сек` : ''}
+              </div>
+              {ex.trainer_note && (
+                <div className="text-[9px] text-[#6366F1] italic mt-[3px]">«{ex.trainer_note}»</div>
+              )}
+            </div>
+          ))
+        )}
 
-      {/* Кто использовал */}
-      {clientUsage.size > 0 && (
-        <div>
-          <h2 className="font-semibold mb-3">Кто использовал</h2>
-          <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
-            {Array.from(clientUsage.values()).map(({ name, clientId, count }) => (
-              <div key={clientId}
-                onClick={() => navigate(`/trainer/client/${clientId}`)}
-                className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-slate-50">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                    <span className="text-xs font-semibold text-slate-400">{name.charAt(0).toUpperCase()}</span>
+        {/* Who used */}
+        {clientUsage.size > 0 && (
+          <div className="mt-[13px]">
+            <div className="text-[9px] font-bold text-[#94A3B8] uppercase tracking-[0.07em] mb-[6px]">
+              Кто использовал
+            </div>
+            <div className="bg-white border border-[#E8EDF3] rounded-[10px] overflow-hidden">
+              {Array.from(clientUsage.values()).map(({ name, clientId, count }, idx, arr) => (
+                <div
+                  key={clientId}
+                  onClick={() => navigate(`/trainer/client/${clientId}`)}
+                  className={`flex gap-[8px] px-[11px] py-[8px] cursor-pointer ${idx < arr.length - 1 ? 'border-b border-[#F8FAFC]' : ''}`}
+                >
+                  <div className="w-[24px] h-[24px] rounded-full bg-[#EEF2FF] flex items-center justify-center shrink-0 text-[9px] font-bold text-[#6366F1]">
+                    {name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm font-medium">{name}</span>
+                  <span className="text-[11px] font-semibold text-[#0F172A] flex-1">{name}</span>
+                  <span className="text-[9px] text-[#94A3B8]">
+                    {count} {count === 1 ? 'раз' : 'раза'}
+                  </span>
                 </div>
-                <span className="text-xs text-slate-400">{count} {count === 1 ? 'раз' : 'раза'}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </Layout>
   )
 }

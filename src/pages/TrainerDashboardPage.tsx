@@ -4,7 +4,7 @@ import { Plus, UserPlus, ChevronRight, Copy, Check, Star } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
-import { EmptyState, Modal, ErrorMessage, formatDate } from '../components/UI'
+import { EmptyState, Modal, ErrorMessage } from '../components/UI'
 import { canCreateWorkout, canInviteClient } from '../lib/planLimits'
 import type { Workout, Profile, Invite } from '../types/database'
 

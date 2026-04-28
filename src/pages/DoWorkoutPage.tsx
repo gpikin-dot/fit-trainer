@@ -40,7 +40,6 @@ export default function DoWorkoutPage() {
   const [workout, setWorkout] = useState<Workout | null>(null)
   const [exercises, setExercises] = useState<(Exercise & { exercise_library: ExerciseLibrary })[]>([])
   const [existingResults, setExistingResults] = useState<ExerciseResult[]>([])
-  const [useSessionExercises, setUseSessionExercises] = useState(false)
   const [exState, setExState] = useState<Record<string, ExerciseState>>({})
   const [loaded, setLoaded] = useState(false)
   const [currentExIdx, setCurrentExIdx] = useState(0)
@@ -84,7 +83,6 @@ export default function DoWorkoutPage() {
       let list: (Exercise & { exercise_library: ExerciseLibrary })[]
       if (sessionExs && sessionExs.length > 0) {
         // Преобразуем SessionExercise → Exercise-совместимый формат
-        setUseSessionExercises(true)
         list = sessionExs.map((se: SessionExercise & { exercise_library: ExerciseLibrary }) => ({
           id: se.id,
           workout_id: a.workout_id,

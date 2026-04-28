@@ -90,8 +90,8 @@ export default function ClientCardPage() {
 
   return (
     <Layout>
-      <Link to="/trainer" className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-4">
-        <ArrowLeft className="w-4 h-4" /> К списку клиентов
+      <Link to="/trainer" className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 mb-4">
+        <ArrowLeft className="w-4 h-4" /> Клиенты
       </Link>
 
       {/* Header */}

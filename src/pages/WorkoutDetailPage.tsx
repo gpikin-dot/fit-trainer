@@ -73,8 +73,8 @@ export default function WorkoutDetailPage() {
   return (
     <Layout>
       <div className="mb-4">
-        <Link to="/trainer" className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-3">
-          <ArrowLeft className="w-4 h-4" /> Назад
+        <Link to="/trainer" className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 mb-3">
+          <ArrowLeft className="w-4 h-4" /> Шаблоны
         </Link>
         <div className="grid grid-cols-3 gap-2 mb-4">
           <button onClick={() => navigate(`/trainer/workout/${id}/edit`)} className="flex items-center justify-center gap-1 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 px-2 py-2 rounded-lg">

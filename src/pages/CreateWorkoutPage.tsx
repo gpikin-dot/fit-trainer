@@ -153,8 +153,8 @@ export default function CreateWorkoutPage() {
 
   return (
     <Layout>
-      <Link to={isEdit ? `/trainer/workout/${id}` : '/trainer'} className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-4">
-        <ArrowLeft className="w-4 h-4" /> Назад
+      <Link to={isEdit ? `/trainer/workout/${id}` : '/trainer'} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 mb-4">
+        <ArrowLeft className="w-4 h-4" /> {isEdit ? 'К шаблону' : 'Шаблоны'}
       </Link>
       <h1 className="text-2xl font-semibold mb-5">{isEdit ? 'Редактировать тренировку' : 'Новая тренировка'}</h1>
 

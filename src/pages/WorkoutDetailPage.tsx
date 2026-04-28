@@ -4,7 +4,7 @@ import { ArrowLeft, Edit, Trash2, Copy } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
-import { ErrorMessage, formatDate } from '../components/UI'
+import { ErrorMessage } from '../components/UI'
 import type { Workout, Exercise, ExerciseLibrary, AssignedWorkout, Profile } from '../types/database'
 
 export default function WorkoutDetailPage() {

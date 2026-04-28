@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Plus, Trash2, Search } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -23,17 +23,11 @@ interface WorkoutExercise {
   order: number
 }
 
-interface ClientHistory {
-  exerciseId: string
-  results: Array<{ date: string; reps: number | null; weight: number | null; note: string | null }>
-}
-
 export default function CreateWorkoutPage() {
   const navigate = useNavigate()
   const { id } = useParams()
   const isEdit = !!id
   const { profile } = useAuth()
-  const [searchParams] = useSearchParams()
 
   const [name, setName] = useState('')
   const [defaultRest, setDefaultRest] = useState('90')

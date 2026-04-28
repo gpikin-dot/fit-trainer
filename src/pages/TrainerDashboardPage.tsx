@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Copy, Check, Star, LogOut } from 'lucide-react'
+import { Plus, Copy, Check, LogOut } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
@@ -215,17 +215,9 @@ export default function TrainerDashboardPage() {
             <div className="text-[9px] text-[var(--slate-400)]">Добрый день,</div>
             <div className="text-[15px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{profile?.name}</div>
           </div>
-          <div className="flex items-center gap-[7px]">
-            <button
-              onClick={handleCreateInvite}
-              className="border-[1.5px] border-dashed border-[var(--indigo-300)] bg-[var(--indigo-50)] rounded-[10px] px-[10px] py-[7px] text-[10px] font-bold text-[var(--indigo-500)]"
-            >
-              + Пригласить
-            </button>
-            <button onClick={signOut} className="text-[var(--slate-400)] hover:text-[var(--slate-500)] p-1">
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
+          <button onClick={signOut} className="text-[var(--slate-400)] hover:text-[var(--slate-500)] p-1">
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Tabs */}
@@ -437,7 +429,10 @@ export default function TrainerDashboardPage() {
                 onClick={() => navigate(`/trainer/workout/${w.id}`)}
                 className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px] flex items-center gap-[8px] cursor-pointer"
               >
-                <span className={`text-[12px] shrink-0 ${w.is_favorite ? 'text-[var(--amber-500)]' : 'text-[var(--slate-200)]'}`}>★</span>
+                <span
+                  onClick={e => toggleFavorite(e, w)}
+                  className={`text-[13px] shrink-0 ${w.is_favorite ? 'text-[var(--amber-500)]' : 'text-[var(--slate-200)]'}`}
+                >★</span>
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] font-semibold text-[var(--slate-900)]">{w.name}</div>
                   <div className="text-[9px] text-[var(--slate-400)] mt-[1px]">
@@ -445,13 +440,6 @@ export default function TrainerDashboardPage() {
                     {(stats?.usageCount ?? 0) > 0 && ` · ${stats!.usageCount} раз`}
                   </div>
                 </div>
-                <button
-                  onClick={e => toggleFavorite(e, w)}
-                  className="p-1 shrink-0"
-                  aria-label="Избранное"
-                >
-                  <Star className={`w-3.5 h-3.5 ${w.is_favorite ? 'text-[var(--amber-500)]' : 'text-[var(--slate-200)]'}`} fill={w.is_favorite ? 'currentColor' : 'none'} />
-                </button>
                 <span className="text-[var(--slate-300)] text-[14px]">›</span>
               </div>
             )

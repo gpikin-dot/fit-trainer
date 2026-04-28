@@ -180,7 +180,6 @@ export default function ClientCardPage() {
                 const dateLabel = a.completed_at
                   ? fmtDate(a.completed_at)
                   : a.planned_date ? fmtDate(a.planned_date) : '—'
-                const fillPct = Math.round(pct * 100)
 
                 return (
                   <div
@@ -191,12 +190,6 @@ export default function ClientCardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="text-[11px] font-semibold text-[var(--slate-900)]">{a.workout?.name ?? '—'}</div>
                       <div className="text-[9px] text-[var(--slate-400)] mt-[2px]">{dateLabel}</div>
-                      <div className="mt-[5px] h-[3px] bg-[var(--slate-100)] rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${fillPct === 100 ? 'bg-[var(--green-300)]' : 'bg-[var(--amber-300)]'}`}
-                          style={{ width: `${fillPct}%` }}
-                        />
-                      </div>
                     </div>
                     <div className="flex gap-[5px] shrink-0 items-center">
                       <span className={`text-[9px] font-bold px-[7px] py-[2px] rounded-[20px] ${

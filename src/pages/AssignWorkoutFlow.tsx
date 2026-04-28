@@ -315,7 +315,7 @@ export default function AssignWorkoutFlow() {
 
   // Row/input style for customize step
   const numInput = 'bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[6px] px-[4px] py-[5px] text-[var(--fs-xs)] font-bold text-[var(--slate-900)] text-center w-full outline-none focus:border-indigo-400'
-  const noteInput = 'bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[6px] px-[7px] py-[5px] text-[var(--fs-2xs)] text-[var(--slate-600)] italic w-full outline-none focus:border-indigo-400 text-left'
+  const noteInput = 'bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[6px] px-[7px] py-[5px] text-[var(--fs-3xs)] text-[var(--slate-600)] italic w-full outline-none focus:border-indigo-400 text-left'
 
   if (loading) {
     return (
@@ -336,7 +336,7 @@ export default function AssignWorkoutFlow() {
             <BackButton onClick={handleBack} label={workoutName || 'Назад'} />
             <h1 className="text-[var(--fs-lg)] font-bold text-[var(--slate-900)]">Выбрать клиента</h1>
             {workoutName && (
-              <p className="text-[var(--fs-2xs)] text-[var(--slate-400)] mb-5">{workoutName}</p>
+              <p className="text-[var(--fs-3xs)] text-[var(--slate-400)] mb-5">{workoutName}</p>
             )}
 
             {clients.length === 0 ? (
@@ -359,7 +359,7 @@ export default function AssignWorkoutFlow() {
                       <Avatar name={client.name} size={28} />
                       <div className="flex-1 min-w-0">
                         <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{client.name}</div>
-                        <div className="text-[var(--fs-2xs)] text-[var(--slate-400)] mt-[1px]">
+                        <div className="text-[var(--fs-3xs)] text-[var(--slate-400)] mt-[1px]">
                           {count > 0
                             ? `${plural(count, 'раз', 'раза', 'раз')} делал эту тренировку`
                             : 'не делал'
@@ -367,9 +367,9 @@ export default function AssignWorkoutFlow() {
                         </div>
                       </div>
                       {selected ? (
-                        <div className="w-[16px] h-[16px] rounded-full bg-[var(--indigo-500)] flex items-center justify-center text-white text-[var(--fs-2xs)] shrink-0">✓</div>
+                        <div className="w-[16px] h-[16px] rounded-full bg-[var(--indigo-500)] flex items-center justify-center text-white text-[var(--fs-3xs)] shrink-0">✓</div>
                       ) : (
-                        <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
+                        <span className="text-[var(--slate-300)] text-[var(--fs-xs)]">›</span>
                       )}
                     </button>
                   )
@@ -395,7 +395,7 @@ export default function AssignWorkoutFlow() {
             <BackButton onClick={handleBack} label={clientName || 'Назад'} />
             <h1 className="text-[var(--fs-lg)] font-bold text-[var(--slate-900)]">Назначить тренировку</h1>
             {clientName && (
-              <p className="text-[var(--fs-2xs)] text-[var(--slate-400)] mb-5">{clientName}</p>
+              <p className="text-[var(--fs-3xs)] text-[var(--slate-400)] mb-5">{clientName}</p>
             )}
 
             {favoriteWorkouts.length > 0 && (
@@ -453,7 +453,7 @@ export default function AssignWorkoutFlow() {
             )}
 
             {workoutName && (
-              <div className="bg-[var(--slate-100)] text-[var(--slate-500)] text-[var(--fs-2xs)] font-semibold rounded-[6px] px-[9px] py-[4px] inline-block mb-[8px]">
+              <div className="bg-[var(--slate-100)] text-[var(--slate-500)] text-[var(--fs-3xs)] font-semibold rounded-[6px] px-[9px] py-[4px] inline-block mb-[8px]">
                 {workoutName}
               </div>
             )}
@@ -594,11 +594,11 @@ export default function AssignWorkoutFlow() {
                 {workoutName} → {clientName}
               </div>
               <div className="flex gap-[5px] flex-wrap mt-[5px]">
-                <span className="text-[var(--fs-2xs)] text-[var(--slate-500)]">
+                <span className="text-[var(--fs-3xs)] text-[var(--slate-500)]">
                   {plural(exercises.length, 'упражнение', 'упражнения', 'упражнений')}
                 </span>
                 {modifiedCount > 0 && (
-                  <span className="text-[var(--fs-2xs)] font-semibold bg-[var(--indigo-50)] text-[var(--indigo-700)] rounded-[20px] px-[7px] py-[2px] border border-[var(--indigo-200)]">
+                  <span className="text-[var(--fs-3xs)] font-semibold bg-[var(--indigo-50)] text-[var(--indigo-700)] rounded-[20px] px-[7px] py-[2px] border border-[var(--indigo-200)]">
                     {modifiedCount} изменено
                   </span>
                 )}
@@ -607,7 +607,7 @@ export default function AssignWorkoutFlow() {
 
             {/* Notice */}
             <div className="bg-[var(--slate-50)] border border-[var(--border)] rounded-[8px] px-[9px] py-[6px] mb-[8px]">
-              <span className="text-[var(--fs-2xs)] text-[var(--slate-500)] flex gap-[5px]">
+              <span className="text-[var(--fs-3xs)] text-[var(--slate-500)] flex gap-[5px]">
                 <span>ℹ</span>
                 <span>Шаблон не изменится — только эта сессия.</span>
               </span>
@@ -639,7 +639,7 @@ export default function AssignWorkoutFlow() {
                   <div className="flex-1">
                     <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{opt.label}</div>
                     {opt.sub && (
-                      <div className="text-[var(--fs-2xs)] text-[var(--slate-500)] mt-[1px]">
+                      <div className="text-[var(--fs-3xs)] text-[var(--slate-500)] mt-[1px]">
                         {new Date(opt.sub + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
                       </div>
                     )}
@@ -700,11 +700,11 @@ function WorkoutSelectRow({
         <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)] truncate">{workout.name}</div>
       </div>
       {count > 0 && (
-        <span className="text-[var(--fs-2xs)] bg-[var(--slate-100)] text-[var(--slate-500)] rounded-[20px] px-[7px] py-[2px] shrink-0">
+        <span className="text-[var(--fs-3xs)] bg-[var(--slate-100)] text-[var(--slate-500)] rounded-[20px] px-[7px] py-[2px] shrink-0">
           {count} раз
         </span>
       )}
-      <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
+      <span className="text-[var(--slate-300)] text-[var(--fs-xs)]">›</span>
     </button>
   )
 }

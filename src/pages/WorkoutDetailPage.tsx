@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Edit, Trash2, Copy } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
@@ -87,26 +87,26 @@ export default function WorkoutDetailPage() {
         <div className="grid grid-cols-3 gap-[5px] mb-[13px]">
           <button
             onClick={() => navigate(`/trainer/workout/${id}/edit`)}
-            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[8px] text-[var(--fs-2xs)] font-bold text-[var(--slate-600)] flex items-center justify-center gap-1"
+            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[8px] text-[var(--fs-3xs)] font-bold text-[var(--slate-600)] flex items-center justify-center"
           >
-            <Edit className="w-3.5 h-3.5 shrink-0" /> Изменить
+            Изменить
           </button>
           <button
             onClick={handleCopy}
-            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[8px] text-[var(--fs-2xs)] font-bold text-[var(--slate-600)] flex items-center justify-center gap-1"
+            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[8px] text-[var(--fs-3xs)] font-bold text-[var(--slate-600)] flex items-center justify-center"
           >
-            <Copy className="w-3.5 h-3.5 shrink-0" /> Копировать
+            Копировать
           </button>
           <button
             onClick={handleDelete}
-            className="border border-[var(--red-200)] bg-[var(--red-50)] rounded-[8px] py-[8px] text-[var(--fs-2xs)] font-bold text-[var(--red-500)] flex items-center justify-center gap-1"
+            className="border border-[var(--red-200)] bg-[var(--red-50)] rounded-[8px] py-[8px] text-[var(--fs-3xs)] font-bold text-[var(--red-500)] flex items-center justify-center"
           >
-            <Trash2 className="w-3.5 h-3.5 shrink-0" /> Удалить
+            Удалить
           </button>
         </div>
 
         <h1 className="text-[1rem] font-bold text-[var(--slate-900)] mb-[1px]">{workout.name}</h1>
-        <p className="text-[var(--fs-2xs)] text-[var(--slate-400)] mb-[13px]">
+        <p className="text-[var(--fs-3xs)] text-[var(--slate-400)] mb-[13px]">
           {exercises.length} упражнений · отдых {workout.default_rest_sec} сек
         </p>
 
@@ -121,7 +121,7 @@ export default function WorkoutDetailPage() {
         </button>
 
         {/* Exercises */}
-        <div className="text-[var(--fs-2xs)] font-bold text-[var(--slate-400)] uppercase tracking-[0.07em] mb-[6px]">
+        <div className="text-[var(--fs-3xs)] font-bold text-[var(--slate-400)] uppercase tracking-[0.07em] mb-[6px]">
           Упражнения
         </div>
 
@@ -133,12 +133,12 @@ export default function WorkoutDetailPage() {
               <div className="text-[var(--fs-xs)] font-bold text-[var(--slate-900)] mb-[3px]">
                 {i + 1}. {ex.exercise_library.name_ru}
               </div>
-              <div className="text-[var(--fs-2xs)] text-[var(--slate-500)]">
+              <div className="text-[var(--fs-3xs)] text-[var(--slate-500)]">
                 {ex.sets} × {ex.reps}{ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}
                 {ex.rest_sec ? ` · отдых ${ex.rest_sec} сек` : ''}
               </div>
               {ex.trainer_note && (
-                <div className="text-[var(--fs-2xs)] text-[var(--indigo-500)] italic mt-[3px]">«{ex.trainer_note}»</div>
+                <div className="text-[var(--fs-3xs)] text-[var(--indigo-500)] italic mt-[3px]">«{ex.trainer_note}»</div>
               )}
             </div>
           ))
@@ -147,7 +147,7 @@ export default function WorkoutDetailPage() {
         {/* Who used */}
         {clientUsage.size > 0 && (
           <div className="mt-[13px]">
-            <div className="text-[var(--fs-2xs)] font-bold text-[var(--slate-400)] uppercase tracking-[0.07em] mb-[6px]">
+            <div className="text-[var(--fs-3xs)] font-bold text-[var(--slate-400)] uppercase tracking-[0.07em] mb-[6px]">
               Кто использовал
             </div>
             <div className="bg-white border border-[var(--border)] rounded-[10px] overflow-hidden">
@@ -161,7 +161,7 @@ export default function WorkoutDetailPage() {
                     {name.charAt(0).toUpperCase()}
                   </div>
                   <span className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)] flex-1">{name}</span>
-                  <span className="text-[var(--fs-2xs)] text-[var(--slate-400)]">
+                  <span className="text-[var(--fs-3xs)] text-[var(--slate-400)]">
                     {count} {count === 1 ? 'раз' : 'раза'}
                   </span>
                 </div>

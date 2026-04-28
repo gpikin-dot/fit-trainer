@@ -66,7 +66,6 @@ export default function RegisterClientPage() {
       <div className="max-w-[390px] w-full">
         <div className="bg-white rounded-[16px] px-[17px] py-[22px] border border-[var(--border)]">
           <h1 className="text-[1rem] font-bold text-[var(--slate-900)] mb-[2px]">Регистрация клиента</h1>
-          <p className="text-[var(--fs-2xs)] text-[var(--slate-400)] mb-4">Создайте аккаунт для тренировок</p>
 
           {trainerName && (
             <div className="bg-[var(--green-50)] border border-[var(--green-200)] rounded-[9px] px-[11px] py-[9px] mb-4">

@@ -170,13 +170,13 @@ export default function SessionDetailPage() {
         {/* Back */}
         <button
           onClick={() => navigate(`/trainer/client/${assignment.client_id}`)}
-          className="text-[var(--fs-2xs)] font-semibold text-[var(--indigo-500)] flex items-center gap-1 mb-[9px]"
+          className="text-[var(--fs-2xs)] font-semibold text-[var(--slate-500)] flex items-center gap-1 mb-[9px]"
         >
           ← {clientName || 'Клиент'}
         </button>
 
         <h1 className="text-[1rem] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{workout.name}</h1>
-        <p className="text-[var(--fs-2xs)] text-[var(--slate-400)] mb-[11px]">{fmtDate(completedAt)}</p>
+        <p className="text-[var(--fs-3xs)] text-[var(--slate-400)] mb-[11px]">{fmtDate(completedAt)}</p>
 
         {/* Status card */}
         <div className="bg-white border border-[var(--border)] rounded-[10px] px-[12px] py-[11px] mb-[10px]">
@@ -187,7 +187,7 @@ export default function SessionDetailPage() {
             </div>
             <div className="text-right">
               <div className="text-[var(--fs-lg)] font-bold text-[var(--slate-900)] leading-none">{completedCount} / {totalExercises}</div>
-              <div className="text-[var(--fs-2xs)] text-[var(--slate-400)] mt-[2px]">упражнений</div>
+              <div className="text-[var(--fs-3xs)] text-[var(--slate-400)] mt-[2px]">упражнений</div>
             </div>
           </div>
           <div className="h-[5px] bg-[var(--slate-100)] rounded-full overflow-hidden">
@@ -213,20 +213,20 @@ export default function SessionDetailPage() {
 
               {hasResult ? (
                 <>
-                  <p className="text-[var(--fs-2xs)] text-[var(--slate-400)] mb-[2px]">
-                    план: {ex.sets}подх × {ex.reps}повт · {ex.weight_kg}кг
+                  <p className="text-[var(--fs-3xs)] text-[var(--slate-400)] mb-[2px]">
+                    план: {ex.sets}×{ex.reps} · {ex.weight_kg} кг
                   </p>
-                  <p className="text-[var(--fs-2xs)] text-[var(--slate-700)]">
+                  <p className="text-[var(--fs-3xs)] text-[var(--slate-700)]">
                     факт: {ex.sets}×<span className={valueClass(repsCompare)}>{result.actual_reps ?? ex.reps}</span>{' '}
-                    · <span className={valueClass(weightCompare)}>{result.actual_weight_kg ?? ex.weight_kg}</span>кг
+                    · <span className={valueClass(weightCompare)}>{result.actual_weight_kg ?? ex.weight_kg}</span> кг
                   </p>
                 </>
               ) : (
-                <p className="text-[var(--fs-2xs)] text-[var(--slate-300)] italic">Пропущено</p>
+                <p className="text-[var(--fs-3xs)] text-[var(--slate-300)] italic">Пропущено</p>
               )}
 
               {result?.client_note ? (
-                <p className="text-[var(--fs-2xs)] text-[var(--slate-500)] italic mt-[3px]">«{result.client_note}»</p>
+                <p className="text-[var(--fs-3xs)] text-[var(--slate-500)] italic mt-[3px]">«{result.client_note}»</p>
               ) : null}
             </div>
           )

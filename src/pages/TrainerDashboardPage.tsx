@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Copy, Check, LogOut } from 'lucide-react'
+import { Plus, Copy, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
@@ -50,7 +50,7 @@ interface ClientStat extends Profile {
 
 export default function TrainerDashboardPage() {
   const navigate = useNavigate()
-  const { profile, signOut } = useAuth()
+  const { profile } = useAuth()
   const [tab, setTab] = useState<'today' | 'clients' | 'library'>('today')
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [workoutStats, setWorkoutStats] = useState<Map<string, { exerciseCount: number; usageCount: number }>>(new Map())
@@ -217,18 +217,16 @@ export default function TrainerDashboardPage() {
     <Layout>
       {/* Sticky header */}
       <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[14px]">
-        <div className="pt-[11px] pb-0 flex items-center justify-between">
+        <div className="pt-[11px] pb-0">
           <div>
-            <div className="text-[var(--fs-2xs)] text-[var(--slate-400)]">{getGreeting()}</div>
+            <div className="text-[var(--fs-3xs)] text-[var(--slate-400)]">{getGreeting()}</div>
             <div className="text-[var(--fs-lg)] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{profile?.name}</div>
           </div>
-          <button onClick={signOut} className="text-[var(--slate-400)] hover:text-[var(--slate-500)] p-1">
-            <LogOut className="w-4 h-4" />
-          </button>
+
         </div>
 
         {/* Tabs */}
-        <div className="flex mt-[8px]" style={{ borderBottom: '1.5px solid var(--slate-100)' }}>
+        <div className="flex" style={{ borderBottom: '1.5px solid var(--slate-100)' }}>
           {([
             { key: 'today', label: 'Сегодня' },
             { key: 'clients', label: 'Клиенты' },
@@ -273,20 +271,20 @@ export default function TrainerDashboardPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
-                        <div className="text-[var(--fs-2xs)] text-[var(--slate-400)] mt-[1px] truncate">{item.workoutName}</div>
+                        <div className="text-[var(--fs-3xs)] text-[var(--slate-400)] mt-[1px] truncate">{item.workoutName}</div>
                         <div className="mt-[4px]">
                           {item.started ? (
-                            <span className="text-[var(--fs-2xs)] font-semibold bg-[var(--green-50)] text-[var(--green-600)] px-[7px] py-[2px] rounded-[20px]">
+                            <span className="text-[var(--fs-3xs)] font-semibold bg-[var(--green-50)] text-[var(--green-600)] px-[7px] py-[2px] rounded-[20px]">
                               ● Начата
                             </span>
                           ) : (
-                            <span className="text-[var(--fs-2xs)] font-semibold bg-[var(--slate-50)] text-[var(--slate-400)] px-[7px] py-[2px] rounded-[20px]">
+                            <span className="text-[var(--fs-3xs)] font-semibold bg-[var(--slate-50)] text-[var(--slate-400)] px-[7px] py-[2px] rounded-[20px]">
                               ● Не начата
                             </span>
                           )}
                         </div>
                       </div>
-                      <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
+                      <span className="text-[var(--slate-300)] text-[var(--fs-xs)]">›</span>
                     </div>
                   </div>
                 ))}
@@ -313,9 +311,9 @@ export default function TrainerDashboardPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
-                          <div className="text-[var(--fs-2xs)] text-[var(--slate-400)] mt-[1px]">{item.workoutName}</div>
+                          <div className="text-[var(--fs-3xs)] text-[var(--slate-400)] mt-[1px]">{item.workoutName}</div>
                         </div>
-                        <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
+                        <span className="text-[var(--slate-300)] text-[var(--fs-xs)]">›</span>
                       </div>
                     )
                   })}
@@ -337,9 +335,9 @@ export default function TrainerDashboardPage() {
                     >
                       <div className="flex-1 min-w-0">
                         <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
-                        <div className="text-[var(--fs-2xs)] text-[var(--slate-400)] mt-[1px]">{item.workoutName}</div>
+                        <div className="text-[var(--fs-3xs)] text-[var(--slate-400)] mt-[1px]">{item.workoutName}</div>
                       </div>
-                      <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
+                      <span className="text-[var(--slate-300)] text-[var(--fs-xs)]">›</span>
                     </div>
                   ))}
                 </div>
@@ -406,16 +404,16 @@ export default function TrainerDashboardPage() {
                       <div className="flex justify-between gap-1 items-center">
                         <span className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{c.name}</span>
                         {c.compliance !== null && (
-                          <span className={`text-[var(--fs-2xs)] font-bold px-[7px] py-[2px] rounded-[20px] shrink-0 ${compBadge.bg} ${compBadge.text}`}>
+                          <span className={`text-[var(--fs-3xs)] font-bold px-[7px] py-[2px] rounded-[20px] shrink-0 ${compBadge.bg} ${compBadge.text}`}>
                             {compBadge.label}
                           </span>
                         )}
                       </div>
-                      <div className={`text-[var(--fs-2xs)] mt-[2px] ${isMissed ? 'text-[var(--red-400)]' : 'text-[var(--slate-400)]'}`}>
+                      <div className={`text-[var(--fs-3xs)] mt-[2px] ${isMissed ? 'text-[var(--red-400)]' : 'text-[var(--slate-400)]'}`}>
                         {subtitle}
                       </div>
                     </div>
-                    <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
+                    <span className="text-[var(--slate-300)] text-[var(--fs-xs)]">›</span>
                   </div>
                 )
               })
@@ -442,12 +440,12 @@ export default function TrainerDashboardPage() {
                 >★</span>
                 <div className="flex-1 min-w-0">
                   <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{w.name}</div>
-                  <div className="text-[var(--fs-2xs)] text-[var(--slate-400)] mt-[1px]">
+                  <div className="text-[var(--fs-3xs)] text-[var(--slate-400)] mt-[1px]">
                     {stats?.exerciseCount ?? 0} упр.
                     {(stats?.usageCount ?? 0) > 0 && ` · ${stats!.usageCount} раз`}
                   </div>
                 </div>
-                <span className="text-[var(--slate-300)] text-[0.875rem]">›</span>
+                <span className="text-[var(--slate-300)] text-[var(--fs-xs)]">›</span>
               </div>
             )
           }
@@ -519,11 +517,11 @@ function InviteModal({ invite, onClose }: { invite: Invite; onClose: () => void 
   return (
     <Modal onClose={onClose}>
       <h2 className="text-[var(--fs-md)] font-bold text-[var(--slate-900)] mb-1">Приглашение создано</h2>
-      <p className="text-[var(--fs-2xs)] text-[var(--slate-500)] leading-[1.5] mb-3">
+      <p className="text-[var(--fs-3xs)] text-[var(--slate-500)] leading-[1.5] mb-3">
         Отправьте эту ссылку клиенту. Действует 7 дней, использовать можно один раз.
       </p>
       <div className="bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[7px] px-[9px] py-[7px]">
-        <span className="text-[var(--fs-2xs)] font-mono text-[var(--slate-600)] break-all">{link}</span>
+        <span className="text-[var(--fs-3xs)] font-mono text-[var(--slate-600)] break-all">{link}</span>
       </div>
       <div className="flex gap-[6px] mt-3">
         <button

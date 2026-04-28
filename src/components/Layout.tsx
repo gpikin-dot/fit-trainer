@@ -26,8 +26,8 @@ export default function Layout({ children, fullHeight = false }: {
     <div className={`${fullHeight ? 'h-dvh flex flex-col' : 'min-h-screen'} bg-[var(--bg)] text-[var(--slate-900)]`}>
       <main className={
         fullHeight
-          ? 'flex-1 min-h-0 flex flex-col max-w-[390px] mx-auto w-full'
-          : 'max-w-[390px] mx-auto px-[13px]'
+          ? 'flex-1 min-h-0 flex flex-col max-w-[430px] mx-auto w-full'
+          : 'max-w-[430px] mx-auto px-[13px]'
       }>
         {children}
       </main>

@@ -11,6 +11,13 @@ import type { Workout, Profile, Invite } from '../types/database'
 const DAYS_SHORT = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 const MONTHS_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
 
+function getGreeting(): string {
+  const h = new Date().getHours()
+  if (h >= 5 && h < 12) return 'Доброе утро,'
+  if (h >= 12 && h < 18) return 'Добрый день,'
+  return 'Добрый вечер,'
+}
+
 function fmtDate(iso: string) {
   const d = new Date(iso.includes('T') ? iso : iso + 'T00:00:00')
   return `${DAYS_SHORT[d.getDay()]}, ${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}.`
@@ -212,7 +219,7 @@ export default function TrainerDashboardPage() {
       <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[14px]">
         <div className="pt-[11px] pb-0 flex items-center justify-between">
           <div>
-            <div className="text-[9px] text-[var(--slate-400)]">Добрый день,</div>
+            <div className="text-[9px] text-[var(--slate-400)]">{getGreeting()}</div>
             <div className="text-[15px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{profile?.name}</div>
           </div>
           <button onClick={signOut} className="text-[var(--slate-400)] hover:text-[var(--slate-500)] p-1">

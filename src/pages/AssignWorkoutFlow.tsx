@@ -58,7 +58,7 @@ function StepDots({ step }: { step: Step }) {
       {[0, 1, 2].map(i => (
         <span
           key={i}
-          className={`w-[6px] h-[6px] rounded-full transition-colors ${i <= idx ? 'bg-[#6366F1]' : 'bg-[#E2E8F0]'}`}
+          className={`w-[6px] h-[6px] rounded-full transition-colors ${i <= idx ? 'bg-[var(--indigo-500)]' : 'bg-[var(--slate-200)]'}`}
         />
       ))}
     </div>
@@ -68,7 +68,7 @@ function StepDots({ step }: { step: Step }) {
 function Avatar({ name, size = 28 }: { name: string; size?: number }) {
   return (
     <div
-      className="rounded-full bg-[#EEF2FF] flex items-center justify-center font-bold text-[#6366F1] shrink-0"
+      className="rounded-full bg-[var(--indigo-50)] flex items-center justify-center font-bold text-[var(--indigo-500)] shrink-0"
       style={{ width: size, height: size, fontSize: size <= 24 ? 9 : size <= 28 ? 11 : 13 }}
     >
       {initials(name)}
@@ -80,7 +80,7 @@ function BackButton({ onClick, label = 'Назад' }: { onClick: () => void; la
   return (
     <button
       onClick={onClick}
-      className="text-[10px] font-semibold text-[#6366F1] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
+      className="text-[10px] font-semibold text-[var(--indigo-500)] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
     >
       <ArrowLeft className="w-3 h-3" /> {label}
     </button>
@@ -314,13 +314,13 @@ export default function AssignWorkoutFlow() {
   const otherWorkouts = workouts.filter(w => !w.is_favorite)
 
   // Row/input style for customize step
-  const numInput = 'bg-[#F8FAFC] border border-[#E2E8F0] rounded-[6px] px-[4px] py-[5px] text-[11px] font-bold text-[#0F172A] text-center w-full outline-none focus:border-indigo-400'
-  const noteInput = 'bg-[#F8FAFC] border border-[#E2E8F0] rounded-[6px] px-[7px] py-[5px] text-[9px] text-[#475569] italic w-full outline-none focus:border-indigo-400 text-left'
+  const numInput = 'bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[6px] px-[4px] py-[5px] text-[11px] font-bold text-[var(--slate-900)] text-center w-full outline-none focus:border-indigo-400'
+  const noteInput = 'bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[6px] px-[7px] py-[5px] text-[9px] text-[var(--slate-600)] italic w-full outline-none focus:border-indigo-400 text-left'
 
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center py-20 text-[#94A3B8] text-[11px]">Загрузка...</div>
+        <div className="flex items-center justify-center py-20 text-[var(--slate-400)] text-[11px]">Загрузка...</div>
       </Layout>
     )
   }
@@ -334,13 +334,13 @@ export default function AssignWorkoutFlow() {
         {step === 'selectClient' && (
           <>
             <BackButton onClick={handleBack} label={workoutName || 'Назад'} />
-            <h1 className="text-[15px] font-bold text-[#0F172A]">Выбрать клиента</h1>
+            <h1 className="text-[15px] font-bold text-[var(--slate-900)]">Выбрать клиента</h1>
             {workoutName && (
-              <p className="text-[10px] text-[#94A3B8] mb-5">{workoutName}</p>
+              <p className="text-[10px] text-[var(--slate-400)] mb-5">{workoutName}</p>
             )}
 
             {clients.length === 0 ? (
-              <div className="text-center py-12 text-[#94A3B8] text-[11px]">У вас пока нет клиентов</div>
+              <div className="text-center py-12 text-[var(--slate-400)] text-[11px]">У вас пока нет клиентов</div>
             ) : (
               <div className="mb-5">
                 {clients.map(client => {
@@ -353,13 +353,13 @@ export default function AssignWorkoutFlow() {
                       key={client.id}
                       onClick={() => setSelectedClientId(client.id)}
                       className={`bg-white border-[1.5px] rounded-[10px] px-[10px] py-[8px] mb-[4px] flex items-center gap-[7px] cursor-pointer w-full text-left transition-colors ${
-                        selected ? 'border-[#6366F1] bg-[#EEF2FF]' : 'border-[#E8EDF3]'
+                        selected ? 'border-[var(--indigo-500)] bg-[var(--indigo-50)]' : 'border-[var(--border)]'
                       }`}
                     >
                       <Avatar name={client.name} size={28} />
                       <div className="flex-1 min-w-0">
-                        <div className="text-[11px] font-semibold text-[#0F172A]">{client.name}</div>
-                        <div className="text-[9px] text-[#94A3B8] mt-[1px]">
+                        <div className="text-[11px] font-semibold text-[var(--slate-900)]">{client.name}</div>
+                        <div className="text-[9px] text-[var(--slate-400)] mt-[1px]">
                           {count > 0
                             ? `${plural(count, 'раз', 'раза', 'раз')} делал эту тренировку`
                             : 'не делал'
@@ -367,9 +367,9 @@ export default function AssignWorkoutFlow() {
                         </div>
                       </div>
                       {selected ? (
-                        <div className="w-[16px] h-[16px] rounded-full bg-[#6366F1] flex items-center justify-center text-white text-[9px] shrink-0">✓</div>
+                        <div className="w-[16px] h-[16px] rounded-full bg-[var(--indigo-500)] flex items-center justify-center text-white text-[9px] shrink-0">✓</div>
                       ) : (
-                        <span className="text-[#CBD5E1] text-[14px]">›</span>
+                        <span className="text-[var(--slate-300)] text-[14px]">›</span>
                       )}
                     </button>
                   )
@@ -382,7 +382,7 @@ export default function AssignWorkoutFlow() {
             <button
               onClick={handleClientSelected}
               disabled={!selectedClientId}
-              className="w-full bg-[#6366F1] hover:bg-[#4338CA] text-white text-[11px] font-bold rounded-[9px] py-[10px] disabled:opacity-40"
+              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[11px] font-bold rounded-[9px] py-[10px] disabled:opacity-40"
             >
               Далее
             </button>
@@ -393,14 +393,14 @@ export default function AssignWorkoutFlow() {
         {step === 'selectTemplate' && (
           <>
             <BackButton onClick={handleBack} label={clientName || 'Назад'} />
-            <h1 className="text-[15px] font-bold text-[#0F172A]">Назначить тренировку</h1>
+            <h1 className="text-[15px] font-bold text-[var(--slate-900)]">Назначить тренировку</h1>
             {clientName && (
-              <p className="text-[10px] text-[#94A3B8] mb-5">{clientName}</p>
+              <p className="text-[10px] text-[var(--slate-400)] mb-5">{clientName}</p>
             )}
 
             {favoriteWorkouts.length > 0 && (
               <div>
-                <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.06em] mb-[5px]">Избранные</div>
+                <div className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.06em] mb-[5px]">Избранные</div>
                 {favoriteWorkouts.map(w => {
                   const count = selectedClientId ? (workoutTimeCounts[`${selectedClientId}:${w.id}`] ?? 0) : 0
                   return (
@@ -411,9 +411,9 @@ export default function AssignWorkoutFlow() {
             )}
 
             <div className="flex items-center gap-[6px] my-[7px]">
-              <div className="flex-1 h-[1px] bg-[#E8EDF3]" />
-              <span className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.06em]">Все шаблоны</span>
-              <div className="flex-1 h-[1px] bg-[#E8EDF3]" />
+              <div className="flex-1 h-[1px] bg-[var(--border)]" />
+              <span className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.06em]">Все шаблоны</span>
+              <div className="flex-1 h-[1px] bg-[var(--border)]" />
             </div>
 
             <div>
@@ -424,13 +424,13 @@ export default function AssignWorkoutFlow() {
                 )
               })}
               {workouts.length === 0 && (
-                <div className="text-center py-8 text-[#94A3B8] text-[11px]">У вас нет шаблонов тренировок</div>
+                <div className="text-center py-8 text-[var(--slate-400)] text-[11px]">У вас нет шаблонов тренировок</div>
               )}
             </div>
 
             <button
               onClick={() => navigate('/trainer/workout/new')}
-              className="w-full border border-dashed border-[#C7D2FE] text-[#6366F1] text-[10px] font-bold py-[9px] rounded-[9px] mt-[6px]"
+              className="w-full border border-dashed border-[var(--indigo-200)] text-[var(--indigo-500)] text-[10px] font-bold py-[9px] rounded-[9px] mt-[6px]"
             >
               + Создать новый шаблон
             </button>
@@ -443,23 +443,23 @@ export default function AssignWorkoutFlow() {
         {step === 'customize' && (
           <>
             <BackButton onClick={handleBack} label="Выбор клиента" />
-            <h1 className="text-[15px] font-bold text-[#0F172A]">Настройка упражнений</h1>
+            <h1 className="text-[15px] font-bold text-[var(--slate-900)]">Настройка упражнений</h1>
 
             {clientName && (
-              <div className="flex items-center gap-[6px] bg-[#F8FAFC] border border-[#E2E8F0] rounded-[8px] px-[8px] py-[5px] mb-[7px] mt-[6px]">
+              <div className="flex items-center gap-[6px] bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[8px] px-[8px] py-[5px] mb-[7px] mt-[6px]">
                 <Avatar name={clientName} size={22} />
-                <span className="text-[10px] font-semibold text-[#0F172A]">{clientName}</span>
+                <span className="text-[10px] font-semibold text-[var(--slate-900)]">{clientName}</span>
               </div>
             )}
 
             {workoutName && (
-              <div className="bg-[#F1F5F9] text-[#64748B] text-[9px] font-semibold rounded-[6px] px-[9px] py-[4px] inline-block mb-[8px]">
+              <div className="bg-[var(--slate-100)] text-[var(--slate-500)] text-[9px] font-semibold rounded-[6px] px-[9px] py-[4px] inline-block mb-[8px]">
                 {workoutName}
               </div>
             )}
 
             {exercises.length === 0 ? (
-              <div className="text-center py-8 text-[#94A3B8] text-[11px]">В шаблоне нет упражнений</div>
+              <div className="text-center py-8 text-[var(--slate-400)] text-[11px]">В шаблоне нет упражнений</div>
             ) : (
               <div className="mb-5">
                 {exercises.map((ex, idx) => {
@@ -469,15 +469,15 @@ export default function AssignWorkoutFlow() {
                   const exType = ex.library.exercise_type ?? 'strength'
 
                   const modNumInput = (modified: boolean) =>
-                    `${numInput} ${modified ? 'bg-[#EEF2FF] border-[#C7D2FE]' : ''}`
+                    `${numInput} ${modified ? 'bg-[var(--indigo-50)] border-[var(--indigo-200)]' : ''}`
 
                   return (
-                    <div key={idx} className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
+                    <div key={idx} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
                       <div className="flex justify-between mb-[8px]">
-                        <span className="text-[11px] font-bold text-[#0F172A]">{idx + 1}. {ex.library.name_ru}</span>
+                        <span className="text-[11px] font-bold text-[var(--slate-900)]">{idx + 1}. {ex.library.name_ru}</span>
                         <button
                           onClick={() => removeExercise(idx)}
-                          className="text-[#CBD5E1] hover:text-[#EF4444] text-[13px] bg-transparent border-none p-0 leading-none"
+                          className="text-[var(--slate-300)] hover:text-[var(--red-500)] text-[13px] bg-transparent border-none p-0 leading-none"
                         >
                           ✕
                         </button>
@@ -487,21 +487,21 @@ export default function AssignWorkoutFlow() {
                         <>
                           <div className="grid grid-cols-3 gap-[4px] mb-[4px]">
                             <div>
-                              <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Интервалы</label>
+                              <label className="block text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Интервалы</label>
                               <input type="text" inputMode="numeric" value={isNaN(ex.sets) ? '' : ex.sets}
                                 onChange={e => updateExercise(idx, { sets: parseInt(e.target.value) || 0 })}
                                 onBlur={() => { if (!ex.sets || ex.sets < 1) updateExercise(idx, { sets: 1 }) }}
                                 onFocus={e => e.target.select()} className={modNumInput(setsModified)} />
                             </div>
                             <div>
-                              <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Длит. (мин)</label>
+                              <label className="block text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Длит. (мин)</label>
                               <input type="text" inputMode="numeric" value={isNaN(ex.reps) ? '' : ex.reps}
                                 onChange={e => updateExercise(idx, { reps: parseInt(e.target.value) || 0 })}
                                 onBlur={() => { if (!ex.reps || ex.reps < 1) updateExercise(idx, { reps: 1 }) }}
                                 onFocus={e => e.target.select()} className={modNumInput(repsModified)} />
                             </div>
                             <div>
-                              <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Дистанция (км)</label>
+                              <label className="block text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Дистанция (км)</label>
                               <input type="text" inputMode="decimal" value={ex.weight_kg}
                                 onChange={e => updateExercise(idx, { weight_kg: parseFloat(e.target.value.replace(',', '.')) || 0 })}
                                 onFocus={e => e.target.select()} placeholder="0" className={modNumInput(weightModified)} />
@@ -511,14 +511,14 @@ export default function AssignWorkoutFlow() {
                       ) : exType === 'cardio_reps' ? (
                         <div className="grid grid-cols-3 gap-[4px] mb-[4px]">
                           <div>
-                            <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Подходы</label>
+                            <label className="block text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Подходы</label>
                             <input type="text" inputMode="numeric" value={isNaN(ex.sets) ? '' : ex.sets}
                               onChange={e => updateExercise(idx, { sets: parseInt(e.target.value) || 0 })}
                               onBlur={() => { if (!ex.sets || ex.sets < 1) updateExercise(idx, { sets: 1 }) }}
                               onFocus={e => e.target.select()} className={modNumInput(setsModified)} />
                           </div>
                           <div>
-                            <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Повторения</label>
+                            <label className="block text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Повторения</label>
                             <input type="text" inputMode="numeric" value={isNaN(ex.reps) ? '' : ex.reps}
                               onChange={e => updateExercise(idx, { reps: parseInt(e.target.value) || 0 })}
                               onBlur={() => { if (!ex.reps || ex.reps < 1) updateExercise(idx, { reps: 1 }) }}
@@ -528,21 +528,21 @@ export default function AssignWorkoutFlow() {
                       ) : (
                         <div className="grid grid-cols-3 gap-[4px] mb-[4px]">
                           <div>
-                            <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Подходы</label>
+                            <label className="block text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Подходы</label>
                             <input type="text" inputMode="numeric" value={isNaN(ex.sets) ? '' : ex.sets}
                               onChange={e => updateExercise(idx, { sets: parseInt(e.target.value) || 0 })}
                               onBlur={() => { if (!ex.sets || ex.sets < 1) updateExercise(idx, { sets: 1 }) }}
                               onFocus={e => e.target.select()} className={modNumInput(setsModified)} />
                           </div>
                           <div>
-                            <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Повторы</label>
+                            <label className="block text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Повторы</label>
                             <input type="text" inputMode="numeric" value={isNaN(ex.reps) ? '' : ex.reps}
                               onChange={e => updateExercise(idx, { reps: parseInt(e.target.value) || 0 })}
                               onBlur={() => { if (!ex.reps || ex.reps < 1) updateExercise(idx, { reps: 1 }) }}
                               onFocus={e => e.target.select()} className={modNumInput(repsModified)} />
                           </div>
                           <div>
-                            <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Вес, кг</label>
+                            <label className="block text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Вес, кг</label>
                             <input type="text" inputMode="decimal" value={ex.weight_kg}
                               onChange={e => updateExercise(idx, { weight_kg: parseFloat(e.target.value.replace(',', '.')) || 0 })}
                               onFocus={e => e.target.select()} className={modNumInput(weightModified)} />
@@ -552,13 +552,13 @@ export default function AssignWorkoutFlow() {
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4px' }}>
                         <div>
-                          <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Отдых</label>
+                          <label className="block text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Отдых</label>
                           <input type="text" inputMode="numeric" value={ex.rest_sec ?? ''}
                             onChange={e => updateExercise(idx, { rest_sec: e.target.value ? parseInt(e.target.value) : null })}
                             onFocus={e => e.target.select()} placeholder="—" className={numInput} />
                         </div>
                         <div>
-                          <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.04em] mb-[3px]">Комментарий</label>
+                          <label className="block text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Комментарий</label>
                           <input type="text" value={ex.trainer_note}
                             onChange={e => updateExercise(idx, { trainer_note: e.target.value })}
                             placeholder="Необязательно" className={noteInput} />
@@ -574,7 +574,7 @@ export default function AssignWorkoutFlow() {
 
             <button
               onClick={() => setStep('date')}
-              className="w-full bg-[#6366F1] hover:bg-[#4338CA] text-white text-[11px] font-bold rounded-[9px] py-[10px]"
+              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[11px] font-bold rounded-[9px] py-[10px]"
             >
               Далее
             </button>
@@ -585,20 +585,20 @@ export default function AssignWorkoutFlow() {
         {step === 'date' && (
           <>
             <BackButton onClick={handleBack} label="Настройка" />
-            <h1 className="text-[16px] font-bold text-[#0F172A]">Дата тренировки</h1>
+            <h1 className="text-[16px] font-bold text-[var(--slate-900)]">Дата тренировки</h1>
 
             {/* Summary */}
-            <div className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[8px] mt-[10px]">
-              <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.06em] mb-[4px]">ИТОГ</div>
-              <div className="text-[11px] font-bold text-[#0F172A]">
+            <div className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[8px] mt-[10px]">
+              <div className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.06em] mb-[4px]">ИТОГ</div>
+              <div className="text-[11px] font-bold text-[var(--slate-900)]">
                 {workoutName} → {clientName}
               </div>
               <div className="flex gap-[5px] flex-wrap mt-[5px]">
-                <span className="text-[9px] text-[#64748B]">
+                <span className="text-[9px] text-[var(--slate-500)]">
                   {plural(exercises.length, 'упражнение', 'упражнения', 'упражнений')}
                 </span>
                 {modifiedCount > 0 && (
-                  <span className="text-[9px] font-semibold bg-[#EEF2FF] text-[#4338CA] rounded-[20px] px-[7px] py-[2px] border border-[#C7D2FE]">
+                  <span className="text-[9px] font-semibold bg-[var(--indigo-50)] text-[var(--indigo-700)] rounded-[20px] px-[7px] py-[2px] border border-[var(--indigo-200)]">
                     {modifiedCount} изменено
                   </span>
                 )}
@@ -606,8 +606,8 @@ export default function AssignWorkoutFlow() {
             </div>
 
             {/* Notice */}
-            <div className="bg-[#F8FAFC] border border-[#E8EDF3] rounded-[8px] px-[9px] py-[6px] mb-[8px]">
-              <span className="text-[9px] text-[#64748B] flex gap-[5px]">
+            <div className="bg-[var(--slate-50)] border border-[var(--border)] rounded-[8px] px-[9px] py-[6px] mb-[8px]">
+              <span className="text-[9px] text-[var(--slate-500)] flex gap-[5px]">
                 <span>ℹ</span>
                 <span>Шаблон не изменится — только эта сессия.</span>
               </span>
@@ -628,18 +628,18 @@ export default function AssignWorkoutFlow() {
                   key={opt.value}
                   onClick={() => setDateChoice(opt.value)}
                   className={`w-full flex items-center gap-[8px] cursor-pointer text-left border-[1.5px] rounded-[9px] px-[10px] py-[8px] mb-[4px] transition-colors ${
-                    active ? 'border-[#6366F1] bg-[#EEF2FF]' : 'border-[#E8EDF3] bg-white'
+                    active ? 'border-[var(--indigo-500)] bg-[var(--indigo-50)]' : 'border-[var(--border)] bg-white'
                   }`}
                 >
                   <div className={`w-[14px] h-[14px] rounded-full border-2 shrink-0 flex items-center justify-center ${
-                    active ? 'border-[#6366F1]' : 'border-[#D1D5DB]'
+                    active ? 'border-[var(--indigo-500)]' : 'border-[var(--slate-300)]'
                   }`}>
-                    {active && <div className="w-[7px] h-[7px] bg-[#6366F1] rounded-full" />}
+                    {active && <div className="w-[7px] h-[7px] bg-[var(--indigo-500)] rounded-full" />}
                   </div>
                   <div className="flex-1">
-                    <div className="text-[11px] font-semibold text-[#0F172A]">{opt.label}</div>
+                    <div className="text-[11px] font-semibold text-[var(--slate-900)]">{opt.label}</div>
                     {opt.sub && (
-                      <div className="text-[9px] text-[#64748B] mt-[1px]">
+                      <div className="text-[9px] text-[var(--slate-500)] mt-[1px]">
                         {new Date(opt.sub + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
                       </div>
                     )}
@@ -651,11 +651,11 @@ export default function AssignWorkoutFlow() {
                       min={localDate(0)}
                       onChange={e => setPickedDate(e.target.value)}
                       onClick={e => e.stopPropagation()}
-                      className="text-[10px] border border-[#C7D2FE] rounded-[6px] px-2 py-1 bg-white outline-none"
+                      className="text-[10px] border border-[var(--indigo-200)] rounded-[6px] px-2 py-1 bg-white outline-none"
                     />
                   )}
                   {opt.value === 'pick' && !active && (
-                    <Calendar className="w-4 h-4 text-[#CBD5E1]" />
+                    <Calendar className="w-4 h-4 text-[var(--slate-300)]" />
                   )}
                 </button>
               )
@@ -666,7 +666,7 @@ export default function AssignWorkoutFlow() {
             <button
               onClick={handleAssign}
               disabled={submitting || (dateChoice === 'pick' && !pickedDate)}
-              className="w-full bg-[#6366F1] text-white rounded-[10px] py-[11px] text-[12px] font-bold mt-[8px] disabled:opacity-40 hover:bg-[#4338CA]"
+              className="w-full bg-[var(--indigo-500)] text-white rounded-[10px] py-[11px] text-[12px] font-bold mt-[8px] disabled:opacity-40 hover:bg-[var(--indigo-700)]"
             >
               {submitting ? 'Назначаем...' : 'Назначить тренировку'}
             </button>
@@ -691,20 +691,20 @@ function WorkoutSelectRow({
   return (
     <button
       onClick={onSelect}
-      className="bg-white border-[1.5px] border-[#E8EDF3] rounded-[10px] px-[10px] py-[8px] mb-[4px] flex items-center gap-[7px] cursor-pointer w-full text-left"
+      className="bg-white border-[1.5px] border-[var(--border)] rounded-[10px] px-[10px] py-[8px] mb-[4px] flex items-center gap-[7px] cursor-pointer w-full text-left"
     >
       {workout.is_favorite && (
-        <Star className="w-3.5 h-3.5 text-[#F59E0B] fill-[#F59E0B] shrink-0" />
+        <Star className="w-3.5 h-3.5 text-[var(--amber-500)] fill-[var(--amber-500)] shrink-0" />
       )}
       <div className="flex-1 min-w-0">
-        <div className="text-[11px] font-semibold text-[#0F172A] truncate">{workout.name}</div>
+        <div className="text-[11px] font-semibold text-[var(--slate-900)] truncate">{workout.name}</div>
       </div>
       {count > 0 && (
-        <span className="text-[9px] bg-[#F1F5F9] text-[#64748B] rounded-[20px] px-[7px] py-[2px] shrink-0">
+        <span className="text-[9px] bg-[var(--slate-100)] text-[var(--slate-500)] rounded-[20px] px-[7px] py-[2px] shrink-0">
           {count} раз
         </span>
       )}
-      <span className="text-[#CBD5E1] text-[14px]">›</span>
+      <span className="text-[var(--slate-300)] text-[14px]">›</span>
     </button>
   )
 }

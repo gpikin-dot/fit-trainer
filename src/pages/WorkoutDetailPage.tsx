@@ -62,7 +62,7 @@ export default function WorkoutDetailPage() {
 
   if (!workout) return (
     <Layout>
-      <div className="text-center py-12 text-[#94A3B8] text-[11px]">Загрузка...</div>
+      <div className="text-center py-12 text-[var(--slate-400)] text-[11px]">Загрузка...</div>
     </Layout>
   )
 
@@ -78,7 +78,7 @@ export default function WorkoutDetailPage() {
       <div className="pt-[11px] pb-[14px]">
         <Link
           to="/trainer"
-          className="text-[10px] font-semibold text-[#6366F1] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
+          className="text-[10px] font-semibold text-[var(--indigo-500)] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
         >
           <ArrowLeft className="w-3 h-3" /> Шаблоны
         </Link>
@@ -87,26 +87,26 @@ export default function WorkoutDetailPage() {
         <div className="grid grid-cols-3 gap-[5px] mb-[13px]">
           <button
             onClick={() => navigate(`/trainer/workout/${id}/edit`)}
-            className="bg-white border border-[#E2E8F0] rounded-[8px] py-[8px] text-[9px] font-bold text-[#475569] flex items-center justify-center gap-1"
+            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[8px] text-[9px] font-bold text-[var(--slate-600)] flex items-center justify-center gap-1"
           >
             <Edit className="w-3.5 h-3.5 shrink-0" /> Изменить
           </button>
           <button
             onClick={handleCopy}
-            className="bg-white border border-[#E2E8F0] rounded-[8px] py-[8px] text-[9px] font-bold text-[#475569] flex items-center justify-center gap-1"
+            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[8px] text-[9px] font-bold text-[var(--slate-600)] flex items-center justify-center gap-1"
           >
             <Copy className="w-3.5 h-3.5 shrink-0" /> Копировать
           </button>
           <button
             onClick={handleDelete}
-            className="border border-[#FECACA] bg-[#FFF8F8] rounded-[8px] py-[8px] text-[9px] font-bold text-[#EF4444] flex items-center justify-center gap-1"
+            className="border border-[var(--red-200)] bg-[var(--red-50)] rounded-[8px] py-[8px] text-[9px] font-bold text-[var(--red-500)] flex items-center justify-center gap-1"
           >
             <Trash2 className="w-3.5 h-3.5 shrink-0" /> Удалить
           </button>
         </div>
 
-        <h1 className="text-[16px] font-bold text-[#0F172A] mb-[1px]">{workout.name}</h1>
-        <p className="text-[9px] text-[#94A3B8] mb-[13px]">
+        <h1 className="text-[16px] font-bold text-[var(--slate-900)] mb-[1px]">{workout.name}</h1>
+        <p className="text-[9px] text-[var(--slate-400)] mb-[13px]">
           {exercises.length} упражнений · отдых {workout.default_rest_sec} сек
         </p>
 
@@ -115,30 +115,30 @@ export default function WorkoutDetailPage() {
         {/* Assign button */}
         <button
           onClick={() => navigate(`/trainer/assign?workoutId=${id}`)}
-          className="w-full bg-[#6366F1] hover:bg-[#4338CA] text-white text-[11px] font-bold rounded-[9px] py-[10px] mb-[15px]"
+          className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[11px] font-bold rounded-[9px] py-[10px] mb-[15px]"
         >
           Назначить клиенту
         </button>
 
         {/* Exercises */}
-        <div className="text-[9px] font-bold text-[#94A3B8] uppercase tracking-[0.07em] mb-[6px]">
+        <div className="text-[9px] font-bold text-[var(--slate-400)] uppercase tracking-[0.07em] mb-[6px]">
           Упражнения
         </div>
 
         {exercises.length === 0 ? (
-          <p className="text-[11px] text-[#94A3B8]">Нет упражнений</p>
+          <p className="text-[11px] text-[var(--slate-400)]">Нет упражнений</p>
         ) : (
           exercises.map((ex, i) => (
-            <div key={ex.id} className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
-              <div className="text-[11px] font-bold text-[#0F172A] mb-[3px]">
+            <div key={ex.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
+              <div className="text-[11px] font-bold text-[var(--slate-900)] mb-[3px]">
                 {i + 1}. {ex.exercise_library.name_ru}
               </div>
-              <div className="text-[9px] text-[#64748B]">
+              <div className="text-[9px] text-[var(--slate-500)]">
                 {ex.sets} × {ex.reps}{ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}
                 {ex.rest_sec ? ` · отдых ${ex.rest_sec} сек` : ''}
               </div>
               {ex.trainer_note && (
-                <div className="text-[9px] text-[#6366F1] italic mt-[3px]">«{ex.trainer_note}»</div>
+                <div className="text-[9px] text-[var(--indigo-500)] italic mt-[3px]">«{ex.trainer_note}»</div>
               )}
             </div>
           ))
@@ -147,21 +147,21 @@ export default function WorkoutDetailPage() {
         {/* Who used */}
         {clientUsage.size > 0 && (
           <div className="mt-[13px]">
-            <div className="text-[9px] font-bold text-[#94A3B8] uppercase tracking-[0.07em] mb-[6px]">
+            <div className="text-[9px] font-bold text-[var(--slate-400)] uppercase tracking-[0.07em] mb-[6px]">
               Кто использовал
             </div>
-            <div className="bg-white border border-[#E8EDF3] rounded-[10px] overflow-hidden">
+            <div className="bg-white border border-[var(--border)] rounded-[10px] overflow-hidden">
               {Array.from(clientUsage.values()).map(({ name, clientId, count }, idx, arr) => (
                 <div
                   key={clientId}
                   onClick={() => navigate(`/trainer/client/${clientId}`)}
-                  className={`flex gap-[8px] px-[11px] py-[8px] cursor-pointer ${idx < arr.length - 1 ? 'border-b border-[#F8FAFC]' : ''}`}
+                  className={`flex gap-[8px] px-[11px] py-[8px] cursor-pointer ${idx < arr.length - 1 ? 'border-b border-[var(--slate-50)]' : ''}`}
                 >
-                  <div className="w-[24px] h-[24px] rounded-full bg-[#EEF2FF] flex items-center justify-center shrink-0 text-[9px] font-bold text-[#6366F1]">
+                  <div className="w-[24px] h-[24px] rounded-full bg-[var(--indigo-50)] flex items-center justify-center shrink-0 text-[9px] font-bold text-[var(--indigo-500)]">
                     {name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-[11px] font-semibold text-[#0F172A] flex-1">{name}</span>
-                  <span className="text-[9px] text-[#94A3B8]">
+                  <span className="text-[11px] font-semibold text-[var(--slate-900)] flex-1">{name}</span>
+                  <span className="text-[9px] text-[var(--slate-400)]">
                     {count} {count === 1 ? 'раз' : 'раза'}
                   </span>
                 </div>

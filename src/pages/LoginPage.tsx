@@ -35,24 +35,24 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#EEF1F6] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center px-4">
       <div className="max-w-[390px] w-full">
         {/* Logo */}
         <div className="flex items-center gap-2 mb-5">
-          <div className="w-[30px] h-[30px] bg-[#EEF2FF] rounded-[9px] flex items-center justify-center text-[15px]">
+          <div className="w-[30px] h-[30px] bg-[var(--indigo-50)] rounded-[9px] flex items-center justify-center text-[15px]">
             🏋️
           </div>
-          <span className="text-[15px] font-extrabold tracking-[-0.02em] text-[#0F172A]">FitTrainer</span>
+          <span className="text-[15px] font-extrabold tracking-[-0.02em] text-[var(--slate-900)]">FitTrainer</span>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-[16px] px-[17px] py-[22px] border border-[#E8EDF3]">
-          <h1 className="text-[16px] font-bold text-[#0F172A]">Вход</h1>
-          <p className="text-[10px] text-[#94A3B8] mb-4">Войдите в свой аккаунт</p>
+        <div className="bg-white rounded-[16px] px-[17px] py-[22px] border border-[var(--border)]">
+          <h1 className="text-[16px] font-bold text-[var(--slate-900)]">Вход</h1>
+          <p className="text-[10px] text-[var(--slate-400)] mb-4">Войдите в свой аккаунт</p>
 
           <form onSubmit={handleLogin}>
             <div className="mb-[10px]">
-              <label className="block text-[9px] font-bold text-[#64748B] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[9px] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Email
               </label>
               <input
@@ -60,11 +60,11 @@ export default function LoginPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="w-full border border-[#E2E8F0] rounded-[8px] px-[10px] py-[8px] text-[11px] text-[#0F172A] bg-[#F8FAFC] outline-none focus:border-indigo-400"
+                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[11px] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
               />
             </div>
             <div className="mb-[10px]">
-              <label className="block text-[9px] font-bold text-[#64748B] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[9px] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Пароль
               </label>
               <input
@@ -72,7 +72,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                className="w-full border border-[#E2E8F0] rounded-[8px] px-[10px] py-[8px] text-[11px] text-[#0F172A] bg-[#F8FAFC] outline-none focus:border-indigo-400"
+                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[11px] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
               />
             </div>
 
@@ -83,20 +83,20 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#6366F1] hover:bg-[#4338CA] disabled:opacity-50 text-white text-[11px] font-bold rounded-[9px] py-[10px] mt-1"
+              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] disabled:opacity-50 text-white text-[11px] font-bold rounded-[9px] py-[10px] mt-1"
             >
               {loading ? 'Вход...' : 'Войти'}
             </button>
           </form>
 
-          <div className="border-t border-[#F1F5F9] mt-4 pt-[13px]">
+          <div className="border-t border-[var(--slate-100)] mt-4 pt-[13px]">
             <Link
               to="/register/trainer"
-              className="text-[10px] font-semibold text-[#6366F1] block text-center mb-2"
+              className="text-[10px] font-semibold text-[var(--indigo-500)] block text-center mb-2"
             >
               Я тренер — зарегистрироваться
             </Link>
-            <p className="text-[9px] text-[#94A3B8] text-center leading-relaxed">
+            <p className="text-[9px] text-[var(--slate-400)] text-center leading-relaxed">
               Клиент? Используйте ссылку-приглашение от тренера
             </p>
           </div>

@@ -59,12 +59,12 @@ export default function ClientCardPage() {
 
   if (loading) return (
     <Layout>
-      <div className="text-center py-12 text-[#94A3B8] text-[11px]">Загрузка...</div>
+      <div className="text-center py-12 text-[var(--slate-400)] text-[11px]">Загрузка...</div>
     </Layout>
   )
   if (!client) return (
     <Layout>
-      <div className="text-center py-12 text-[#94A3B8] text-[11px]">Клиент не найден</div>
+      <div className="text-center py-12 text-[var(--slate-400)] text-[11px]">Клиент не найден</div>
     </Layout>
   )
 
@@ -88,18 +88,18 @@ export default function ClientCardPage() {
         <div className="pt-[11px] pb-[10px]">
           <Link
             to="/trainer"
-            className="text-[10px] font-semibold text-[#6366F1] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
+            className="text-[10px] font-semibold text-[var(--indigo-500)] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
           >
             <ArrowLeft className="w-3 h-3" /> Клиенты
           </Link>
 
           <div className="flex items-center gap-[8px] mb-[10px]">
-            <div className="w-[32px] h-[32px] rounded-full bg-[#EEF2FF] border-[1.5px] border-[#C7D2FE] flex items-center justify-center shrink-0 text-[13px] font-bold text-[#6366F1]">
+            <div className="w-[32px] h-[32px] rounded-full bg-[var(--indigo-50)] border-[1.5px] border-[var(--indigo-200)] flex items-center justify-center shrink-0 text-[13px] font-bold text-[var(--indigo-500)]">
               {client.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <div className="text-[13px] font-bold text-[#0F172A] truncate">{client.name}</div>
-              <div className="text-[8px] text-[#94A3B8] mt-[1px]">
+              <div className="text-[13px] font-bold text-[var(--slate-900)] truncate">{client.name}</div>
+              <div className="text-[8px] text-[var(--slate-400)] mt-[1px]">
                 {total} тренировок{compliance !== null ? ` · посещаемость ${compliance}%` : ''}
               </div>
             </div>
@@ -107,19 +107,19 @@ export default function ClientCardPage() {
 
           <button
             onClick={() => navigate(`/trainer/assign?clientId=${client.id}`)}
-            className="w-full border-[1.5px] border-dashed border-[#A5B4FC] bg-[#EEF2FF] rounded-[9px] py-[9px] text-[10px] font-bold text-[#6366F1] flex items-center justify-center gap-1 mb-[10px]"
+            className="w-full border-[1.5px] border-dashed border-[var(--indigo-300)] bg-[var(--indigo-50)] rounded-[9px] py-[9px] text-[10px] font-bold text-[var(--indigo-500)] flex items-center justify-center gap-1 mb-[10px]"
           >
             <Plus className="w-3.5 h-3.5" /> Назначить тренировку
           </button>
 
           {/* Tabs */}
-          <div className="flex" style={{ borderBottom: '1.5px solid #F1F5F9' }}>
+          <div className="flex" style={{ borderBottom: '1.5px solid var(--slate-100)' }}>
             {tabs.map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
                 className={`flex-1 py-[8px] text-[10px] font-semibold text-center border-b-2 -mb-[1.5px] transition-colors ${
-                  tab === key ? 'text-[#6366F1] border-[#6366F1]' : 'text-[#94A3B8] border-transparent'
+                  tab === key ? 'text-[var(--indigo-500)] border-[var(--indigo-500)]' : 'text-[var(--slate-400)] border-transparent'
                 }`}
               >
                 {label}
@@ -134,7 +134,7 @@ export default function ClientCardPage() {
         {/* Active tab */}
         {tab === 'active' && (
           active.length === 0
-            ? <div className="text-center text-[11px] text-[#94A3B8] leading-[1.6] py-[28px]">Нет активных тренировок</div>
+            ? <div className="text-center text-[11px] text-[var(--slate-400)] leading-[1.6] py-[28px]">Нет активных тренировок</div>
             : active.map(a => {
                 const done = a.results.filter(r => r.completed).length
                 const totalEx = a.exercises.length
@@ -146,21 +146,21 @@ export default function ClientCardPage() {
                 const pct = totalEx > 0 ? Math.round((done / totalEx) * 100) : 0
 
                 return (
-                  <div key={a.id} className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
+                  <div key={a.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
                     <div className="flex justify-between gap-[6px]">
                       <div className="flex-1 min-w-0">
-                        <div className="text-[11px] font-semibold text-[#0F172A]">{a.workout?.name ?? '—'}</div>
-                        <div className="text-[9px] text-[#94A3B8] mt-[2px]">{dateLabel}</div>
+                        <div className="text-[11px] font-semibold text-[var(--slate-900)]">{a.workout?.name ?? '—'}</div>
+                        <div className="text-[9px] text-[var(--slate-400)] mt-[2px]">{dateLabel}</div>
                       </div>
                       <span className={`text-[9px] font-bold px-[7px] py-[2px] rounded-[20px] shrink-0 ${
-                        started ? 'bg-[#FEF3C7] text-[#92400E]' : 'bg-[#F1F5F9] text-[#64748B]'
+                        started ? 'bg-[var(--amber-100)] text-[var(--amber-800)]' : 'bg-[var(--slate-100)] text-[var(--slate-500)]'
                       }`}>
                         {started ? 'В процессе' : 'Не начата'}
                       </span>
                     </div>
-                    <div className="mt-[7px] h-[3px] bg-[#F1F5F9] rounded-full overflow-hidden">
+                    <div className="mt-[7px] h-[3px] bg-[var(--slate-100)] rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full ${pct > 0 ? 'bg-[#FCD34D]' : 'bg-[#CBD5E1]'}`}
+                        className={`h-full rounded-full ${pct > 0 ? 'bg-[var(--amber-300)]' : 'bg-[var(--slate-300)]'}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -172,7 +172,7 @@ export default function ClientCardPage() {
         {/* History tab */}
         {tab === 'history' && (
           history.length === 0
-            ? <div className="text-center text-[11px] text-[#94A3B8] leading-[1.6] py-[28px]">История пуста</div>
+            ? <div className="text-center text-[11px] text-[var(--slate-400)] leading-[1.6] py-[28px]">История пуста</div>
             : history.map(a => {
                 const done = a.results.filter(r => r.completed).length
                 const totalEx = a.exercises.length
@@ -186,27 +186,27 @@ export default function ClientCardPage() {
                   <div
                     key={a.id}
                     onClick={() => navigate(`/trainer/session/${a.id}`)}
-                    className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[5px] flex items-center gap-[6px] cursor-pointer"
+                    className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px] flex items-center gap-[6px] cursor-pointer"
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="text-[11px] font-semibold text-[#0F172A]">{a.workout?.name ?? '—'}</div>
-                      <div className="text-[9px] text-[#94A3B8] mt-[2px]">{dateLabel}</div>
-                      <div className="mt-[5px] h-[3px] bg-[#F1F5F9] rounded-full overflow-hidden">
+                      <div className="text-[11px] font-semibold text-[var(--slate-900)]">{a.workout?.name ?? '—'}</div>
+                      <div className="text-[9px] text-[var(--slate-400)] mt-[2px]">{dateLabel}</div>
+                      <div className="mt-[5px] h-[3px] bg-[var(--slate-100)] rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${fillPct === 100 ? 'bg-[#4ADE80]' : 'bg-[#FCD34D]'}`}
+                          className={`h-full rounded-full ${fillPct === 100 ? 'bg-[var(--green-300)]' : 'bg-[var(--amber-300)]'}`}
                           style={{ width: `${fillPct}%` }}
                         />
                       </div>
                     </div>
                     <div className="flex gap-[5px] shrink-0 items-center">
                       <span className={`text-[9px] font-bold px-[7px] py-[2px] rounded-[20px] ${
-                        pct === 1 ? 'bg-[#DCFCE7] text-[#15803D]'
-                        : pct >= 0.6 ? 'bg-[#FEF3C7] text-[#92400E]'
-                        : 'bg-[#FEE2E2] text-[#991B1B]'
+                        pct === 1 ? 'bg-[var(--green-100)] text-[var(--green-700)]'
+                        : pct >= 0.6 ? 'bg-[var(--amber-100)] text-[var(--amber-800)]'
+                        : 'bg-[var(--red-100)] text-[var(--red-800)]'
                       }`}>
                         {done}/{totalEx}
                       </span>
-                      <span className="text-[#CBD5E1] text-[14px]">›</span>
+                      <span className="text-[var(--slate-300)] text-[14px]">›</span>
                     </div>
                   </div>
                 )
@@ -215,7 +215,7 @@ export default function ClientCardPage() {
 
         {/* Progress tab */}
         {tab === 'progress' && (
-          <div className="text-center text-[11px] text-[#94A3B8] leading-[1.6] py-[28px]">
+          <div className="text-center text-[11px] text-[var(--slate-400)] leading-[1.6] py-[28px]">
             Прогресс — скоро
           </div>
         )}

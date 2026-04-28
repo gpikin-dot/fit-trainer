@@ -41,8 +41,8 @@ function compare(actual: number | null, plan: number): CompareResult {
 }
 
 function valueClass(result: CompareResult): string {
-  if (result === 'better') return 'font-bold text-[#16A34A]'
-  if (result === 'worse') return 'font-bold text-[#DC2626]'
+  if (result === 'better') return 'font-bold text-[var(--green-600)]'
+  if (result === 'worse') return 'font-bold text-[var(--red-600)]'
   return ''
 }
 
@@ -146,7 +146,7 @@ export default function ClientSessionPage() {
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center py-20 text-[#94A3B8] text-[11px]">Загрузка...</div>
+        <div className="flex items-center justify-center py-20 text-[var(--slate-400)] text-[11px]">Загрузка...</div>
       </Layout>
     )
   }
@@ -154,7 +154,7 @@ export default function ClientSessionPage() {
   if (notFound || !assignment || !workout) {
     return (
       <Layout>
-        <div className="flex items-center justify-center py-20 text-[#94A3B8] text-[11px]">Не найдено</div>
+        <div className="flex items-center justify-center py-20 text-[var(--slate-400)] text-[11px]">Не найдено</div>
       </Layout>
     )
   }
@@ -167,29 +167,29 @@ export default function ClientSessionPage() {
         {/* Back */}
         <button
           onClick={() => navigate('/client')}
-          className="text-[10px] font-semibold text-[#6366F1] flex items-center gap-1 mb-[9px]"
+          className="text-[10px] font-semibold text-[var(--indigo-500)] flex items-center gap-1 mb-[9px]"
         >
           <ArrowLeft className="w-3 h-3" /> Мои тренировки
         </button>
 
-        <h1 className="text-[16px] font-bold text-[#0F172A] tracking-[-0.01em]">{workout.name}</h1>
-        <p className="text-[10px] text-[#94A3B8] mb-[11px]">{fmtDate(completedAt)}</p>
+        <h1 className="text-[16px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{workout.name}</h1>
+        <p className="text-[10px] text-[var(--slate-400)] mb-[11px]">{fmtDate(completedAt)}</p>
 
         {/* Status card */}
-        <div className="bg-white border border-[#E8EDF3] rounded-[10px] px-[12px] py-[11px] mb-[10px]">
+        <div className="bg-white border border-[var(--border)] rounded-[10px] px-[12px] py-[11px] mb-[10px]">
           <div className="flex justify-between mb-[9px]">
             <div className="flex gap-[5px] items-center">
-              <span className="text-[14px] text-[#16A34A]">✓</span>
-              <span className="text-[13px] font-bold text-[#16A34A]">Выполнена</span>
+              <span className="text-[14px] text-[var(--green-600)]">✓</span>
+              <span className="text-[13px] font-bold text-[var(--green-600)]">Выполнена</span>
             </div>
             <div className="text-right">
-              <div className="text-[15px] font-bold text-[#0F172A] leading-none">{completedCount} / {totalExercises}</div>
-              <div className="text-[9px] text-[#94A3B8] mt-[2px]">упражнений</div>
+              <div className="text-[15px] font-bold text-[var(--slate-900)] leading-none">{completedCount} / {totalExercises}</div>
+              <div className="text-[9px] text-[var(--slate-400)] mt-[2px]">упражнений</div>
             </div>
           </div>
-          <div className="h-[5px] bg-[#F1F5F9] rounded-full overflow-hidden">
+          <div className="h-[5px] bg-[var(--slate-100)] rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full ${progressPct === 100 ? 'bg-[#4ADE80]' : 'bg-[#FCD34D]'}`}
+              className={`h-full rounded-full ${progressPct === 100 ? 'bg-[var(--green-300)]' : 'bg-[var(--amber-300)]'}`}
               style={{ width: `${progressPct}%` }}
             />
           </div>
@@ -205,25 +205,25 @@ export default function ClientSessionPage() {
           const weightCompare = hasResult ? compare(result.actual_weight_kg, ex.weight_kg) : 'same'
 
           return (
-            <div key={ex.id} className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
-              <p className="text-[11px] font-bold text-[#0F172A] mb-[4px]">{ex.name}</p>
+            <div key={ex.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
+              <p className="text-[11px] font-bold text-[var(--slate-900)] mb-[4px]">{ex.name}</p>
 
               {hasResult ? (
                 <>
-                  <p className="text-[9px] text-[#94A3B8] mb-[2px]">
+                  <p className="text-[9px] text-[var(--slate-400)] mb-[2px]">
                     план: {ex.sets}подх × {ex.reps}повт · {ex.weight_kg}кг
                   </p>
-                  <p className="text-[9px] text-[#374151]">
+                  <p className="text-[9px] text-[var(--slate-700)]">
                     факт: {ex.sets}×<span className={valueClass(repsCompare)}>{result.actual_reps ?? ex.reps}</span>{' '}
                     · <span className={valueClass(weightCompare)}>{result.actual_weight_kg ?? ex.weight_kg}</span>кг
                   </p>
                 </>
               ) : (
-                <p className="text-[9px] text-[#CBD5E1] italic">Пропущено</p>
+                <p className="text-[9px] text-[var(--slate-300)] italic">Пропущено</p>
               )}
 
               {result?.client_note ? (
-                <p className="text-[9px] text-[#64748B] italic mt-[3px]">«{result.client_note}»</p>
+                <p className="text-[9px] text-[var(--slate-500)] italic mt-[3px]">«{result.client_note}»</p>
               ) : null}
             </div>
           )

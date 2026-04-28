@@ -202,7 +202,7 @@ export default function TrainerDashboardPage() {
 
   if (loading) return (
     <Layout>
-      <div className="text-center py-12 text-[#94A3B8] text-[11px]">Загрузка...</div>
+      <div className="text-center py-12 text-[var(--slate-400)] text-[11px]">Загрузка...</div>
     </Layout>
   )
 
@@ -212,24 +212,24 @@ export default function TrainerDashboardPage() {
       <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[14px]">
         <div className="pt-[11px] pb-0 flex items-center justify-between">
           <div>
-            <div className="text-[9px] text-[#94A3B8]">Добрый день,</div>
-            <div className="text-[15px] font-bold text-[#0F172A] tracking-[-0.01em]">{profile?.name}</div>
+            <div className="text-[9px] text-[var(--slate-400)]">Добрый день,</div>
+            <div className="text-[15px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{profile?.name}</div>
           </div>
           <div className="flex items-center gap-[7px]">
             <button
               onClick={handleCreateInvite}
-              className="border-[1.5px] border-dashed border-[#A5B4FC] bg-[#EEF2FF] rounded-[10px] px-[10px] py-[7px] text-[10px] font-bold text-[#6366F1]"
+              className="border-[1.5px] border-dashed border-[var(--indigo-300)] bg-[var(--indigo-50)] rounded-[10px] px-[10px] py-[7px] text-[10px] font-bold text-[var(--indigo-500)]"
             >
               + Пригласить
             </button>
-            <button onClick={signOut} className="text-[#94A3B8] hover:text-[#64748B] p-1">
+            <button onClick={signOut} className="text-[var(--slate-400)] hover:text-[var(--slate-500)] p-1">
               <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex mt-[8px]" style={{ borderBottom: '1.5px solid #F1F5F9' }}>
+        <div className="flex mt-[8px]" style={{ borderBottom: '1.5px solid var(--slate-100)' }}>
           {([
             { key: 'today', label: 'Сегодня' },
             { key: 'clients', label: 'Клиенты' },
@@ -239,7 +239,7 @@ export default function TrainerDashboardPage() {
               key={key}
               onClick={() => setTab(key)}
               className={`flex-1 py-[8px] text-[10px] font-semibold text-center border-b-2 -mb-[1.5px] transition-colors ${
-                tab === key ? 'text-[#6366F1] border-[#6366F1]' : 'text-[#94A3B8] border-transparent'
+                tab === key ? 'text-[var(--indigo-500)] border-[var(--indigo-500)]' : 'text-[var(--slate-400)] border-transparent'
               }`}
             >
               {label}
@@ -259,35 +259,35 @@ export default function TrainerDashboardPage() {
           <div>
             {todayItems.length > 0 && (
               <div>
-                <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-[5px]">
+                <div className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
                   Тренировки сегодня
                 </div>
                 {todayItems.map(item => (
                   <div
                     key={item.assignId}
                     onClick={() => navigate(`/trainer/client/${item.clientId}`)}
-                    className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[5px] cursor-pointer"
+                    className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px] cursor-pointer"
                   >
                     <div className="flex items-center gap-[8px]">
-                      <div className="w-[28px] h-[28px] rounded-full bg-[#EEF2FF] flex items-center justify-center shrink-0 text-[11px] font-bold text-[#6366F1]">
+                      <div className="w-[28px] h-[28px] rounded-full bg-[var(--indigo-50)] flex items-center justify-center shrink-0 text-[11px] font-bold text-[var(--indigo-500)]">
                         {item.clientName.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[11px] font-semibold text-[#0F172A]">{item.clientName}</div>
-                        <div className="text-[9px] text-[#94A3B8] mt-[1px] truncate">{item.workoutName}</div>
+                        <div className="text-[11px] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
+                        <div className="text-[9px] text-[var(--slate-400)] mt-[1px] truncate">{item.workoutName}</div>
                         <div className="mt-[4px]">
                           {item.started ? (
-                            <span className="text-[9px] font-semibold bg-[#F0FDF4] text-[#16A34A] px-[7px] py-[2px] rounded-[20px]">
+                            <span className="text-[9px] font-semibold bg-[var(--green-50)] text-[var(--green-600)] px-[7px] py-[2px] rounded-[20px]">
                               ● Начата
                             </span>
                           ) : (
-                            <span className="text-[9px] font-semibold bg-[#F8FAFC] text-[#94A3B8] px-[7px] py-[2px] rounded-[20px]">
+                            <span className="text-[9px] font-semibold bg-[var(--slate-50)] text-[var(--slate-400)] px-[7px] py-[2px] rounded-[20px]">
                               ● Не начата
                             </span>
                           )}
                         </div>
                       </div>
-                      <span className="text-[#CBD5E1] text-[14px]">›</span>
+                      <span className="text-[var(--slate-300)] text-[14px]">›</span>
                     </div>
                   </div>
                 ))}
@@ -296,27 +296,27 @@ export default function TrainerDashboardPage() {
 
             {upcomingItems.length > 0 && (
               <div className="mt-[8px]">
-                <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-[5px]">
+                <div className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
                   Ближайшие дни
                 </div>
-                <div className="bg-white border border-[#E8EDF3] rounded-[10px] overflow-hidden">
+                <div className="bg-white border border-[var(--border)] rounded-[10px] overflow-hidden">
                   {upcomingItems.map((item, idx) => {
                     const d = new Date(item.plannedDate + 'T00:00:00')
                     return (
                       <div
                         key={item.assignId}
                         onClick={() => navigate(`/trainer/client/${item.clientId}`)}
-                        className={`px-[11px] py-[7px] flex items-center gap-2 cursor-pointer ${idx < upcomingItems.length - 1 ? 'border-b border-[#F8FAFC]' : ''}`}
+                        className={`px-[11px] py-[7px] flex items-center gap-2 cursor-pointer ${idx < upcomingItems.length - 1 ? 'border-b border-[var(--slate-50)]' : ''}`}
                       >
                         <div className="w-[26px] shrink-0 text-center">
-                          <div className="text-[8px] text-[#94A3B8] uppercase">{DAYS_SHORT[d.getDay()]}</div>
-                          <div className="text-[13px] font-bold text-[#0F172A]">{d.getDate()}</div>
+                          <div className="text-[8px] text-[var(--slate-400)] uppercase">{DAYS_SHORT[d.getDay()]}</div>
+                          <div className="text-[13px] font-bold text-[var(--slate-900)]">{d.getDate()}</div>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-[11px] font-semibold text-[#0F172A]">{item.clientName}</div>
-                          <div className="text-[9px] text-[#94A3B8] mt-[1px]">{item.workoutName}</div>
+                          <div className="text-[11px] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
+                          <div className="text-[9px] text-[var(--slate-400)] mt-[1px]">{item.workoutName}</div>
                         </div>
-                        <span className="text-[#CBD5E1] text-[14px]">›</span>
+                        <span className="text-[var(--slate-300)] text-[14px]">›</span>
                       </div>
                     )
                   })}
@@ -326,21 +326,21 @@ export default function TrainerDashboardPage() {
 
             {openDateItems.length > 0 && (
               <div className="mt-[8px]">
-                <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-[5px]">
+                <div className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
                   Открытая дата
                 </div>
-                <div className="bg-white border border-[#E8EDF3] rounded-[10px] overflow-hidden">
+                <div className="bg-white border border-[var(--border)] rounded-[10px] overflow-hidden">
                   {openDateItems.map((item, idx) => (
                     <div
                       key={item.assignId}
                       onClick={() => navigate(`/trainer/client/${item.clientId}`)}
-                      className={`px-[11px] py-[7px] flex items-center gap-2 cursor-pointer ${idx < openDateItems.length - 1 ? 'border-b border-[#F8FAFC]' : ''}`}
+                      className={`px-[11px] py-[7px] flex items-center gap-2 cursor-pointer ${idx < openDateItems.length - 1 ? 'border-b border-[var(--slate-50)]' : ''}`}
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="text-[11px] font-semibold text-[#0F172A]">{item.clientName}</div>
-                        <div className="text-[9px] text-[#94A3B8] mt-[1px]">{item.workoutName}</div>
+                        <div className="text-[11px] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
+                        <div className="text-[9px] text-[var(--slate-400)] mt-[1px]">{item.workoutName}</div>
                       </div>
-                      <span className="text-[#CBD5E1] text-[14px]">›</span>
+                      <span className="text-[var(--slate-300)] text-[14px]">›</span>
                     </div>
                   ))}
                 </div>
@@ -348,7 +348,7 @@ export default function TrainerDashboardPage() {
             )}
 
             {todayItems.length === 0 && upcomingItems.length === 0 && openDateItems.length === 0 && (
-              <div className="text-center text-[11px] text-[#94A3B8] leading-[1.6] py-[28px]">
+              <div className="text-center text-[11px] text-[var(--slate-400)] leading-[1.6] py-[28px]">
                 Нет активных тренировок на сегодня.<br />
                 Назначьте клиентам через их карточку.
               </div>
@@ -361,13 +361,13 @@ export default function TrainerDashboardPage() {
           <div>
             <button
               onClick={handleCreateInvite}
-              className="border-[1.5px] border-dashed border-[#A5B4FC] bg-[#EEF2FF] rounded-[10px] px-[10px] py-[10px] text-[10px] font-bold text-[#6366F1] w-full mb-[11px]"
+              className="border-[1.5px] border-dashed border-[var(--indigo-300)] bg-[var(--indigo-50)] rounded-[10px] px-[10px] py-[10px] text-[10px] font-bold text-[var(--indigo-500)] w-full mb-[11px]"
             >
               + Пригласить нового клиента
             </button>
 
             {clients.length === 0 ? (
-              <div className="text-center text-[11px] text-[#94A3B8] leading-[1.6] py-[28px]">
+              <div className="text-center text-[11px] text-[var(--slate-400)] leading-[1.6] py-[28px]">
                 Клиентов пока нет.<br />
                 Пригласите первого.
               </div>
@@ -375,12 +375,12 @@ export default function TrainerDashboardPage() {
               clients.map(c => {
                 const isMissed = c.compliance !== null && c.compliance < 60 && c.missedCount > 0
                 const compBadge = c.compliance === null
-                  ? { bg: 'bg-[#F1F5F9]', text: 'text-[#64748B]', label: '—' }
+                  ? { bg: 'bg-[var(--slate-100)]', text: 'text-[var(--slate-500)]', label: '—' }
                   : c.compliance >= 80
-                  ? { bg: 'bg-[#DCFCE7]', text: 'text-[#15803D]', label: `${c.compliance}%` }
+                  ? { bg: 'bg-[var(--green-100)]', text: 'text-[var(--green-700)]', label: `${c.compliance}%` }
                   : c.compliance >= 60
-                  ? { bg: 'bg-[#FEF3C7]', text: 'text-[#92400E]', label: `${c.compliance}%` }
-                  : { bg: 'bg-[#FEE2E2]', text: 'text-[#991B1B]', label: `${c.compliance}%` }
+                  ? { bg: 'bg-[var(--amber-100)]', text: 'text-[var(--amber-800)]', label: `${c.compliance}%` }
+                  : { bg: 'bg-[var(--red-100)]', text: 'text-[var(--red-800)]', label: `${c.compliance}%` }
 
                 const subtitle = c.missedCount > 0
                   ? `Пропустил ${c.missedCount} ${c.missedCount === 1 ? 'тренировку' : 'тренировки'}`
@@ -395,28 +395,28 @@ export default function TrainerDashboardPage() {
                     key={c.id}
                     onClick={() => navigate(`/trainer/client/${c.id}`)}
                     className={`border rounded-[10px] px-[11px] py-[9px] mb-[5px] cursor-pointer flex items-center gap-[8px] ${
-                      isMissed ? 'border-[#FECACA] bg-[#FFF8F8]' : 'border-[#E8EDF3] bg-white'
+                      isMissed ? 'border-[var(--red-200)] bg-[var(--red-50)]' : 'border-[var(--border)] bg-white'
                     }`}
                   >
                     <div className={`w-[28px] h-[28px] rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold ${
-                      isMissed ? 'bg-[#FEF2F2] text-[#EF4444]' : 'bg-[#EEF2FF] text-[#6366F1]'
+                      isMissed ? 'bg-[var(--red-50)] text-[var(--red-500)]' : 'bg-[var(--indigo-50)] text-[var(--indigo-500)]'
                     }`}>
                       {c.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between gap-1 items-center">
-                        <span className="text-[11px] font-semibold text-[#0F172A]">{c.name}</span>
+                        <span className="text-[11px] font-semibold text-[var(--slate-900)]">{c.name}</span>
                         {c.compliance !== null && (
                           <span className={`text-[9px] font-bold px-[7px] py-[2px] rounded-[20px] shrink-0 ${compBadge.bg} ${compBadge.text}`}>
                             {compBadge.label}
                           </span>
                         )}
                       </div>
-                      <div className={`text-[9px] mt-[2px] ${isMissed ? 'text-[#F87171]' : 'text-[#94A3B8]'}`}>
+                      <div className={`text-[9px] mt-[2px] ${isMissed ? 'text-[var(--red-400)]' : 'text-[var(--slate-400)]'}`}>
                         {subtitle}
                       </div>
                     </div>
-                    <span className="text-[#CBD5E1] text-[14px]">›</span>
+                    <span className="text-[var(--slate-300)] text-[14px]">›</span>
                   </div>
                 )
               })
@@ -435,12 +435,12 @@ export default function TrainerDashboardPage() {
               <div
                 key={w.id}
                 onClick={() => navigate(`/trainer/workout/${w.id}`)}
-                className="bg-white border border-[#E8EDF3] rounded-[10px] px-[11px] py-[9px] mb-[5px] flex items-center gap-[8px] cursor-pointer"
+                className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px] flex items-center gap-[8px] cursor-pointer"
               >
-                <span className={`text-[12px] shrink-0 ${w.is_favorite ? 'text-[#F59E0B]' : 'text-[#E2E8F0]'}`}>★</span>
+                <span className={`text-[12px] shrink-0 ${w.is_favorite ? 'text-[var(--amber-500)]' : 'text-[var(--slate-200)]'}`}>★</span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[11px] font-semibold text-[#0F172A]">{w.name}</div>
-                  <div className="text-[9px] text-[#94A3B8] mt-[1px]">
+                  <div className="text-[11px] font-semibold text-[var(--slate-900)]">{w.name}</div>
+                  <div className="text-[9px] text-[var(--slate-400)] mt-[1px]">
                     {stats?.exerciseCount ?? 0} упр.
                     {(stats?.usageCount ?? 0) > 0 && ` · ${stats!.usageCount} раз`}
                   </div>
@@ -450,9 +450,9 @@ export default function TrainerDashboardPage() {
                   className="p-1 shrink-0"
                   aria-label="Избранное"
                 >
-                  <Star className={`w-3.5 h-3.5 ${w.is_favorite ? 'text-[#F59E0B]' : 'text-[#E2E8F0]'}`} fill={w.is_favorite ? 'currentColor' : 'none'} />
+                  <Star className={`w-3.5 h-3.5 ${w.is_favorite ? 'text-[var(--amber-500)]' : 'text-[var(--slate-200)]'}`} fill={w.is_favorite ? 'currentColor' : 'none'} />
                 </button>
-                <span className="text-[#CBD5E1] text-[14px]">›</span>
+                <span className="text-[var(--slate-300)] text-[14px]">›</span>
               </div>
             )
           }
@@ -461,7 +461,7 @@ export default function TrainerDashboardPage() {
             <div>
               {favorites.length > 0 && (
                 <div>
-                  <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-[5px]">
+                  <div className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
                     Избранные
                   </div>
                   {favorites.map(WorkoutRow)}
@@ -470,16 +470,16 @@ export default function TrainerDashboardPage() {
 
               {favorites.length > 0 && rest.length > 0 && (
                 <div className="flex items-center gap-[6px] my-[7px]">
-                  <div className="flex-1 h-[1px] bg-[#E8EDF3]" />
-                  <span className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.06em]">Все шаблоны</span>
-                  <div className="flex-1 h-[1px] bg-[#E8EDF3]" />
+                  <div className="flex-1 h-[1px] bg-[var(--border)]" />
+                  <span className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.06em]">Все шаблоны</span>
+                  <div className="flex-1 h-[1px] bg-[var(--border)]" />
                 </div>
               )}
 
               {rest.length > 0 && (
                 <div>
                   {favorites.length === 0 && (
-                    <div className="text-[8px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-[5px]">
+                    <div className="text-[8px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
                       Все шаблоны
                     </div>
                   )}
@@ -488,14 +488,14 @@ export default function TrainerDashboardPage() {
               )}
 
               {workouts.length === 0 && (
-                <div className="text-center text-[11px] text-[#94A3B8] leading-[1.6] py-[28px]">
+                <div className="text-center text-[11px] text-[var(--slate-400)] leading-[1.6] py-[28px]">
                   Нет шаблонов.<br />Создайте первый!
                 </div>
               )}
 
               <button
                 onClick={handleCreateWorkout}
-                className="w-full bg-[#6366F1] hover:bg-[#4338CA] text-white text-[11px] font-bold rounded-[9px] py-[10px] mt-[8px] flex items-center justify-center gap-1"
+                className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[11px] font-bold rounded-[9px] py-[10px] mt-[8px] flex items-center justify-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" /> Новый шаблон
               </button>
@@ -523,17 +523,17 @@ function InviteModal({ invite, onClose }: { invite: Invite; onClose: () => void 
 
   return (
     <Modal onClose={onClose}>
-      <h2 className="text-[13px] font-bold text-[#0F172A] mb-1">Приглашение создано</h2>
-      <p className="text-[9px] text-[#64748B] leading-[1.5] mb-3">
+      <h2 className="text-[13px] font-bold text-[var(--slate-900)] mb-1">Приглашение создано</h2>
+      <p className="text-[9px] text-[var(--slate-500)] leading-[1.5] mb-3">
         Отправьте эту ссылку клиенту. Действует 7 дней, использовать можно один раз.
       </p>
-      <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[7px] px-[9px] py-[7px]">
-        <span className="text-[9px] font-mono text-[#475569] break-all">{link}</span>
+      <div className="bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[7px] px-[9px] py-[7px]">
+        <span className="text-[9px] font-mono text-[var(--slate-600)] break-all">{link}</span>
       </div>
       <div className="flex gap-[6px] mt-3">
         <button
           onClick={copy}
-          className="flex-1 bg-[#6366F1] hover:bg-[#4338CA] text-white text-[10px] font-bold rounded-[8px] py-[9px] flex items-center justify-center gap-1"
+          className="flex-1 bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[10px] font-bold rounded-[8px] py-[9px] flex items-center justify-center gap-1"
         >
           {copied ? (
             <><Check className="w-3.5 h-3.5" /> ✓ Скопировано</>
@@ -543,7 +543,7 @@ function InviteModal({ invite, onClose }: { invite: Invite; onClose: () => void 
         </button>
         <button
           onClick={onClose}
-          className="text-[10px] text-[#64748B] px-[4px] py-[9px]"
+          className="text-[10px] text-[var(--slate-500)] px-[4px] py-[9px]"
         >
           Закрыть
         </button>

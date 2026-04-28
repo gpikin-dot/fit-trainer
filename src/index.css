@@ -4,10 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: var(--font);
-}
-
 /* Prevent iOS auto-zoom on input focus */
 @media screen and (max-width: 768px) {
   input, select, textarea {

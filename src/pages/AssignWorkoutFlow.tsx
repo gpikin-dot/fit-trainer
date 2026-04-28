@@ -88,13 +88,13 @@ function Avatar({ name, size = 'sm' }: { name: string; size?: 'sm' | 'md' }) {
   )
 }
 
-function BackButton({ onClick }: { onClick: () => void }) {
+function BackButton({ onClick, label = 'Назад' }: { onClick: () => void; label?: string }) {
   return (
     <button
       onClick={onClick}
-      className="text-slate-500 flex items-center gap-1 text-sm hover:text-slate-700 mb-4"
+      className="text-indigo-600 flex items-center gap-1 text-sm hover:text-indigo-800 mb-4"
     >
-      <ArrowLeft className="w-4 h-4" /> Назад
+      <ArrowLeft className="w-4 h-4" /> {label}
     </button>
   )
 }
@@ -430,7 +430,7 @@ export default function AssignWorkoutFlow() {
         {/* ── Step: selectClient ──────────────────────────────────────────── */}
         {step === 'selectClient' && (
           <>
-            <BackButton onClick={handleBack} />
+            <BackButton onClick={handleBack} label={workoutName || 'Назад'} />
             <h1 className="text-xl font-semibold mb-1">Выбрать клиента</h1>
             {workoutName && (
               <p className="text-sm text-slate-500 mb-5">{workoutName}</p>
@@ -488,7 +488,7 @@ export default function AssignWorkoutFlow() {
         {/* ── Step: selectTemplate ────────────────────────────────────────── */}
         {step === 'selectTemplate' && (
           <>
-            <BackButton onClick={handleBack} />
+            <BackButton onClick={handleBack} label={clientName || 'Назад'} />
             <h1 className="text-xl font-semibold mb-1">Назначить тренировку</h1>
             {clientName && (
               <p className="text-sm text-slate-500 mb-5">{clientName}</p>
@@ -558,7 +558,7 @@ export default function AssignWorkoutFlow() {
         {/* ── Step: customize ─────────────────────────────────────────────── */}
         {step === 'customize' && (
           <>
-            <BackButton onClick={handleBack} />
+            <BackButton onClick={handleBack} label="Выбор клиента" />
             <h1 className="text-xl font-semibold mb-4">Настройка упражнений</h1>
 
             {/* Client chip */}
@@ -769,7 +769,7 @@ export default function AssignWorkoutFlow() {
         {/* ── Step: date ──────────────────────────────────────────────────── */}
         {step === 'date' && (
           <>
-            <BackButton onClick={handleBack} />
+            <BackButton onClick={handleBack} label="Настройка" />
             <h1 className="text-xl font-semibold mb-5">Дата тренировки</h1>
 
             {/* Summary card */}

@@ -45,9 +45,9 @@ export default function InvitePage() {
   }, [loading, invite])
 
   if (loading) return (
-    <div className="min-h-screen bg-[#EEF1F6] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center px-4">
       <div className="max-w-[390px] text-center">
-        <div className="text-[12px] text-[#94A3B8]">Проверка...</div>
+        <div className="text-[12px] text-[var(--slate-400)]">Проверка...</div>
       </div>
     </div>
   )
@@ -62,16 +62,16 @@ export default function InvitePage() {
       : error
 
     return (
-      <div className="min-h-screen bg-[#EEF1F6] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center px-4">
         <div className="max-w-[390px] text-center">
           <div className="text-[30px] mb-[14px]">⚠️</div>
-          <div className="text-[12px] font-semibold text-[#DC2626] leading-[1.4] mb-2">{message}</div>
-          <div className="text-[10px] text-[#94A3B8] mb-4">
+          <div className="text-[12px] font-semibold text-[var(--red-600)] leading-[1.4] mb-2">{message}</div>
+          <div className="text-[10px] text-[var(--slate-400)] mb-4">
             Ссылка действует 7 дней и используется один раз
           </div>
           <button
             onClick={() => navigate('/login')}
-            className="text-[11px] font-semibold text-[#6366F1] cursor-pointer"
+            className="text-[11px] font-semibold text-[var(--indigo-500)] cursor-pointer"
           >
             ← На главную
           </button>

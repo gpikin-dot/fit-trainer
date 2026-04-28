@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import type {
@@ -62,8 +63,8 @@ interface ExerciseRow {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function SessionDetailPage() {
-  const { assignedWorkoutId } = useParams<{ assignedWorkoutId: string }>()
+export default function ClientSessionPage() {
+  const { assignedId } = useParams<{ assignedId: string }>()
   const navigate = useNavigate()
 
   const [loading, setLoading] = useState(true)
@@ -71,18 +72,17 @@ export default function SessionDetailPage() {
 
   const [assignment, setAssignment] = useState<AssignedWorkout | null>(null)
   const [workout, setWorkout] = useState<Workout | null>(null)
-  const [clientName, setClientName] = useState<string>('')
   const [exercises, setExercises] = useState<ExerciseRow[]>([])
   const [results, setResults] = useState<ExerciseResult[]>([])
 
   useEffect(() => {
-    if (!assignedWorkoutId) {
+    if (!assignedId) {
       setNotFound(true)
       setLoading(false)
       return
     }
-    void loadData(assignedWorkoutId)
-  }, [assignedWorkoutId])
+    void loadData(assignedId)
+  }, [assignedId])
 
   async function loadData(id: string) {
     setLoading(true)
@@ -102,7 +102,6 @@ export default function SessionDetailPage() {
       sessionExResult,
       oldExResult,
       resultsResult,
-      clientResult,
       workoutResult,
     ] = await Promise.all([
       supabase.from('session_exercises').select('*, exercise_library:exercises_library(*)')
@@ -110,12 +109,10 @@ export default function SessionDetailPage() {
       supabase.from('exercises').select('*, exercise_library:exercises_library(*)')
         .eq('workout_id', aw.workout_id).order('order', { ascending: true }),
       supabase.from('exercise_results').select('*').eq('assigned_workout_id', id),
-      supabase.from('profiles').select('name').eq('id', aw.client_id).single(),
       supabase.from('workouts').select('*').eq('id', aw.workout_id).single(),
     ])
 
     if (workoutResult.data) setWorkout(workoutResult.data as Workout)
-    if (clientResult.data) setClientName((clientResult.data as { name: string }).name)
     if (resultsResult.data) setResults(resultsResult.data as ExerciseResult[])
 
     const sessionExs = (sessionExResult.data ?? []) as (SessionExercise & { exercise_library: ExerciseLibrary })[]
@@ -166,13 +163,13 @@ export default function SessionDetailPage() {
 
   return (
     <Layout>
-      <div className="pt-[11px] pb-[80px]">
+      <div className="pt-[11px] pb-[24px]">
         {/* Back */}
         <button
-          onClick={() => navigate(`/trainer/client/${assignment.client_id}`)}
+          onClick={() => navigate('/client')}
           className="text-[10px] font-semibold text-[var(--indigo-500)] flex items-center gap-1 mb-[9px]"
         >
-          ← {clientName || 'Клиент'}
+          <ArrowLeft className="w-3 h-3" /> Мои тренировки
         </button>
 
         <h1 className="text-[16px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{workout.name}</h1>
@@ -231,24 +228,6 @@ export default function SessionDetailPage() {
             </div>
           )
         })}
-      </div>
-
-      {/* Sticky action buttons */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[var(--border)] px-[13px] pt-[11px] pb-[16px] max-w-[390px] mx-auto">
-        <button
-          onClick={() =>
-            navigate(`/trainer/assign?workoutId=${workout.id}&clientId=${assignment.client_id}&repeatFrom=${assignment.id}`)
-          }
-          className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white rounded-[9px] py-[10px] text-[11px] font-bold mb-[6px]"
-        >
-          Повторить тренировку
-        </button>
-        <button
-          onClick={() => navigate(`/trainer/workout/${workout.id}/edit`)}
-          className="w-full bg-white border border-[var(--slate-200)] text-[var(--slate-700)] rounded-[9px] py-[9px] text-[11px] font-semibold"
-        >
-          Изменить тренировку
-        </button>
       </div>
     </Layout>
   )

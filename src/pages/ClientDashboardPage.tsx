@@ -1,11 +1,38 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
-import { EmptyState } from '../components/UI'
 import type { AssignedWorkout, Workout } from '../types/database'
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+const DAYS_RU = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
+const MONTHS_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
+
+function fmtDate(iso: string): string {
+  const d = new Date(iso.includes('T') ? iso : iso + 'T00:00:00')
+  return `${DAYS_RU[d.getDay()]}, ${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}.`
+}
+
+function toDateStr(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function getGreeting(): string {
+  const h = new Date().getHours()
+  if (h >= 5 && h < 12) return 'Доброе утро,'
+  if (h >= 12 && h < 18) return 'Добрый день,'
+  return 'Добрый вечер,'
+}
+
+function shortName(full: string): string {
+  const parts = full.trim().split(/\s+/)
+  if (parts.length >= 2) return `${parts[0]} ${parts[1][0]}.`
+  return full
+}
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface AssignmentData extends AssignedWorkout {
   workout: Workout
@@ -13,46 +40,14 @@ interface AssignmentData extends AssignedWorkout {
   completedCount: number
 }
 
-const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь']
-const DAYS_RU = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
-
-function toDateStr(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-function getMonthDays(start: Date): (Date | null)[] {
-  const y = start.getFullYear(), m = start.getMonth()
-  const first = new Date(y, m, 1), last = new Date(y, m + 1, 0)
-  const dow = (first.getDay() + 6) % 7
-  const days: (Date | null)[] = []
-  for (let i = 0; i < dow; i++) days.push(null)
-  for (let d = 1; d <= last.getDate(); d++) days.push(new Date(y, m, d))
-  while (days.length % 7 !== 0) days.push(null)
-  return days
-}
-
-function ProgressRing({ progress, size = 34 }: { progress: number; size?: number }) {
-  const r = (size - 5) / 2
-  const c = 2 * Math.PI * r
-  const offset = c * (1 - Math.min(1, Math.max(0, progress)))
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90 absolute inset-0">
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#d1fae5" strokeWidth="3" />
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#10b981" strokeWidth="3"
-        strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} />
-    </svg>
-  )
-}
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ClientDashboardPage() {
   const navigate = useNavigate()
   const { profile } = useAuth()
   const [assignments, setAssignments] = useState<AssignmentData[]>([])
   const [loading, setLoading] = useState(true)
-  const [currentMonth, setCurrentMonth] = useState(() => {
-    const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1)
-  })
-  const startX = useRef<number | null>(null)
+  const [tab, setTab] = useState<'today' | 'history'>('today')
 
   useEffect(() => { if (profile) loadData() }, [profile])
 
@@ -69,176 +64,269 @@ export default function ClientDashboardPage() {
         supabase.from('exercises').select('*', { count: 'exact', head: true }).eq('workout_id', a.workout_id),
         supabase.from('exercise_results').select('completed').eq('assigned_workout_id', a.id),
       ])
-      return { ...a, exerciseCount: count ?? 0, completedCount: (res ?? []).filter(r => r.completed).length }
+      return {
+        ...a,
+        exerciseCount: count ?? 0,
+        completedCount: (res ?? []).filter(r => r.completed).length,
+      }
     }))
     setAssignments(enriched)
     setLoading(false)
   }
 
   const today = toDateStr(new Date())
-  const calDays = getMonthDays(currentMonth)
+  const pending = assignments.filter(a => a.status === 'pending')
+  const history = assignments.filter(a => a.status === 'completed')
 
-  // Map: date string → assignment (completed by completed_at, planned by planned_date)
-  const completedByDay = new Map<string, AssignmentData>()
-  const plannedByDay = new Map<string, AssignmentData>()
-  for (const a of assignments) {
-    if (a.status === 'completed' && a.completed_at) {
-      completedByDay.set(toDateStr(new Date(a.completed_at)), a)
-    } else if (a.planned_date) {
-      plannedByDay.set(a.planned_date, a)
-    }
+  const todayWorkout = pending.find(a => a.planned_date === today)
+  const upcoming = pending
+    .filter(a => a.id !== todayWorkout?.id)
+    .sort((a, b) => {
+      if (!a.planned_date && !b.planned_date) return 0
+      if (!a.planned_date) return 1
+      if (!b.planned_date) return -1
+      return a.planned_date.localeCompare(b.planned_date)
+    })
+
+  const inProgress = todayWorkout && todayWorkout.completedCount > 0
+  const progressPct = todayWorkout && todayWorkout.exerciseCount > 0
+    ? Math.round(todayWorkout.completedCount / todayWorkout.exerciseCount * 100)
+    : 0
+
+  if (loading) {
+    return (
+      <Layout>
+        <div style={{ textAlign: 'center', padding: '48px 0', fontSize: 11, color: 'var(--slate-400)' }}>
+          Загрузка...
+        </div>
+      </Layout>
+    )
   }
-
-  const active = assignments.filter(a => a.status === 'pending')
-  const todayWorkout = active.find(a => a.planned_date === today)
-
-  // Month stats
-  const completedThisMonth = assignments.filter(a => {
-    if (a.status !== 'completed' || !a.completed_at) return false
-    const d = new Date(a.completed_at)
-    return d.getFullYear() === currentMonth.getFullYear() && d.getMonth() === currentMonth.getMonth()
-  }).length
-
-  function prevMonth() { setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1)) }
-  function nextMonth() { setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() + 1, 1)) }
-
-  // Swipe to change month
-  function onTouchStart(e: React.TouchEvent) { startX.current = e.touches[0].clientX }
-  function onTouchEnd(e: React.TouchEvent) {
-    if (startX.current === null) return
-    const dx = e.changedTouches[0].clientX - startX.current
-    if (Math.abs(dx) > 50) { dx < 0 ? nextMonth() : prevMonth() }
-    startX.current = null
-  }
-
-  if (loading) return <Layout><div className="text-center py-12 text-slate-400">Загрузка...</div></Layout>
 
   return (
     <Layout>
-      {/* Today block */}
-      {todayWorkout ? (
-        <div className="bg-slate-900 rounded-2xl p-4 mb-5">
-          <div className="text-xs text-emerald-400 uppercase tracking-widest mb-1">Сегодня</div>
-          <div className="font-semibold text-white text-lg mb-0.5">{todayWorkout.workout?.name}</div>
-          <div className="text-xs text-slate-400 mb-3">{todayWorkout.exerciseCount} упражнений</div>
-          <button onClick={() => navigate(`/client/workout/${todayWorkout.id}`)}
-            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2.5 rounded-xl text-sm">
-            ▶ Начать тренировку
-          </button>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between mb-5">
-          <h1 className="text-2xl font-semibold">Мои тренировки</h1>
-          {profile?.name && <div className="text-sm text-slate-400">{profile.name}</div>}
-        </div>
-      )}
-
-      {/* Calendar */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 mb-4">
-        {/* Month header */}
-        <div className="flex items-center justify-between mb-3">
-          <button onClick={prevMonth} className="p-1 text-slate-400 hover:text-slate-700">
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <div className="text-center">
-            <div className="font-semibold text-sm">{MONTHS_RU[currentMonth.getMonth()]} {currentMonth.getFullYear()}</div>
-            {completedThisMonth > 0 && (
-              <div className="text-xs text-emerald-600 mt-0.5">{completedThisMonth} {completedThisMonth === 1 ? 'тренировка' : completedThisMonth < 5 ? 'тренировки' : 'тренировок'}</div>
-            )}
+      {/* ── Sticky header ─────────────────────────────────── */}
+      <div
+        className="sticky top-0 z-10 -mx-[13px] px-[14px]"
+        style={{ background: 'var(--white)' }}
+      >
+        {/* Greeting + name */}
+        <div style={{ paddingTop: 11 }}>
+          <div style={{ fontSize: 9, color: 'var(--slate-400)' }}>
+            {getGreeting()}
           </div>
-          <button onClick={nextMonth} className="p-1 text-slate-400 hover:text-slate-700">
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--slate-900)', marginTop: 1, marginBottom: 11, letterSpacing: '-0.01em' }}>
+            {profile?.name ? shortName(profile.name) : ''}
+          </div>
         </div>
 
-        {/* Day names */}
-        <div className="grid grid-cols-7 mb-1">
-          {DAYS_RU.map(d => (
-            <div key={d} className="text-center text-[10px] text-slate-400 py-1">{d}</div>
+        {/* Tabs */}
+        <div className="flex" style={{ borderBottom: '1.5px solid var(--border-light)' }}>
+          {(['today', 'history'] as const).map(key => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              style={{
+                flex: 1,
+                padding: '8px 4px',
+                fontSize: 10,
+                fontWeight: 600,
+                color: tab === key ? 'var(--indigo-500)' : 'var(--slate-400)',
+                textAlign: 'center',
+                background: 'none',
+                border: 'none',
+                borderBottom: tab === key ? '2px solid var(--indigo-500)' : '2px solid transparent',
+                marginBottom: -1.5,
+                cursor: 'pointer',
+                fontFamily: 'var(--font)',
+              }}
+            >
+              {key === 'today' ? 'Сегодня' : 'История'}
+            </button>
           ))}
-        </div>
-
-        {/* Calendar grid — swipeable */}
-        <div className="grid grid-cols-7 gap-y-1"
-          onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
-        >
-          {calDays.map((day, i) => {
-            if (!day) return <div key={i} />
-            const dayStr = toDateStr(day)
-            const isToday = dayStr === today
-            const completed = completedByDay.get(dayStr)
-            const planned = plannedByDay.get(dayStr)
-            const progress = completed ? (completed.exerciseCount > 0 ? completed.completedCount / completed.exerciseCount : 1) : 0
-
-            return (
-              <div key={i} className="flex items-center justify-center py-0.5">
-                <button
-                  onClick={() => completed && navigate(`/client/workout/${completed.id}`)}
-                  className="relative w-9 h-9 flex items-center justify-center"
-                >
-                  {/* Progress ring for completed */}
-                  {completed && <ProgressRing progress={progress} size={36} />}
-
-                  {/* Day number */}
-                  <span className={`relative z-10 text-xs font-medium leading-none
-                    ${isToday && !completed ? 'w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center' : ''}
-                    ${isToday && completed ? 'text-emerald-700 font-bold' : ''}
-                    ${!isToday && completed ? 'text-emerald-700' : ''}
-                    ${!isToday && !completed ? 'text-slate-600' : ''}
-                  `}>
-                    {day.getDate()}
-                  </span>
-
-                  {/* Dot for planned future workout */}
-                  {planned && !completed && (
-                    <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-amber-400" />
-                  )}
-                </button>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Legend */}
-        <div className="flex gap-4 mt-3 pt-3 border-t border-slate-100">
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-            <div className="w-3 h-3 rounded-full border-2 border-emerald-500" />
-            выполнена
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-            <div className="w-2 h-2 rounded-full bg-amber-400" />
-            запланирована
-          </div>
         </div>
       </div>
 
-      {/* Active workouts list */}
-      {active.length === 0 && !todayWorkout ? (
-        <EmptyState text="Тренер ещё не назначил тренировок. Загляните позже!" />
-      ) : active.length > 0 ? (
-        <div>
-          <div className="text-xs text-slate-400 uppercase tracking-widest mb-2">Активные</div>
-          <div className="space-y-2">
-            {active.map(a => (
-              <button key={a.id} onClick={() => navigate(`/client/workout/${a.id}`)}
-                className="w-full text-left bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium text-sm">{a.workout?.name}</div>
-                    <div className="text-xs text-slate-400 mt-0.5">
-                      {a.exerciseCount} упражнений
-                      {a.planned_date
-                        ? ` · ${a.planned_date === today ? 'сегодня' : new Date(a.planned_date + 'T00:00:00').toLocaleDateString('ru', { day: 'numeric', month: 'short' })}`
-                        : ' · открытая дата'}
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+      {/* ── Body ──────────────────────────────────────────── */}
+      <div style={{ padding: '11px 0 14px' }}>
+
+        {/* ══ СЕГОДНЯ ══════════════════════════════════════ */}
+        {tab === 'today' && (
+          <>
+            {todayWorkout ? (
+              /* Today block */
+              <div style={{
+                background: 'var(--white)',
+                border: '1px solid var(--border)',
+                borderRadius: 12,
+                padding: '13px 13px 11px',
+                marginBottom: 10,
+              }}>
+                {/* Label */}
+                <div style={{ fontSize: 8, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 5 }}>
+                  {inProgress ? 'В процессе' : 'Тренировка сегодня'}
                 </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : null}
+                {/* Name */}
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--slate-900)', letterSpacing: '-0.01em', marginBottom: 3 }}>
+                  {todayWorkout.workout?.name}
+                </div>
+                {/* Meta */}
+                <div style={{ fontSize: 9, color: 'var(--slate-400)', marginBottom: inProgress ? 8 : 10 }}>
+                  {todayWorkout.exerciseCount} упражнений · {fmtDate(today)}
+                </div>
+
+                {/* Progress (in-progress state) */}
+                {inProgress && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <span style={{ fontSize: 9, color: 'var(--slate-400)' }}>Упражнений</span>
+                      <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--indigo-500)' }}>
+                        {todayWorkout.completedCount} / {todayWorkout.exerciseCount}
+                      </span>
+                    </div>
+                    <div style={{ height: 4, background: 'var(--slate-100)', borderRadius: 2, overflow: 'hidden', marginBottom: 10 }}>
+                      <div style={{ height: '100%', borderRadius: 2, background: 'var(--indigo-500)', width: `${progressPct}%` }} />
+                    </div>
+                  </>
+                )}
+
+                {/* CTA */}
+                <button
+                  onClick={() => navigate(`/client/workout/${todayWorkout.id}`)}
+                  style={{
+                    width: '100%',
+                    background: 'var(--indigo-500)',
+                    color: 'var(--white)',
+                    border: 'none',
+                    borderRadius: 9,
+                    padding: 10,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font)',
+                    letterSpacing: '0.01em',
+                  }}
+                >
+                  {inProgress ? 'Продолжить' : 'Начать тренировку'}
+                </button>
+              </div>
+            ) : null}
+
+            {/* Ближайшие */}
+            {upcoming.length > 0 && (
+              <>
+                <div style={{ fontSize: 8, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '10px 0 6px' }}>
+                  Ближайшие
+                </div>
+                {upcoming.map(a => (
+                  <button
+                    key={a.id}
+                    onClick={() => navigate(`/client/workout/${a.id}`)}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      textAlign: 'left',
+                      background: 'var(--white)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 10,
+                      padding: '9px 11px',
+                      marginBottom: 5,
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font)',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-900)' }}>
+                        {a.workout?.name}
+                      </div>
+                      <div style={{ fontSize: 9, color: 'var(--slate-400)', marginTop: 1 }}>
+                        {a.planned_date ? fmtDate(a.planned_date) : 'Без даты'}
+                      </div>
+                    </div>
+                    <span style={{ color: 'var(--slate-300)', fontSize: 12, flexShrink: 0 }}>›</span>
+                  </button>
+                ))}
+              </>
+            )}
+
+            {/* Empty */}
+            {!todayWorkout && upcoming.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '32px 0 16px', fontSize: 11, color: 'var(--slate-400)', lineHeight: 1.6 }}>
+                Тренировок на сегодня нет.<br />Тренер скоро назначит.
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ══ ИСТОРИЯ ══════════════════════════════════════ */}
+        {tab === 'history' && (
+          history.length === 0
+            ? (
+              <div style={{ textAlign: 'center', padding: '32px 0 16px', fontSize: 11, color: 'var(--slate-400)', lineHeight: 1.6 }}>
+                История пуста
+              </div>
+            )
+            : history.map(a => {
+                const pct = a.exerciseCount > 0 ? a.completedCount / a.exerciseCount : 0
+                const dateLabel = a.completed_at
+                  ? fmtDate(a.completed_at)
+                  : a.planned_date ? fmtDate(a.planned_date) : '—'
+
+                const badgeStyle: React.CSSProperties = pct === 1
+                  ? { background: 'var(--green-100)', color: 'var(--green-700)' }
+                  : pct >= 0.6
+                  ? { background: 'var(--amber-100)', color: 'var(--amber-800)' }
+                  : { background: 'var(--red-100)', color: 'var(--red-800)' }
+
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => navigate(`/client/session/${a.id}`)}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 6,
+                      textAlign: 'left',
+                      background: 'var(--white)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 10,
+                      padding: '9px 11px',
+                      marginBottom: 5,
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font)',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-900)' }}>
+                        {a.workout?.name}
+                      </div>
+                      <div style={{ fontSize: 9, color: 'var(--slate-400)', marginTop: 2 }}>
+                        {dateLabel}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+                      <span style={{
+                        ...badgeStyle,
+                        fontSize: 9,
+                        fontWeight: 700,
+                        padding: '2px 7px',
+                        borderRadius: 20,
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {a.completedCount}/{a.exerciseCount}
+                      </span>
+                      <span style={{ color: 'var(--slate-300)', fontSize: 12, flexShrink: 0 }}>›</span>
+                    </div>
+                  </button>
+                )
+              })
+        )}
+
+      </div>
     </Layout>
   )
 }

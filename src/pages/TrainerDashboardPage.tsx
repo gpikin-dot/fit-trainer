@@ -51,7 +51,7 @@ export default function TrainerDashboardPage() {
   const [todayItems, setTodayItems] = useState<TodayItem[]>([])
   const [upcomingItems, setUpcomingItems] = useState<ScheduledItem[]>([])
   const [openDateItems, setOpenDateItems] = useState<ScheduledItem[]>([])
-  const [invites, setInvites] = useState<Invite[]>([])
+  const [, setInvites] = useState<Invite[]>([])
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null)
   const [error, setError] = useState('')

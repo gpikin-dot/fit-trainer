@@ -12,6 +12,7 @@ import ClientCardPage from './pages/ClientCardPage'
 import InvitePage from './pages/InvitePage'
 import AssignWorkoutFlow from './pages/AssignWorkoutFlow'
 import SessionDetailPage from './pages/SessionDetailPage'
+import ClientSessionPage from './pages/ClientSessionPage'
 
 function RequireAuth({ children, role }: { children: React.ReactNode; role?: 'trainer' | 'client' }) {
   const { user, profile, loading } = useAuth()
@@ -75,6 +76,9 @@ export default function App() {
         } />
         <Route path="/client/workout/:assignedId" element={
           <RequireAuth role="client"><DoWorkoutPage /></RequireAuth>
+        } />
+        <Route path="/client/session/:assignedId" element={
+          <RequireAuth role="client"><ClientSessionPage /></RequireAuth>
         } />
 
         <Route path="/" element={

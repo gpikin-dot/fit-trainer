@@ -238,7 +238,7 @@ export default function DoWorkoutPage() {
 
     if (assignedId) localStorage.removeItem(storageKey(assignedId))
     skipTimer()
-    navigate('/client')
+    navigate(`/client/session/${assignment.id}`)
   }
 
   const ringOffset = timerTotal > 0 ? RING_C * (1 - timerSec / timerTotal) : 0

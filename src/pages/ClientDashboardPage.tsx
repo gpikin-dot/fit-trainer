@@ -173,7 +173,7 @@ export default function ClientDashboardPage() {
             return (
               <div key={i} className="flex items-center justify-center py-0.5">
                 <button
-                  onClick={() => completed && navigate(`/client/workout/${completed.id}`)}
+                  onClick={() => completed && navigate(`/client/session/${completed.id}`)}
                   className="relative w-9 h-9 flex items-center justify-center"
                 >
                   {/* Progress ring for completed */}

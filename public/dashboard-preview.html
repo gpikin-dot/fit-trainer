@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'JetBrains Mono', monospace; background: #f1f5f9; padding: 24px; }
+    h1 { font-size: 12px; color: #64748b; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 24px; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+
+    .col-label {
+      font-size: 11px; color: #6366f1; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+
+    /* Phone shell */
+    .phone {
+      background: white;
+      border-radius: 28px;
+      border: 2px solid #e2e8f0;
+      overflow: hidden;
+      aspect-ratio: 9/19;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Shared header */
+    .app-header {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .app-header-logo { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: #0f172a; }
+    .app-header-logo svg { color: #10b981; }
+    .app-header-exit { font-size: 9px; color: #94a3b8; }
+
+    /* Scrollable body */
+    .app-body { flex: 1; overflow: hidden; background: #f8fafc; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ============================= */
+    /* VARIANT 1: Strip + Hero card  */
+    /* ============================= */
+
+    /* Day strip */
+    .day-strip { display: flex; gap: 4px; justify-content: space-between; }
+    .day { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
+    .day-name { font-size: 7px; color: #94a3b8; text-transform: uppercase; }
+    .day-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 600; color: #64748b;
+    }
+    .day-num.done { background: #10b981; color: white; }
+    .day-num.today { background: #0f172a; color: white; }
+    .day-num.today.done { background: #10b981; color: white; outline: 2px solid #0f172a; outline-offset: 2px; }
+    .day-dot { width: 4px; height: 4px; border-radius: 50%; background: transparent; }
+    .day-dot.done { background: #10b981; }
+    .day-dot.pending { background: #f59e0b; }
+
+    /* Hero card */
+    .hero-card {
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 14px;
+      color: white;
+      flex-shrink: 0;
+    }
+    .hero-tag { font-size: 8px; color: #10b981; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+    .hero-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .hero-sub { font-size: 9px; color: #94a3b8; margin-bottom: 12px; }
+    .hero-btn {
+      background: #10b981; color: white; border: none; border-radius: 8px;
+      padding: 7px 14px; font-size: 10px; font-family: 'JetBrains Mono', monospace;
+      font-weight: 600; cursor: pointer; width: 100%;
+    }
+
+    /* Week stat bar */
+    .week-bar {
+      background: white; border: 1px solid #e2e8f0; border-radius: 10px;
+      padding: 10px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .week-label { font-size: 8px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
+    .week-val { font-size: 18px; font-weight: 700; color: #0f172a; line-height: 1; }
+    .week-sub { font-size: 8px; color: #94a3b8; }
+    .week-dots { display: flex; gap: 4px; align-items: center; }
+    .week-dot { width: 10px; height: 10px; border-radius: 50%; background: #e2e8f0; }
+    .week-dot.done { background: #10b981; }
+    .week-dot.today { background: #0f172a; }
+
+    /* Compact past workout */
+    .past-list { display: flex; flex-direction: column; gap: 6px; }
+    .past-label { font-size: 8px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
+    .past-item {
+      background: white; border: 1px solid #e2e8f0; border-radius: 8px;
+      padding: 8px 10px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .past-name { font-size: 9px; font-weight: 600; color: #334155; }
+    .past-date { font-size: 8px; color: #94a3b8; }
+    .past-check { font-size: 9px; color: #10b981; }
+
+    /* ========================= */
+    /* VARIANT 2: Focus + Stats  */
+    /* ========================= */
+
+    .stat-row { display: flex; gap: 8px; flex-shrink: 0; }
+    .stat-card {
+      flex: 1; background: white; border: 1px solid #e2e8f0; border-radius: 10px;
+      padding: 10px; text-align: center;
+    }
+    .stat-num { font-size: 22px; font-weight: 700; color: #0f172a; line-height: 1; }
+    .stat-label { font-size: 7px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; }
+    .stat-card.green .stat-num { color: #10b981; }
+
+    .next-card {
+      background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; flex-shrink: 0;
+      border-left: 3px solid #10b981;
+    }
+    .next-tag { font-size: 8px; color: #10b981; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .next-title { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+    .next-meta { font-size: 8px; color: #94a3b8; margin-bottom: 10px; }
+    .next-exercises { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+    .next-ex { font-size: 8px; color: #475569; display: flex; gap: 6px; }
+    .next-ex-dot { color: #cbd5e1; }
+    .next-btn {
+      background: #10b981; color: white; border: none; border-radius: 8px;
+      padding: 7px 14px; font-size: 10px; font-family: 'JetBrains Mono', monospace;
+      font-weight: 600; cursor: pointer; width: 100%;
+    }
+
+    .progress-bar-wrap { background: #f1f5f9; border-radius: 4px; height: 4px; margin-top: 8px; }
+    .progress-bar-fill { background: #10b981; border-radius: 4px; height: 4px; width: 66%; }
+
+    /* ========================= */
+    /* VARIANT 3: Month calendar */
+    /* ========================= */
+
+    .cal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2px; flex-shrink: 0;
+    }
+    .cal-month { font-size: 11px; font-weight: 700; color: #0f172a; }
+    .cal-nav { font-size: 9px; color: #94a3b8; }
+    .cal-stat { font-size: 8px; color: #10b981; font-weight: 600; }
+
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; flex-shrink: 0; }
+    .cal-dow { font-size: 7px; color: #94a3b8; text-align: center; padding: 2px 0; text-transform: uppercase; }
+    .cal-day {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      font-size: 9px; color: #64748b; border-radius: 50%; position: relative;
+    }
+    .cal-day.done { background: #d1fae5; color: #065f46; font-weight: 700; }
+    .cal-day.done::after {
+      content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+      width: 4px; height: 4px; background: #10b981; border-radius: 50%;
+    }
+    .cal-day.today { background: #0f172a; color: white; font-weight: 700; }
+    .cal-day.today.done { background: #10b981; color: white; }
+    .cal-day.empty { color: #e2e8f0; }
+    .cal-day.future { color: #cbd5e1; }
+
+    .cal-legend { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+    .cal-legend-item { display: flex; align-items: center; gap: 4px; font-size: 8px; color: #94a3b8; }
+    .cal-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    .pending-card {
+      background: white; border: 1px solid #e2e8f0; border-radius: 10px;
+      padding: 10px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .pending-name { font-size: 10px; font-weight: 600; color: #0f172a; }
+    .pending-meta { font-size: 8px; color: #94a3b8; margin-top: 2px; }
+    .pending-btn {
+      background: #10b981; color: white; border: none; border-radius: 6px;
+      padding: 5px 10px; font-size: 8px; font-family: 'JetBrains Mono', monospace;
+      font-weight: 600; white-space: nowrap; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>FitTrainer — Варианты клиентского дашборда</h1>
+  <div class="grid">
+
+    <!-- VARIANT 1: Strip + Hero -->
+    <div>
+      <div class="col-label">1 — Стрип дней + герой</div>
+      <div class="phone">
+        <div class="app-header">
+          <div class="app-header-logo">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6.5 6.5h11M6.5 17.5h11M4 12h16"/></svg>
+            FitTrainer
+          </div>
+          <div class="app-header-exit">Привет, Иван →</div>
+        </div>
+        <div class="app-body">
+
+          <!-- Day strip -->
+          <div class="day-strip">
+            <div class="day">
+              <div class="day-name">пн</div>
+              <div class="day-num done">21</div>
+              <div class="day-dot done"></div>
+            </div>
+            <div class="day">
+              <div class="day-name">вт</div>
+              <div class="day-num">22</div>
+              <div class="day-dot"></div>
+            </div>
+            <div class="day">
+              <div class="day-name">ср</div>
+              <div class="day-num done">23</div>
+              <div class="day-dot done"></div>
+            </div>
+            <div class="day">
+              <div class="day-name">чт</div>
+              <div class="day-num">24</div>
+              <div class="day-dot"></div>
+            </div>
+            <div class="day">
+              <div class="day-name">пт</div>
+              <div class="day-num done">25</div>
+              <div class="day-dot done"></div>
+            </div>
+            <div class="day">
+              <div class="day-name">сб</div>
+              <div class="day-num">26</div>
+              <div class="day-dot"></div>
+            </div>
+            <div class="day">
+              <div class="day-name">вс</div>
+              <div class="day-num today">27</div>
+              <div class="day-dot pending"></div>
+            </div>
+          </div>
+
+          <!-- Hero -->
+          <div class="hero-card">
+            <div class="hero-tag">⚡ Сегодня</div>
+            <div class="hero-title">Тест 1</div>
+            <div class="hero-sub">6 упражнений · отдых 90 сек</div>
+            <button class="hero-btn">▶ Начать тренировку</button>
+          </div>
+
+          <!-- Week stat -->
+          <div class="week-bar">
+            <div>
+              <div class="week-label">Эта неделя</div>
+              <div style="display:flex;align-items:baseline;gap:3px">
+                <div class="week-val">3</div>
+                <div class="week-sub">из 4 тренировок</div>
+              </div>
+            </div>
+            <div class="week-dots">
+              <div class="week-dot done"></div>
+              <div class="week-dot"></div>
+              <div class="week-dot done"></div>
+              <div class="week-dot done"></div>
+            </div>
+          </div>
+
+          <!-- Past -->
+          <div class="past-list">
+            <div class="past-label">История</div>
+            <div class="past-item">
+              <div>
+                <div class="past-name">Тест 1</div>
+                <div class="past-date">25 апр · 6 упражнений</div>
+              </div>
+              <div class="past-check">✓</div>
+            </div>
+            <div class="past-item">
+              <div>
+                <div class="past-name">Тест 1</div>
+                <div class="past-date">23 апр · 6 упражнений</div>
+              </div>
+              <div class="past-check">✓</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT 2: Stats + Focus -->
+    <div>
+      <div class="col-label">2 — Статистика + акцент</div>
+      <div class="phone">
+        <div class="app-header">
+          <div class="app-header-logo">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6.5 6.5h11M6.5 17.5h11M4 12h16"/></svg>
+            FitTrainer
+          </div>
+          <div class="app-header-exit">Привет, Иван →</div>
+        </div>
+        <div class="app-body">
+
+          <!-- Stat row -->
+          <div class="stat-row">
+            <div class="stat-card green">
+              <div class="stat-num">12</div>
+              <div class="stat-label">Выполнено</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">3</div>
+              <div class="stat-label">Эта неделя</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">7</div>
+              <div class="stat-label">Серия дней</div>
+            </div>
+          </div>
+
+          <!-- Month progress -->
+          <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <div style="font-size:8px;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em">Апрель</div>
+              <div style="font-size:8px;color:#10b981;font-weight:600">4 из 6 ✓</div>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill"></div>
+            </div>
+          </div>
+
+          <!-- Next workout card -->
+          <div class="next-card">
+            <div class="next-tag">⚡ Следующая тренировка</div>
+            <div class="next-title">Тест 1</div>
+            <div class="next-meta">Назначена сегодня · 6 упражнений</div>
+            <div class="next-exercises">
+              <div class="next-ex"><span class="next-ex-dot">·</span> Жим штанги лёжа — 3×10</div>
+              <div class="next-ex"><span class="next-ex-dot">·</span> Жим на наклонной — 3×10</div>
+              <div class="next-ex"><span class="next-ex-dot">·</span> Разводка гантелей — 3×12</div>
+              <div class="next-ex" style="color:#94a3b8"><span class="next-ex-dot">·</span> + ещё 3 упражнения</div>
+            </div>
+            <button class="next-btn">▶ Начать тренировку</button>
+          </div>
+
+          <!-- Past -->
+          <div class="past-list">
+            <div class="past-label">Последние</div>
+            <div class="past-item">
+              <div>
+                <div class="past-name">Тест 1</div>
+                <div class="past-date">25 апр · 6 упражнений</div>
+              </div>
+              <div class="past-check">✓</div>
+            </div>
+            <div class="past-item">
+              <div>
+                <div class="past-name">Тест 1</div>
+                <div class="past-date">23 апр · 6 упражнений</div>
+              </div>
+              <div class="past-check">✓</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT 3: Month calendar -->
+    <div>
+      <div class="col-label">3 — Месячный календарь</div>
+      <div class="phone">
+        <div class="app-header">
+          <div class="app-header-logo">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6.5 6.5h11M6.5 17.5h11M4 12h16"/></svg>
+            FitTrainer
+          </div>
+          <div class="app-header-exit">Привет, Иван →</div>
+        </div>
+        <div class="app-body">
+
+          <div class="cal-header">
+            <div class="cal-month">Апрель 2026</div>
+            <div class="cal-stat">4 тренировки ✓</div>
+          </div>
+
+          <div class="cal-grid">
+            <div class="cal-dow">пн</div>
+            <div class="cal-dow">вт</div>
+            <div class="cal-dow">ср</div>
+            <div class="cal-dow">чт</div>
+            <div class="cal-dow">пт</div>
+            <div class="cal-dow">сб</div>
+            <div class="cal-dow">вс</div>
+
+            <div class="cal-day empty">·</div>
+            <div class="cal-day empty">·</div>
+            <div class="cal-day">1</div>
+            <div class="cal-day">2</div>
+            <div class="cal-day">3</div>
+            <div class="cal-day">4</div>
+            <div class="cal-day">5</div>
+
+            <div class="cal-day">6</div>
+            <div class="cal-day done">7</div>
+            <div class="cal-day">8</div>
+            <div class="cal-day">9</div>
+            <div class="cal-day">10</div>
+            <div class="cal-day">11</div>
+            <div class="cal-day">12</div>
+
+            <div class="cal-day">13</div>
+            <div class="cal-day done">14</div>
+            <div class="cal-day">15</div>
+            <div class="cal-day done">16</div>
+            <div class="cal-day">17</div>
+            <div class="cal-day">18</div>
+            <div class="cal-day">19</div>
+
+            <div class="cal-day">20</div>
+            <div class="cal-day done">21</div>
+            <div class="cal-day">22</div>
+            <div class="cal-day done">23</div>
+            <div class="cal-day">24</div>
+            <div class="cal-day done">25</div>
+            <div class="cal-day">26</div>
+
+            <div class="cal-day today done">27</div>
+            <div class="cal-day future">28</div>
+            <div class="cal-day future">29</div>
+            <div class="cal-day future">30</div>
+            <div class="cal-day empty">·</div>
+            <div class="cal-day empty">·</div>
+            <div class="cal-day empty">·</div>
+          </div>
+
+          <div class="cal-legend">
+            <div class="cal-legend-item">
+              <div class="cal-legend-dot" style="background:#d1fae5;outline:1px solid #10b981;outline-offset:1px"></div>
+              выполнена
+            </div>
+            <div class="cal-legend-item">
+              <div class="cal-legend-dot" style="background:#0f172a"></div>
+              сегодня
+            </div>
+          </div>
+
+          <!-- Pending -->
+          <div class="past-label">Активные</div>
+          <div class="pending-card">
+            <div>
+              <div class="pending-name">Тест 1</div>
+              <div class="pending-meta">Назначена сегодня · 6 упражнений</div>
+            </div>
+            <button class="pending-btn">▶ Начать</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

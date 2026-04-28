@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useTimer } from '../contexts/TimerContext'
 import Layout from '../components/Layout'
 import { ErrorMessage } from '../components/UI'
-import type { AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult } from '../types/database'
+import type { AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult, SessionExercise } from '../types/database'
 
 interface SetState {
   completed: boolean
@@ -40,6 +40,7 @@ export default function DoWorkoutPage() {
   const [workout, setWorkout] = useState<Workout | null>(null)
   const [exercises, setExercises] = useState<(Exercise & { exercise_library: ExerciseLibrary })[]>([])
   const [existingResults, setExistingResults] = useState<ExerciseResult[]>([])
+  const [useSessionExercises, setUseSessionExercises] = useState(false)
   const [exState, setExState] = useState<Record<string, ExerciseState>>({})
   const [loaded, setLoaded] = useState(false)
   const [currentExIdx, setCurrentExIdx] = useState(0)
@@ -72,13 +73,40 @@ export default function DoWorkoutPage() {
 
       const { data: w } = await supabase.from('workouts').select('*').eq('id', a.workout_id).single()
       setWorkout(w)
-      const { data: exs } = await supabase
-        .from('exercises')
+
+      // Сначала пробуем session_exercises (новые назначения через AssignWorkoutFlow)
+      const { data: sessionExs } = await supabase
+        .from('session_exercises')
         .select('*, exercise_library:exercises_library(*)')
-        .eq('workout_id', a.workout_id)
+        .eq('assigned_workout_id', assignedId)
         .order('order')
 
-      const list = exs ?? []
+      let list: (Exercise & { exercise_library: ExerciseLibrary })[]
+      if (sessionExs && sessionExs.length > 0) {
+        // Преобразуем SessionExercise → Exercise-совместимый формат
+        setUseSessionExercises(true)
+        list = sessionExs.map((se: SessionExercise & { exercise_library: ExerciseLibrary }) => ({
+          id: se.id,
+          workout_id: a.workout_id,
+          library_exercise_id: se.library_exercise_id,
+          sets: se.sets,
+          reps: se.reps,
+          weight_kg: se.weight_kg,
+          rest_sec: se.rest_sec,
+          trainer_note: se.trainer_note,
+          target_heart_rate_bpm: null,
+          order: se.order,
+          exercise_library: se.exercise_library,
+        })) as (Exercise & { exercise_library: ExerciseLibrary })[]
+      } else {
+        // Старые назначения — читаем из exercises
+        const { data: exs } = await supabase
+          .from('exercises')
+          .select('*, exercise_library:exercises_library(*)')
+          .eq('workout_id', a.workout_id)
+          .order('order')
+        list = exs ?? []
+      }
       setExercises(list)
 
       const saved = localStorage.getItem(storageKey(assignedId))

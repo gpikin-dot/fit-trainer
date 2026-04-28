@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercise Images Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'JetBrains Mono', monospace; background: #f1f5f9; padding: 24px; }
+    h1 { font-size: 12px; color: #64748b; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+    .subtitle { font-size: 11px; color: #94a3b8; margin-bottom: 24px; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+    .col-label { font-size: 11px; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+
+    .phone {
+      background: white; border-radius: 28px; border: 2px solid #e2e8f0;
+      overflow: hidden; aspect-ratio: 9/19; display: flex; flex-direction: column;
+    }
+    .app-header {
+      background: white; border-bottom: 1px solid #e2e8f0; padding: 10px 14px;
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    }
+    .app-logo { font-size: 11px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 5px; }
+    .app-logo span { color: #10b981; }
+    .app-body { flex: 1; overflow: hidden; background: #f8fafc; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+
+    /* === VARIANT 1: During workout — thumbnail left === */
+    .ex-card {
+      background: white; border: 1px solid #e2e8f0; border-radius: 12px;
+      padding: 10px; display: flex; align-items: center; gap: 10px;
+    }
+    .ex-card.active { border-color: #10b981; }
+    .ex-thumb {
+      width: 52px; height: 52px; border-radius: 8px; background: #f1f5f9;
+      flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;
+    }
+    .ex-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .ex-thumb.loading { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+    @keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
+    .ex-info { flex: 1; min-width: 0; }
+    .ex-name { font-size: 10px; font-weight: 600; color: #0f172a; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ex-meta { font-size: 8px; color: #94a3b8; }
+    .ex-sets { display: flex; gap: 4px; margin-top: 6px; }
+    .ex-set { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #d1d5db; display: flex; align-items: center; justify-content: center; font-size: 7px; color: #94a3b8; }
+    .ex-set.done { background: #10b981; border-color: #10b981; color: white; font-size: 8px; }
+
+    /* === VARIANT 2: Library picker — card with image top === */
+    .lib-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .lib-card {
+      background: white; border: 1.5px solid #e2e8f0; border-radius: 10px;
+      overflow: hidden; cursor: pointer;
+    }
+    .lib-card.selected { border-color: #10b981; }
+    .lib-img { height: 60px; background: #f1f5f9; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .lib-img img { width: 100%; height: 100%; object-fit: cover; }
+    .lib-img.loading { animation: shimmer 1.2s infinite; background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; }
+    .lib-label { padding: 5px 6px; }
+    .lib-name { font-size: 8px; font-weight: 600; color: #0f172a; line-height: 1.2; }
+    .lib-cat { font-size: 7px; color: #94a3b8; margin-top: 1px; }
+    .lib-check { width: 14px; height: 14px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-size: 8px; float: right; margin: 4px 4px 0 0; }
+
+    /* === VARIANT 3: Expanded detail view === */
+    .detail-img {
+      width: 100%; height: 110px; background: #0f172a; border-radius: 12px;
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+      position: relative; flex-shrink: 0;
+    }
+    .detail-img img { width: 100%; height: 100%; object-fit: contain; }
+    .detail-img.loading { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+    .detail-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.5); color: white; font-size: 7px; padding: 2px 6px; border-radius: 99px; }
+    .detail-name { font-size: 13px; font-weight: 700; color: #0f172a; }
+    .detail-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+    .detail-tag { font-size: 7px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; }
+    .detail-sets { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+    .set-row { display: flex; align-items: center; gap: 6px; }
+    .set-circle { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #94a3b8; flex-shrink: 0; }
+    .set-circle.done { background: #10b981; border-color: #10b981; color: white; }
+    .set-input { width: 30px; height: 20px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 8px; text-align: center; font-family: 'JetBrains Mono', monospace; background: white; }
+    .set-x { font-size: 8px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <h1>FitTrainer — Варианты отображения картинок упражнений</h1>
+  <p class="subtitle">Картинки загружаются из открытой базы wger.de — реальный контент, без ключа</p>
+
+  <div class="grid">
+
+    <!-- VARIANT 1: Workout — thumbnail left -->
+    <div>
+      <div class="col-label">1 — Миниатюра слева (во время тренировки)</div>
+      <div class="phone">
+        <div class="app-header">
+          <div class="app-logo"><span>●</span> FitTrainer</div>
+          <div style="font-size:9px;color:#94a3b8">Тренировка А</div>
+        </div>
+        <div class="app-body" id="variant1">
+          <!-- filled by JS -->
+          <div class="ex-card"><div class="ex-thumb loading"></div><div class="ex-info"><div class="ex-name">Загрузка...</div></div></div>
+          <div class="ex-card"><div class="ex-thumb loading"></div><div class="ex-info"><div class="ex-name">Загрузка...</div></div></div>
+          <div class="ex-card"><div class="ex-thumb loading"></div><div class="ex-info"><div class="ex-name">Загрузка...</div></div></div>
+          <div class="ex-card"><div class="ex-thumb loading"></div><div class="ex-info"><div class="ex-name">Загрузка...</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT 2: Library grid -->
+    <div>
+      <div class="col-label">2 — Сетка в библиотеке упражнений</div>
+      <div class="phone">
+        <div class="app-header">
+          <div class="app-logo"><span>●</span> FitTrainer</div>
+          <div style="font-size:9px;color:#94a3b8">Добавить упражнение</div>
+        </div>
+        <div class="app-body">
+          <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:6px 8px;font-size:9px;color:#94a3b8;">🔍 Поиск...</div>
+          <div class="lib-grid" id="variant2">
+            <div class="lib-card"><div class="lib-img loading"></div><div class="lib-label"><div class="lib-name">Загрузка...</div></div></div>
+            <div class="lib-card"><div class="lib-img loading"></div><div class="lib-label"><div class="lib-name">Загрузка...</div></div></div>
+            <div class="lib-card"><div class="lib-img loading"></div><div class="lib-label"><div class="lib-name">Загрузка...</div></div></div>
+            <div class="lib-card selected"><div class="lib-img loading"></div><div class="lib-label"><div class="lib-name">Загрузка...</div></div></div>
+            <div class="lib-card"><div class="lib-img loading"></div><div class="lib-label"><div class="lib-name">Загрузка...</div></div></div>
+            <div class="lib-card"><div class="lib-img loading"></div><div class="lib-label"><div class="lib-name">Загрузка...</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT 3: Expanded card with big image -->
+    <div>
+      <div class="col-label">3 — Раскрытая карточка (большое фото)</div>
+      <div class="phone">
+        <div class="app-header">
+          <div class="app-logo"><span>●</span> FitTrainer</div>
+          <div style="font-size:9px;color:#94a3b8">← Назад</div>
+        </div>
+        <div class="app-body" id="variant3">
+          <div class="detail-img loading"><div class="detail-badge">анимация</div></div>
+          <div>
+            <div class="detail-name">Загрузка...</div>
+            <div class="detail-tags">
+              <div class="detail-tag">Грудь</div>
+              <div class="detail-tag">Трицепс</div>
+              <div class="detail-tag">Штанга</div>
+            </div>
+          </div>
+          <div class="detail-sets">
+            <div class="set-row"><div class="set-circle done">✓</div><input class="set-input" value="10"><div class="set-x">×</div><input class="set-input" value="80"><div style="font-size:8px;color:#94a3b8">кг</div></div>
+            <div class="set-row"><div class="set-circle done">✓</div><input class="set-input" value="10"><div class="set-x">×</div><input class="set-input" value="80"><div style="font-size:8px;color:#94a3b8">кг</div></div>
+            <div class="set-row"><div class="set-circle">3</div><input class="set-input" value="10"><div class="set-x">×</div><input class="set-input" value="80"><div style="font-size:8px;color:#94a3b8">кг</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const EXERCISES = [
+      { name: 'Жим штанги лёжа', cat: 'Грудь', sets: 3, reps: 10, kg: 80, done: 2 },
+      { name: 'Жим гантелей', cat: 'Грудь', sets: 3, reps: 12, kg: 22, done: 1 },
+      { name: 'Разводка гантелей', cat: 'Грудь', sets: 3, reps: 15, kg: 14, done: 0 },
+      { name: 'Отжимания на брусьях', cat: 'Трицепс', sets: 4, reps: 10, kg: 0, done: 0 },
+      { name: 'Жим гантелей сидя', cat: 'Плечи', sets: 3, reps: 12, kg: 16, done: 0 },
+      { name: 'Тяга штанги в наклоне', cat: 'Спина', sets: 4, reps: 10, kg: 60, done: 0 },
+    ]
+
+    async function loadImages() {
+      try {
+        // Fetch exercise images from wger public API (no auth needed)
+        const res = await fetch('https://wger.de/api/v2/exerciseimage/?format=json&limit=20&language=2')
+        const data = await res.json()
+        const images = data.results.filter(i => i.image && !i.is_main).concat(data.results.filter(i => i.is_main))
+        const imgUrls = images.map(i => i.image).filter(Boolean)
+
+        renderVariant1(imgUrls)
+        renderVariant2(imgUrls)
+        renderVariant3(imgUrls[0])
+      } catch(e) {
+        // fallback: use placeholder colors
+        renderFallback()
+      }
+    }
+
+    function renderVariant1(urls) {
+      const container = document.getElementById('variant1')
+      container.innerHTML = EXERCISES.slice(0, 4).map((ex, i) => {
+        const url = urls[i] || ''
+        const setsHtml = Array.from({length: ex.sets}, (_, j) =>
+          `<div class="ex-set ${j < ex.done ? 'done' : ''}">${j < ex.done ? '✓' : j+1}</div>`
+        ).join('')
+        return `
+          <div class="ex-card ${i === 1 ? 'active' : ''}">
+            <div class="ex-thumb">
+              ${url ? `<img src="${url}" alt="${ex.name}" onerror="this.parentElement.classList.add('loading');this.remove()" />` : '<div style="width:100%;height:100%;background:#e2e8f0;border-radius:8px"></div>'}
+            </div>
+            <div class="ex-info">
+              <div class="ex-name">${ex.name}</div>
+              <div class="ex-meta">${ex.sets} подхода · ${ex.reps} повт${ex.kg ? ' · ' + ex.kg + ' кг' : ''}</div>
+              <div class="ex-sets">${setsHtml}</div>
+            </div>
+          </div>`
+      }).join('')
+    }
+
+    function renderVariant2(urls) {
+      const container = document.getElementById('variant2')
+      container.innerHTML = EXERCISES.map((ex, i) => {
+        const url = urls[i + 4] || urls[i] || ''
+        return `
+          <div class="lib-card ${i === 3 ? 'selected' : ''}">
+            ${i === 3 ? '<div class="lib-check">✓</div>' : ''}
+            <div class="lib-img">
+              ${url ? `<img src="${url}" alt="${ex.name}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.classList.add('loading');this.remove()" />` : '<div style="width:100%;height:100%;background:#e2e8f0"></div>'}
+            </div>
+            <div class="lib-label">
+              <div class="lib-name">${ex.name}</div>
+              <div class="lib-cat">${ex.cat}</div>
+            </div>
+          </div>`
+      }).join('')
+    }
+
+    function renderVariant3(url) {
+      const container = document.getElementById('variant3')
+      container.innerHTML = `
+        <div class="detail-img">
+          <div class="detail-badge">● анимация</div>
+          ${url ? `<img src="${url}" alt="exercise" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.classList.add('loading');this.remove()" />` : ''}
+        </div>
+        <div>
+          <div class="detail-name">Жим штанги лёжа</div>
+          <div class="detail-tags">
+            <div class="detail-tag">Грудь</div>
+            <div class="detail-tag">Трицепс</div>
+            <div class="detail-tag">Штанга</div>
+          </div>
+        </div>
+        <div class="detail-sets">
+          <div class="set-row"><div class="set-circle done">✓</div><input class="set-input" value="10"><div class="set-x">×</div><input class="set-input" value="80"><div style="font-size:8px;color:#94a3b8">кг</div></div>
+          <div class="set-row"><div class="set-circle done">✓</div><input class="set-input" value="10"><div class="set-x">×</div><input class="set-input" value="80"><div style="font-size:8px;color:#94a3b8">кг</div></div>
+          <div class="set-row"><div class="set-circle">3</div><input class="set-input" value="10"><div class="set-x">×</div><input class="set-input" value="80"><div style="font-size:8px;color:#94a3b8">кг</div></div>
+        </div>`
+    }
+
+    function renderFallback() {
+      const colors = ['#fde68a','#a7f3d0','#bfdbfe','#fecaca','#e9d5ff','#fed7aa']
+      const urls = colors.map((c,i) => null)
+      renderVariant1(urls)
+      renderVariant2(urls)
+      renderVariant3(null)
+    }
+
+    loadImages()
+  </script>
+</body>
+</html>

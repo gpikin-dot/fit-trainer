@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
 import { Input, Modal, ErrorMessage } from '../components/UI'
 import { canAddExercise } from '../lib/planLimits'
-import type { ExerciseLibrary, Profile, ExerciseResult, AssignedWorkout, Exercise } from '../types/database'
+import type { ExerciseLibrary, Exercise } from '../types/database'
 
 const CATEGORIES = ['Все', 'Ноги', 'Грудь', 'Спина', 'Плечи', 'Руки', 'Кор', 'Кардио']
 
@@ -37,21 +37,17 @@ export default function CreateWorkoutPage() {
 
   const [name, setName] = useState('')
   const [defaultRest, setDefaultRest] = useState('90')
-  const [contextClientId, setContextClientId] = useState(searchParams.get('client') ?? '')
   const [exercises, setExercises] = useState<WorkoutExercise[]>([])
-  const [clients, setClients] = useState<Profile[]>([])
   const [library, setLibrary] = useState<ExerciseLibrary[]>([])
   const [showLibraryModal, setShowLibraryModal] = useState(false)
   const [librarySearch, setLibrarySearch] = useState('')
   const [libraryCategory, setLibraryCategory] = useState('Все')
   const [selectedLibraryIds, setSelectedLibraryIds] = useState<Set<string>>(new Set())
-  const [clientHistory, setClientHistory] = useState<ClientHistory[]>([])
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (!profile) return
-    supabase.from('profiles').select('*').eq('trainer_id', profile.id).then(({ data }) => setClients(data ?? []))
     supabase.from('exercises_library').select('*').order('category').then(({ data }) => setLibrary(data ?? []))
 
     if (isEdit) {
@@ -74,42 +70,6 @@ export default function CreateWorkoutPage() {
       })
     }
   }, [profile, id, isEdit])
-
-  useEffect(() => {
-    if (!contextClientId || exercises.length === 0) { setClientHistory([]); return }
-    loadClientHistory(contextClientId, exercises.map(e => e.library_exercise_id))
-  }, [contextClientId, exercises.map(e => e.library_exercise_id).join(',')])
-
-  async function loadClientHistory(clientId: string, libraryIds: string[]) {
-    if (libraryIds.length === 0) return
-    const { data: assignments } = await supabase
-      .from('assigned_workouts').select('id').eq('client_id', clientId).eq('status', 'completed')
-    if (!assignments?.length) return
-
-    const assignedIds = assignments.map(a => a.id)
-    const { data: results } = await supabase
-      .from('exercise_results')
-      .select('*, exercise:exercises(library_exercise_id), assigned_workout:assigned_workouts(completed_at)')
-      .in('assigned_workout_id', assignedIds)
-      .eq('completed', true)
-
-    const history: ClientHistory[] = libraryIds.map(libId => ({
-      exerciseId: libId,
-      results: (results ?? [])
-        .filter((r: ExerciseResult & { exercise: { library_exercise_id: string }; assigned_workout: AssignedWorkout }) =>
-          r.exercise?.library_exercise_id === libId)
-        .sort((a: ExerciseResult & { assigned_workout: AssignedWorkout }, b: ExerciseResult & { assigned_workout: AssignedWorkout }) =>
-          new Date(b.assigned_workout?.completed_at ?? 0).getTime() - new Date(a.assigned_workout?.completed_at ?? 0).getTime())
-        .slice(0, 3)
-        .map((r: ExerciseResult & { assigned_workout: AssignedWorkout }) => ({
-          date: r.assigned_workout?.completed_at ?? '',
-          reps: r.actual_reps,
-          weight: r.actual_weight_kg,
-          note: r.client_note,
-        })),
-    }))
-    setClientHistory(history)
-  }
 
   function toggleLibrarySelect(id: string) {
     setSelectedLibraryIds(prev => {
@@ -215,21 +175,6 @@ export default function CreateWorkoutPage() {
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
 
-        {clients.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Контекст клиента (для подсказок по истории)
-            </label>
-            <select
-              value={contextClientId}
-              onChange={e => setContextClientId(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">— Не выбран —</option>
-              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-        )}
       </div>
 
       <div className="mb-4 flex items-center justify-between">
@@ -243,7 +188,6 @@ export default function CreateWorkoutPage() {
 
       <div className="space-y-3 mb-6">
         {exercises.map((ex, idx) => {
-          const hist = clientHistory.find(h => h.exerciseId === ex.library_exercise_id)
           const exType = ex.library.exercise_type ?? 'strength'
           const numInput = 'w-full border border-slate-300 rounded px-2 py-1 text-sm mt-1'
           return (
@@ -345,21 +289,6 @@ export default function CreateWorkoutPage() {
                 </div>
               </div>
 
-              {contextClientId && hist && (
-                <div className="mt-3 pt-3 border-t border-slate-100">
-                  <p className="text-xs font-medium text-slate-500 mb-1">История клиента по этому упражнению:</p>
-                  {hist.results.length === 0
-                    ? <p className="text-xs text-slate-400">Это упражнение ещё не выполнялось</p>
-                    : hist.results.map((r, i) => (
-                      <div key={i} className="text-xs text-slate-600 flex gap-2">
-                        <span className="text-slate-400">{r.date ? new Date(r.date).toLocaleDateString('ru-RU') : '—'}</span>
-                        <span>{r.reps !== null ? `${r.reps} повт.` : '—'}{r.weight !== null ? ` · ${r.weight} кг` : ''}</span>
-                        {r.note && <span className="italic text-slate-400">{r.note}</span>}
-                      </div>
-                    ))
-                  }
-                </div>
-              )}
             </div>
           )
         })}

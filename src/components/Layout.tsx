@@ -1,6 +1,5 @@
 import { Volume2, VolumeX, Plus, Pause, Play, SkipForward } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
 import { useTimer } from '../contexts/TimerContext'
 
 const RING_C = 220
@@ -10,7 +9,6 @@ export default function Layout({ children, fullHeight = false }: {
   children: React.ReactNode
   fullHeight?: boolean
 }) {
-  const { profile } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const {

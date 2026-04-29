@@ -47,8 +47,8 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="bg-white rounded-[16px] px-[17px] py-[22px] border border-[var(--border)]">
-          <h1 className="text-[var(--fs-xl)] font-bold text-[var(--slate-900)]">Вход</h1>
-          <p className="text-[var(--fs-3xs)] text-[var(--slate-400)] mb-4">Войдите в свой аккаунт</p>
+          <h1 className="text-[1.5rem] font-bold text-[var(--slate-900)] leading-tight mb-[3px]">Вход</h1>
+          <p className="text-[var(--fs-3xs)] text-[var(--slate-400)] mb-[14px]">Войдите в свой аккаунт</p>
 
           <form onSubmit={handleLogin}>
             <div className="mb-[10px]">

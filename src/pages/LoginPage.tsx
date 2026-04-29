@@ -47,12 +47,12 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="bg-white rounded-[16px] px-[17px] py-[22px] border border-[var(--border)]">
-          <h1 className="text-[1rem] font-bold text-[var(--slate-900)]">Вход</h1>
-          <p className="text-[var(--fs-2xs)] text-[var(--slate-400)] mb-4">Войдите в свой аккаунт</p>
+          <h1 className="text-[var(--fs-xl)] font-bold text-[var(--slate-900)]">Вход</h1>
+          <p className="text-[var(--fs-3xs)] text-[var(--slate-400)] mb-4">Войдите в свой аккаунт</p>
 
           <form onSubmit={handleLogin}>
             <div className="mb-[10px]">
-              <label className="block text-[var(--fs-2xs)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[var(--fs-3xs)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Email
               </label>
               <input
@@ -64,7 +64,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="mb-[10px]">
-              <label className="block text-[var(--fs-2xs)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[var(--fs-3xs)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Пароль
               </label>
               <input

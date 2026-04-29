@@ -50,8 +50,9 @@ interface ClientStat extends Profile {
 
 export default function TrainerDashboardPage() {
   const navigate = useNavigate()
-  const { profile } = useAuth()
+  const { profile, signOut } = useAuth()
   const [tab, setTab] = useState<'today' | 'clients' | 'library'>('today')
+  const [menuOpen, setMenuOpen] = useState(false)
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [workoutStats, setWorkoutStats] = useState<Map<string, { exerciseCount: number; usageCount: number }>>(new Map())
   const [clients, setClients] = useState<ClientStat[]>([])
@@ -217,12 +218,37 @@ export default function TrainerDashboardPage() {
     <Layout>
       {/* Sticky header */}
       <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[14px]">
-        <div className="pt-[11px] pb-0">
+        <div className="pt-[11px] pb-0 flex items-start justify-between">
           <div>
             <div className="text-[var(--fs-3xs)] text-[var(--slate-400)]">{getGreeting()}</div>
             <div className="text-[var(--fs-lg)] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{profile?.name}</div>
           </div>
 
+          {/* ··· menu */}
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              className="w-[28px] h-[28px] flex items-center justify-center text-[var(--slate-400)] hover:text-[var(--slate-600)] rounded-full hover:bg-[var(--slate-100)] transition-colors mt-[2px]"
+            >
+              <span className="text-[var(--fs-md)] leading-none tracking-widest">···</span>
+            </button>
+
+            {menuOpen && (
+              <>
+                {/* backdrop */}
+                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                {/* dropdown */}
+                <div className="absolute right-0 top-[32px] z-50 bg-white border border-[var(--border)] rounded-[10px] shadow-[0_4px_16px_rgba(0,0,0,0.10)] overflow-hidden min-w-[148px]">
+                  <button
+                    onClick={() => { setMenuOpen(false); signOut() }}
+                    className="w-full text-left px-[12px] py-[10px] text-[var(--fs-xs)] font-semibold text-[var(--red-500)] hover:bg-[var(--slate-50)] flex items-center gap-[7px]"
+                  >
+                    <span className="text-[var(--fs-sm)]">→</span> Выйти из аккаунта
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Tabs */}

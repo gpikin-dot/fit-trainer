@@ -333,7 +333,7 @@ export default function TrainerDashboardPage() {
                       >
                         <div className="w-[26px] shrink-0 text-center">
                           <div className="text-[0.5rem] text-[var(--slate-400)] uppercase">{DAYS_SHORT[d.getDay()]}</div>
-                          <div className="text-[var(--text-body)] font-bold text-[var(--slate-900)]">{d.getDate()}</div>
+                          <div className="text-[13px] font-bold text-[var(--slate-900)] leading-tight">{d.getDate()}</div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-[var(--text-body)] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
@@ -462,7 +462,7 @@ export default function TrainerDashboardPage() {
               >
                 <span
                   onClick={e => toggleFavorite(e, w)}
-                  className={`text-[var(--text-body)] shrink-0 ${w.is_favorite ? 'text-[var(--amber-500)]' : 'text-[var(--slate-200)]'}`}
+                  className={`text-[12px] shrink-0 ${w.is_favorite ? 'text-[#F59E0B]' : 'text-[var(--slate-200)]'}`}
                 >★</span>
                 <div className="flex-1 min-w-0">
                   <div className="text-[var(--text-body)] font-semibold text-[var(--slate-900)]">{w.name}</div>
@@ -542,7 +542,7 @@ function InviteModal({ invite, onClose }: { invite: Invite; onClose: () => void 
 
   return (
     <Modal onClose={onClose}>
-      <h2 className="text-[var(--text-body)] font-bold text-[var(--slate-900)] mb-1">Приглашение создано</h2>
+      <h2 className="text-[13px] font-bold text-[var(--slate-900)] mb-1">Приглашение создано</h2>
       <p className="text-[var(--text-meta)] text-[var(--slate-500)] leading-[1.5] mb-3">
         Отправьте эту ссылку клиенту. Действует 7 дней, использовать можно один раз.
       </p>

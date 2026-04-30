@@ -37,18 +37,17 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center px-4">
       <div className="max-w-[390px] w-full">
-        {/* Logo */}
-        <div className="flex items-center gap-2 mb-5">
-          <div className="w-[30px] h-[30px] bg-[var(--indigo-50)] rounded-[9px] flex items-center justify-center text-[var(--text-title)]">
-            🏋️
-          </div>
-          <span className="text-[var(--text-title)] font-extrabold tracking-[-0.02em] text-[var(--slate-900)]">FitTrainer</span>
-        </div>
-
         {/* Card */}
-        <div className="bg-white rounded-[16px] px-[17px] py-[22px] border border-[var(--border)]">
-          <h1 className="text-[var(--text-heading)] font-bold text-[var(--slate-900)] leading-tight mb-[3px]">Вход</h1>
-          <p className="text-[var(--text-nav)] text-[var(--slate-400)] mb-[14px]">Войдите в свой аккаунт</p>
+        <div className="bg-white rounded-[10px] px-[17px] py-[22px] border border-[var(--border-card)]">
+          {/* Logo — inside card, centered */}
+          <div className="flex items-center justify-center gap-[7px] mb-5">
+            <div className="w-[30px] h-[30px] bg-[var(--indigo-50)] rounded-[9px] flex items-center justify-center">
+              🏋️
+            </div>
+            <span className="text-[var(--text-title)] font-extrabold tracking-[-0.02em] text-[var(--slate-900)]">FitTrainer</span>
+          </div>
+          <h1 className="text-[var(--text-heading)] font-bold text-[var(--slate-900)] leading-tight mb-[2px]">Вход</h1>
+          <p className="text-[var(--text-nav)] text-[var(--slate-400)] mb-[16px]">Войдите в свой аккаунт</p>
 
           <form onSubmit={handleLogin}>
             <div className="mb-[10px]">
@@ -83,7 +82,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] disabled:opacity-50 text-white text-[var(--text-nav)] font-bold rounded-[9px] py-[10px] mt-1"
+              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] disabled:opacity-50 text-white text-[var(--text-body)] font-bold rounded-[9px] py-[10px] mt-1"
             >
               {loading ? 'Вход...' : 'Войти'}
             </button>
@@ -96,7 +95,7 @@ export default function LoginPage() {
             >
               Я тренер — зарегистрироваться
             </Link>
-            <p className="text-[var(--text-nav)] text-[var(--slate-400)] text-center leading-relaxed">
+            <p className="text-[var(--text-meta)] text-[var(--slate-400)] text-center leading-[1.4]">
               Клиент? Используйте ссылку-приглашение от тренера
             </p>
           </div>

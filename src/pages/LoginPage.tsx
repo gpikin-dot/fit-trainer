@@ -38,20 +38,20 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center px-4">
       <div className="max-w-[390px] w-full">
         {/* Card */}
-        <div className="bg-white rounded-[10px] px-[17px] py-[22px] border border-[var(--border-card)]">
+        <div className="bg-white rounded-[10px] px-[17px] py-[16px] border border-[var(--border-card)]">
           {/* Logo — inside card, centered */}
-          <div className="flex items-center justify-center gap-[7px] mb-5">
+          <div className="flex items-center justify-center gap-[7px] mb-[12px]">
             <div className="w-[30px] h-[30px] bg-[var(--indigo-50)] rounded-[9px] flex items-center justify-center">
               🏋️
             </div>
             <span className="text-[var(--text-title)] font-extrabold tracking-[-0.02em] text-[var(--slate-900)]">FitTrainer</span>
           </div>
-          <h1 className="text-[var(--text-heading)] font-bold text-[var(--slate-900)] leading-tight mb-[2px]">Вход</h1>
-          <p className="text-[var(--text-nav)] text-[var(--slate-400)] mb-[16px]">Войдите в свой аккаунт</p>
+          <h1 className="text-[16px] font-bold text-[var(--slate-900)] leading-tight mb-[2px]">Вход</h1>
+          <p className="text-[10px] text-[var(--slate-400)] mb-[10px]">Войдите в свой аккаунт</p>
 
           <form onSubmit={handleLogin}>
-            <div className="mb-[10px]">
-              <label className="block text-[var(--text-meta)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+            <div className="mb-[7px]">
+              <label className="block text-[9px] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-[3px]">
                 Email
               </label>
               <input
@@ -59,11 +59,11 @@ export default function LoginPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-body)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
+                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[7px] text-[11px] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
               />
             </div>
-            <div className="mb-[10px]">
-              <label className="block text-[var(--text-meta)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+            <div className="mb-[7px]">
+              <label className="block text-[9px] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-[3px]">
                 Пароль
               </label>
               <input
@@ -71,31 +71,31 @@ export default function LoginPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-body)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
+                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[7px] text-[11px] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
               />
             </div>
 
             {error && (
-              <div className="text-[var(--text-meta)] text-red-500 mb-2">{error}</div>
+              <div className="text-[9px] text-red-500 mb-2">{error}</div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] disabled:opacity-50 text-white text-[var(--text-body)] font-bold rounded-[9px] py-[10px] mt-1"
+              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] disabled:opacity-50 text-white text-[11px] font-bold rounded-[9px] py-[9px] mt-1"
             >
               {loading ? 'Вход...' : 'Войти'}
             </button>
           </form>
 
-          <div className="border-t border-[var(--slate-100)] mt-4 pt-[13px]">
+          <div className="border-t border-[var(--slate-100)] mt-[10px] pt-[10px] flex flex-col gap-[4px]">
             <Link
               to="/register/trainer"
-              className="text-[var(--text-nav)] font-semibold text-[var(--indigo-500)] block text-center mb-2"
+              className="text-[10px] font-semibold text-[var(--indigo-500)] block text-center"
             >
               Я тренер — зарегистрироваться
             </Link>
-            <p className="text-[var(--text-meta)] text-[var(--slate-400)] text-center leading-[1.4]">
+            <p className="text-[9px] text-[var(--slate-400)] text-center leading-[1.4]">
               Клиент? Используйте ссылку-приглашение от тренера
             </p>
           </div>

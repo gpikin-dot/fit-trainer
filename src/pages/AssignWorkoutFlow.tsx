@@ -80,7 +80,7 @@ function BackButton({ onClick, label = 'Назад' }: { onClick: () => void; la
   return (
     <button
       onClick={onClick}
-      className="text-[var(--fs-2xs)] font-semibold text-[var(--indigo-500)] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
+      className="text-[var(--text-sub)] font-semibold text-[var(--indigo-500)] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
     >
       <ArrowLeft className="w-3 h-3" /> {label}
     </button>
@@ -314,13 +314,13 @@ export default function AssignWorkoutFlow() {
   const otherWorkouts = workouts.filter(w => !w.is_favorite)
 
   // Row/input style for customize step
-  const numInput = 'bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[6px] px-[4px] py-[5px] text-[var(--fs-xs)] font-bold text-[var(--slate-900)] text-center w-full outline-none focus:border-indigo-400'
-  const noteInput = 'bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[6px] px-[7px] py-[5px] text-[var(--fs-3xs)] text-[var(--slate-600)] italic w-full outline-none focus:border-indigo-400 text-left'
+  const numInput = 'bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[6px] px-[4px] py-[5px] text-[var(--text-sub)] font-bold text-[var(--slate-900)] text-center w-full outline-none focus:border-indigo-400'
+  const noteInput = 'bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[6px] px-[7px] py-[5px] text-[var(--text-label)] text-[var(--slate-600)] italic w-full outline-none focus:border-indigo-400 text-left'
 
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center py-20 text-[var(--slate-400)] text-[var(--fs-xs)]">Загрузка...</div>
+        <div className="flex items-center justify-center py-20 text-[var(--slate-400)] text-[var(--text-sub)]">Загрузка...</div>
       </Layout>
     )
   }
@@ -334,13 +334,13 @@ export default function AssignWorkoutFlow() {
         {step === 'selectClient' && (
           <>
             <BackButton onClick={handleBack} label={workoutName || 'Назад'} />
-            <h1 className="text-[var(--fs-lg)] font-bold text-[var(--slate-900)]">Выбрать клиента</h1>
+            <h1 className="text-[var(--text-title)] font-bold text-[var(--slate-900)]">Выбрать клиента</h1>
             {workoutName && (
-              <p className="text-[var(--fs-3xs)] text-[var(--slate-400)] mb-5">{workoutName}</p>
+              <p className="text-[var(--text-label)] text-[var(--slate-400)] mb-5">{workoutName}</p>
             )}
 
             {clients.length === 0 ? (
-              <div className="text-center py-12 text-[var(--slate-400)] text-[var(--fs-xs)]">У вас пока нет клиентов</div>
+              <div className="text-center py-12 text-[var(--slate-400)] text-[var(--text-sub)]">У вас пока нет клиентов</div>
             ) : (
               <div className="mb-5">
                 {clients.map(client => {
@@ -358,8 +358,8 @@ export default function AssignWorkoutFlow() {
                     >
                       <Avatar name={client.name} size={28} />
                       <div className="flex-1 min-w-0">
-                        <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{client.name}</div>
-                        <div className="text-[var(--fs-3xs)] text-[var(--slate-400)] mt-[1px]">
+                        <div className="text-[var(--text-sub)] font-semibold text-[var(--slate-900)]">{client.name}</div>
+                        <div className="text-[var(--text-label)] text-[var(--slate-400)] mt-[1px]">
                           {count > 0
                             ? `${plural(count, 'раз', 'раза', 'раз')} делал эту тренировку`
                             : 'не делал'
@@ -367,9 +367,9 @@ export default function AssignWorkoutFlow() {
                         </div>
                       </div>
                       {selected ? (
-                        <div className="w-[16px] h-[16px] rounded-full bg-[var(--indigo-500)] flex items-center justify-center text-white text-[var(--fs-3xs)] shrink-0">✓</div>
+                        <div className="w-[16px] h-[16px] rounded-full bg-[var(--indigo-500)] flex items-center justify-center text-white text-[var(--text-label)] shrink-0">✓</div>
                       ) : (
-                        <span className="text-[var(--slate-300)] text-[var(--fs-xs)]">›</span>
+                        <span className="text-[var(--slate-300)] text-[var(--text-sub)]">›</span>
                       )}
                     </button>
                   )
@@ -382,7 +382,7 @@ export default function AssignWorkoutFlow() {
             <button
               onClick={handleClientSelected}
               disabled={!selectedClientId}
-              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[var(--fs-xs)] font-bold rounded-[9px] py-[10px] disabled:opacity-40"
+              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[var(--text-sub)] font-bold rounded-[9px] py-[10px] disabled:opacity-40"
             >
               Далее
             </button>
@@ -393,9 +393,9 @@ export default function AssignWorkoutFlow() {
         {step === 'selectTemplate' && (
           <>
             <BackButton onClick={handleBack} label={clientName || 'Назад'} />
-            <h1 className="text-[var(--fs-lg)] font-bold text-[var(--slate-900)]">Назначить тренировку</h1>
+            <h1 className="text-[var(--text-title)] font-bold text-[var(--slate-900)]">Назначить тренировку</h1>
             {clientName && (
-              <p className="text-[var(--fs-3xs)] text-[var(--slate-400)] mb-5">{clientName}</p>
+              <p className="text-[var(--text-label)] text-[var(--slate-400)] mb-5">{clientName}</p>
             )}
 
             {favoriteWorkouts.length > 0 && (
@@ -424,13 +424,13 @@ export default function AssignWorkoutFlow() {
                 )
               })}
               {workouts.length === 0 && (
-                <div className="text-center py-8 text-[var(--slate-400)] text-[var(--fs-xs)]">У вас нет шаблонов тренировок</div>
+                <div className="text-center py-8 text-[var(--slate-400)] text-[var(--text-sub)]">У вас нет шаблонов тренировок</div>
               )}
             </div>
 
             <button
               onClick={() => navigate('/trainer/workout/new')}
-              className="w-full border border-dashed border-[var(--indigo-200)] text-[var(--indigo-500)] text-[var(--fs-2xs)] font-bold py-[9px] rounded-[9px] mt-[6px]"
+              className="w-full border border-dashed border-[var(--indigo-200)] text-[var(--indigo-500)] text-[var(--text-sub)] font-bold py-[9px] rounded-[9px] mt-[6px]"
             >
               + Создать новый шаблон
             </button>
@@ -443,23 +443,23 @@ export default function AssignWorkoutFlow() {
         {step === 'customize' && (
           <>
             <BackButton onClick={handleBack} label="Выбор клиента" />
-            <h1 className="text-[var(--fs-lg)] font-bold text-[var(--slate-900)]">Настройка упражнений</h1>
+            <h1 className="text-[var(--text-title)] font-bold text-[var(--slate-900)]">Настройка упражнений</h1>
 
             {clientName && (
               <div className="flex items-center gap-[6px] bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[8px] px-[8px] py-[5px] mb-[7px] mt-[6px]">
                 <Avatar name={clientName} size={22} />
-                <span className="text-[var(--fs-2xs)] font-semibold text-[var(--slate-900)]">{clientName}</span>
+                <span className="text-[var(--text-sub)] font-semibold text-[var(--slate-900)]">{clientName}</span>
               </div>
             )}
 
             {workoutName && (
-              <div className="bg-[var(--slate-100)] text-[var(--slate-500)] text-[var(--fs-3xs)] font-semibold rounded-[6px] px-[9px] py-[4px] inline-block mb-[8px]">
+              <div className="bg-[var(--slate-100)] text-[var(--slate-500)] text-[var(--text-label)] font-semibold rounded-[6px] px-[9px] py-[4px] inline-block mb-[8px]">
                 {workoutName}
               </div>
             )}
 
             {exercises.length === 0 ? (
-              <div className="text-center py-8 text-[var(--slate-400)] text-[var(--fs-xs)]">В шаблоне нет упражнений</div>
+              <div className="text-center py-8 text-[var(--slate-400)] text-[var(--text-sub)]">В шаблоне нет упражнений</div>
             ) : (
               <div className="mb-5">
                 {exercises.map((ex, idx) => {
@@ -474,10 +474,10 @@ export default function AssignWorkoutFlow() {
                   return (
                     <div key={idx} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
                       <div className="flex justify-between mb-[8px]">
-                        <span className="text-[var(--fs-xs)] font-bold text-[var(--slate-900)]">{idx + 1}. {ex.library.name_ru}</span>
+                        <span className="text-[var(--text-sub)] font-bold text-[var(--slate-900)]">{idx + 1}. {ex.library.name_ru}</span>
                         <button
                           onClick={() => removeExercise(idx)}
-                          className="text-[var(--slate-300)] hover:text-[var(--red-500)] text-[var(--fs-md)] bg-transparent border-none p-0 leading-none"
+                          className="text-[var(--slate-300)] hover:text-[var(--red-500)] text-[var(--text-body)] bg-transparent border-none p-0 leading-none"
                         >
                           ✕
                         </button>
@@ -574,7 +574,7 @@ export default function AssignWorkoutFlow() {
 
             <button
               onClick={() => setStep('date')}
-              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[var(--fs-xs)] font-bold rounded-[9px] py-[10px]"
+              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[var(--text-sub)] font-bold rounded-[9px] py-[10px]"
             >
               Далее
             </button>
@@ -585,20 +585,20 @@ export default function AssignWorkoutFlow() {
         {step === 'date' && (
           <>
             <BackButton onClick={handleBack} label="Настройка" />
-            <h1 className="text-[1rem] font-bold text-[var(--slate-900)]">Дата тренировки</h1>
+            <h1 className="text-[var(--text-heading)] font-bold text-[var(--slate-900)]">Дата тренировки</h1>
 
             {/* Summary */}
             <div className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[8px] mt-[10px]">
               <div className="text-[0.5rem] font-bold text-[var(--slate-400)] uppercase tracking-[0.06em] mb-[4px]">ИТОГ</div>
-              <div className="text-[var(--fs-xs)] font-bold text-[var(--slate-900)]">
+              <div className="text-[var(--text-sub)] font-bold text-[var(--slate-900)]">
                 {workoutName} → {clientName}
               </div>
               <div className="flex gap-[5px] flex-wrap mt-[5px]">
-                <span className="text-[var(--fs-3xs)] text-[var(--slate-500)]">
+                <span className="text-[var(--text-label)] text-[var(--slate-500)]">
                   {plural(exercises.length, 'упражнение', 'упражнения', 'упражнений')}
                 </span>
                 {modifiedCount > 0 && (
-                  <span className="text-[var(--fs-3xs)] font-semibold bg-[var(--indigo-50)] text-[var(--indigo-700)] rounded-[20px] px-[7px] py-[2px] border border-[var(--indigo-200)]">
+                  <span className="text-[var(--text-label)] font-semibold bg-[var(--indigo-50)] text-[var(--indigo-700)] rounded-[20px] px-[7px] py-[2px] border border-[var(--indigo-200)]">
                     {modifiedCount} изменено
                   </span>
                 )}
@@ -607,7 +607,7 @@ export default function AssignWorkoutFlow() {
 
             {/* Notice */}
             <div className="bg-[var(--slate-50)] border border-[var(--border)] rounded-[8px] px-[9px] py-[6px] mb-[8px]">
-              <span className="text-[var(--fs-3xs)] text-[var(--slate-500)] flex gap-[5px]">
+              <span className="text-[var(--text-label)] text-[var(--slate-500)] flex gap-[5px]">
                 <span>ℹ</span>
                 <span>Шаблон не изменится — только эта сессия.</span>
               </span>
@@ -637,9 +637,9 @@ export default function AssignWorkoutFlow() {
                     {active && <div className="w-[7px] h-[7px] bg-[var(--indigo-500)] rounded-full" />}
                   </div>
                   <div className="flex-1">
-                    <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)]">{opt.label}</div>
+                    <div className="text-[var(--text-sub)] font-semibold text-[var(--slate-900)]">{opt.label}</div>
                     {opt.sub && (
-                      <div className="text-[var(--fs-3xs)] text-[var(--slate-500)] mt-[1px]">
+                      <div className="text-[var(--text-label)] text-[var(--slate-500)] mt-[1px]">
                         {new Date(opt.sub + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
                       </div>
                     )}
@@ -651,7 +651,7 @@ export default function AssignWorkoutFlow() {
                       min={localDate(0)}
                       onChange={e => setPickedDate(e.target.value)}
                       onClick={e => e.stopPropagation()}
-                      className="text-[var(--fs-2xs)] border border-[var(--indigo-200)] rounded-[6px] px-2 py-1 bg-white outline-none"
+                      className="text-[var(--text-sub)] border border-[var(--indigo-200)] rounded-[6px] px-2 py-1 bg-white outline-none"
                     />
                   )}
                   {opt.value === 'pick' && !active && (
@@ -666,7 +666,7 @@ export default function AssignWorkoutFlow() {
             <button
               onClick={handleAssign}
               disabled={submitting || (dateChoice === 'pick' && !pickedDate)}
-              className="w-full bg-[var(--indigo-500)] text-white rounded-[10px] py-[11px] text-[var(--fs-sm)] font-bold mt-[8px] disabled:opacity-40 hover:bg-[var(--indigo-700)]"
+              className="w-full bg-[var(--indigo-500)] text-white rounded-[10px] py-[11px] text-[var(--text-sub)] font-bold mt-[8px] disabled:opacity-40 hover:bg-[var(--indigo-700)]"
             >
               {submitting ? 'Назначаем...' : 'Назначить тренировку'}
             </button>
@@ -697,14 +697,14 @@ function WorkoutSelectRow({
         <Star className="w-3.5 h-3.5 text-[var(--amber-500)] fill-[var(--amber-500)] shrink-0" />
       )}
       <div className="flex-1 min-w-0">
-        <div className="text-[var(--fs-xs)] font-semibold text-[var(--slate-900)] truncate">{workout.name}</div>
+        <div className="text-[var(--text-sub)] font-semibold text-[var(--slate-900)] truncate">{workout.name}</div>
       </div>
       {count > 0 && (
-        <span className="text-[var(--fs-3xs)] bg-[var(--slate-100)] text-[var(--slate-500)] rounded-[20px] px-[7px] py-[2px] shrink-0">
+        <span className="text-[var(--text-label)] bg-[var(--slate-100)] text-[var(--slate-500)] rounded-[20px] px-[7px] py-[2px] shrink-0">
           {count} раз
         </span>
       )}
-      <span className="text-[var(--slate-300)] text-[var(--fs-xs)]">›</span>
+      <span className="text-[var(--slate-300)] text-[var(--text-sub)]">›</span>
     </button>
   )
 }

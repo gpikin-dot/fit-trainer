@@ -56,16 +56,16 @@ export default function Layout({ children, fullHeight = false }: {
                   style={{ transition: 'stroke-dashoffset 1s linear' }}
                 />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center text-[var(--text-sub)] font-bold text-[var(--slate-900)]">
+              <div className="absolute inset-0 flex items-center justify-center text-[var(--text-meta)] font-bold text-[var(--slate-900)]">
                 {fmt(timerSec)}
               </div>
             </div>
             <div className="text-left">
-              <div className="text-[var(--text-sub)] text-[var(--slate-400)] uppercase tracking-wider">отдых</div>
+              <div className="text-[var(--text-meta)] text-[var(--slate-400)] uppercase tracking-wider">отдых</div>
               {timerNextEx && (
-                <div className="text-[var(--text-sub)] text-[var(--slate-500)] max-w-[120px] truncate">{timerNextEx}</div>
+                <div className="text-[var(--text-meta)] text-[var(--slate-500)] max-w-[120px] truncate">{timerNextEx}</div>
               )}
-              <div className="text-[var(--text-sub)] text-[var(--green-600)] mt-0.5">вернуться →</div>
+              <div className="text-[var(--text-nav)] text-[var(--green-600)] mt-0.5">вернуться →</div>
             </div>
           </button>
 
@@ -78,7 +78,7 @@ export default function Layout({ children, fullHeight = false }: {
             </button>
             <button
               onClick={() => addTime(30)}
-              className="flex-1 py-2 flex items-center justify-center gap-1 text-[var(--text-sub)] text-[var(--slate-500)] hover:bg-[var(--slate-50)] border-l border-[var(--slate-100)]"
+              className="flex-1 py-2 flex items-center justify-center gap-1 text-[var(--text-nav)] text-[var(--slate-500)] hover:bg-[var(--slate-50)] border-l border-[var(--slate-100)]"
             >
               <Plus className="w-3 h-3" />30
             </button>

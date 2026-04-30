@@ -69,14 +69,14 @@ export default function RegisterClientPage() {
 
           {trainerName && (
             <div className="bg-[var(--green-50)] border border-[var(--green-200)] rounded-[9px] px-[11px] py-[9px] mb-4">
-              <div className="text-[var(--text-sub)] font-bold text-[var(--green-600)] uppercase tracking-[0.04em]">Вас приглашает тренер</div>
-              <div className="text-[var(--text-sub)] font-bold text-[var(--green-800)] mt-[1px]">{trainerName}</div>
+              <div className="text-[var(--text-meta)] font-bold text-[var(--green-600)] uppercase tracking-[0.04em]">Вас приглашает тренер</div>
+              <div className="text-[var(--text-meta)] font-bold text-[var(--green-800)] mt-[1px]">{trainerName}</div>
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
             <div className="mb-[10px]">
-              <label className="block text-[var(--text-sub)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[var(--text-meta)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Имя
               </label>
               <input
@@ -85,11 +85,11 @@ export default function RegisterClientPage() {
                 onChange={e => setName(e.target.value)}
                 placeholder="Иван Иванов"
                 required
-                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-sub)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
+                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-body)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
               />
             </div>
             <div className="mb-[10px]">
-              <label className="block text-[var(--text-sub)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[var(--text-meta)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Email
               </label>
               <input
@@ -97,11 +97,11 @@ export default function RegisterClientPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-sub)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
+                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-body)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
               />
             </div>
             <div className="mb-[10px]">
-              <label className="block text-[var(--text-sub)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[var(--text-meta)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Пароль
               </label>
               <input
@@ -109,18 +109,18 @@ export default function RegisterClientPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-sub)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
+                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-body)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
               />
             </div>
 
             {error && (
-              <div className="text-[var(--text-sub)] text-red-500 mb-2">{error}</div>
+              <div className="text-[var(--text-meta)] text-red-500 mb-2">{error}</div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] disabled:opacity-50 text-white text-[var(--text-sub)] font-bold rounded-[9px] py-[10px] mt-1"
+              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] disabled:opacity-50 text-white text-[var(--text-nav)] font-bold rounded-[9px] py-[10px] mt-1"
             >
               {loading ? 'Создание аккаунта...' : 'Зарегистрироваться'}
             </button>

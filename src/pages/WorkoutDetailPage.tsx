@@ -62,7 +62,7 @@ export default function WorkoutDetailPage() {
 
   if (!workout) return (
     <Layout>
-      <div className="text-center py-12 text-[var(--slate-400)] text-[var(--text-sub)]">Загрузка...</div>
+      <div className="text-center py-12 text-[var(--slate-400)] text-[var(--text-meta)]">Загрузка...</div>
     </Layout>
   )
 
@@ -78,7 +78,7 @@ export default function WorkoutDetailPage() {
       <div className="pt-[11px] pb-[14px]">
         <Link
           to="/trainer"
-          className="text-[var(--text-sub)] font-semibold text-[var(--indigo-500)] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
+          className="text-[var(--text-nav)] font-semibold text-[var(--indigo-500)] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
         >
           <ArrowLeft className="w-3 h-3" /> Шаблоны
         </Link>
@@ -87,26 +87,26 @@ export default function WorkoutDetailPage() {
         <div className="grid grid-cols-3 gap-[5px] mb-[13px]">
           <button
             onClick={() => navigate(`/trainer/workout/${id}/edit`)}
-            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[8px] text-[var(--text-label)] font-bold text-[var(--slate-600)] flex items-center justify-center"
+            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[8px] text-[var(--text-meta)] font-bold text-[var(--slate-600)] flex items-center justify-center"
           >
             Изменить
           </button>
           <button
             onClick={handleCopy}
-            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[8px] text-[var(--text-label)] font-bold text-[var(--slate-600)] flex items-center justify-center"
+            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[8px] text-[var(--text-meta)] font-bold text-[var(--slate-600)] flex items-center justify-center"
           >
             Копировать
           </button>
           <button
             onClick={handleDelete}
-            className="border border-[var(--red-200)] bg-[var(--red-50)] rounded-[8px] py-[8px] text-[var(--text-label)] font-bold text-[var(--red-500)] flex items-center justify-center"
+            className="border border-[var(--red-200)] bg-[var(--red-50)] rounded-[8px] py-[8px] text-[var(--text-meta)] font-bold text-[var(--red-500)] flex items-center justify-center"
           >
             Удалить
           </button>
         </div>
 
         <h1 className="text-[var(--text-heading)] font-bold text-[var(--slate-900)] mb-[1px]">{workout.name}</h1>
-        <p className="text-[var(--text-label)] text-[var(--slate-400)] mb-[13px]">
+        <p className="text-[var(--text-meta)] text-[var(--slate-400)] mb-[13px]">
           {exercises.length} упражнений · отдых {workout.default_rest_sec} сек
         </p>
 
@@ -115,30 +115,30 @@ export default function WorkoutDetailPage() {
         {/* Assign button */}
         <button
           onClick={() => navigate(`/trainer/assign?workoutId=${id}`)}
-          className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[var(--text-sub)] font-bold rounded-[9px] py-[10px] mb-[15px]"
+          className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[var(--text-nav)] font-bold rounded-[9px] py-[10px] mb-[15px]"
         >
           Назначить клиенту
         </button>
 
         {/* Exercises */}
-        <div className="text-[var(--text-label)] font-bold text-[var(--slate-400)] uppercase tracking-[0.07em] mb-[6px]">
+        <div className="text-[var(--text-meta)] font-bold text-[var(--slate-400)] uppercase tracking-[0.07em] mb-[6px]">
           Упражнения
         </div>
 
         {exercises.length === 0 ? (
-          <p className="text-[var(--text-sub)] text-[var(--slate-400)]">Нет упражнений</p>
+          <p className="text-[var(--text-meta)] text-[var(--slate-400)]">Нет упражнений</p>
         ) : (
           exercises.map((ex, i) => (
             <div key={ex.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
-              <div className="text-[var(--text-sub)] font-bold text-[var(--slate-900)] mb-[3px]">
+              <div className="text-[var(--text-body)] font-bold text-[var(--slate-900)] mb-[3px]">
                 {i + 1}. {ex.exercise_library.name_ru}
               </div>
-              <div className="text-[var(--text-label)] text-[var(--slate-500)]">
+              <div className="text-[var(--text-meta)] text-[var(--slate-500)]">
                 {ex.sets} × {ex.reps}{ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}
                 {ex.rest_sec ? ` · отдых ${ex.rest_sec} сек` : ''}
               </div>
               {ex.trainer_note && (
-                <div className="text-[var(--text-label)] text-[var(--indigo-500)] italic mt-[3px]">«{ex.trainer_note}»</div>
+                <div className="text-[var(--text-meta)] text-[var(--indigo-500)] italic mt-[3px]">«{ex.trainer_note}»</div>
               )}
             </div>
           ))
@@ -147,7 +147,7 @@ export default function WorkoutDetailPage() {
         {/* Who used */}
         {clientUsage.size > 0 && (
           <div className="mt-[13px]">
-            <div className="text-[var(--text-label)] font-bold text-[var(--slate-400)] uppercase tracking-[0.07em] mb-[6px]">
+            <div className="text-[var(--text-meta)] font-bold text-[var(--slate-400)] uppercase tracking-[0.07em] mb-[6px]">
               Кто использовал
             </div>
             <div className="bg-white border border-[var(--border)] rounded-[10px] overflow-hidden">
@@ -157,11 +157,11 @@ export default function WorkoutDetailPage() {
                   onClick={() => navigate(`/trainer/client/${clientId}`)}
                   className={`flex gap-[8px] px-[11px] py-[8px] cursor-pointer ${idx < arr.length - 1 ? 'border-b border-[var(--slate-50)]' : ''}`}
                 >
-                  <div className="w-[24px] h-[24px] rounded-full bg-[var(--indigo-50)] flex items-center justify-center shrink-0 text-[var(--text-sub)] font-bold text-[var(--indigo-500)]">
+                  <div className="w-[24px] h-[24px] rounded-full bg-[var(--indigo-50)] flex items-center justify-center shrink-0 text-[var(--text-nav)] font-bold text-[var(--indigo-500)]">
                     {name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-[var(--text-sub)] font-semibold text-[var(--slate-900)] flex-1">{name}</span>
-                  <span className="text-[var(--text-label)] text-[var(--slate-400)]">
+                  <span className="text-[var(--text-body)] font-semibold text-[var(--slate-900)] flex-1">{name}</span>
+                  <span className="text-[var(--text-meta)] text-[var(--slate-400)]">
                     {count} {count === 1 ? 'раз' : 'раза'}
                   </span>
                 </div>

@@ -147,7 +147,7 @@ export default function ClientCardPage() {
 
                 return (
                   <div key={a.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
-                    <div className="flex justify-between gap-[6px]">
+                    <div className="flex items-center justify-between gap-[6px]">
                       <div className="flex-1 min-w-0">
                         <div className="text-[17px] font-semibold text-[var(--slate-900)]">{a.workout?.name ?? '—'}</div>
                         <div className="text-[15px] text-[var(--slate-400)] mt-[2px]">{dateLabel}</div>

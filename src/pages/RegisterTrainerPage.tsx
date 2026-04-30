@@ -38,18 +38,18 @@ export default function RegisterTrainerPage() {
       <div className="max-w-[390px] w-full">
         <Link
           to="/login"
-          className="text-[var(--text-sub)] font-semibold text-[var(--indigo-500)] flex items-center gap-1 mb-3"
+          className="text-[var(--text-nav)] font-semibold text-[var(--indigo-500)] flex items-center gap-1 mb-3"
         >
           ← Назад
         </Link>
 
         <div className="bg-white rounded-[16px] px-[17px] py-[22px] border border-[var(--border)]">
           <h1 className="text-[var(--text-heading)] font-bold text-[var(--slate-900)] mb-[2px]">Регистрация тренера</h1>
-          <p className="text-[var(--text-sub)] text-[var(--slate-400)] mb-4">Создайте аккаунт, чтобы приглашать клиентов</p>
+          <p className="text-[var(--text-nav)] text-[var(--slate-400)] mb-4">Создайте аккаунт, чтобы приглашать клиентов</p>
 
           <form onSubmit={handleSubmit}>
             <div className="mb-[10px]">
-              <label className="block text-[var(--text-label)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[var(--text-meta)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Имя
               </label>
               <input
@@ -58,11 +58,11 @@ export default function RegisterTrainerPage() {
                 onChange={e => setName(e.target.value)}
                 placeholder="Иван Иванов"
                 required
-                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-sub)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
+                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-body)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
               />
             </div>
             <div className="mb-[10px]">
-              <label className="block text-[var(--text-label)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[var(--text-meta)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Email
               </label>
               <input
@@ -70,11 +70,11 @@ export default function RegisterTrainerPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-sub)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
+                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-body)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
               />
             </div>
             <div className="mb-[10px]">
-              <label className="block text-[var(--text-label)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[var(--text-meta)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Пароль
               </label>
               <input
@@ -82,18 +82,18 @@ export default function RegisterTrainerPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-sub)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
+                className="w-full border border-[var(--slate-200)] rounded-[8px] px-[10px] py-[8px] text-[var(--text-body)] text-[var(--slate-900)] bg-[var(--slate-50)] outline-none focus:border-indigo-400"
               />
             </div>
 
             {error && (
-              <div className="text-[var(--text-sub)] text-red-500 mb-2">{error}</div>
+              <div className="text-[var(--text-meta)] text-red-500 mb-2">{error}</div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] disabled:opacity-50 text-white text-[var(--text-sub)] font-bold rounded-[9px] py-[10px] mt-1"
+              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] disabled:opacity-50 text-white text-[var(--text-nav)] font-bold rounded-[9px] py-[10px] mt-1"
             >
               {loading ? 'Создание аккаунта...' : 'Зарегистрироваться'}
             </button>

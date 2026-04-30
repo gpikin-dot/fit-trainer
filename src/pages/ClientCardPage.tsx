@@ -152,7 +152,7 @@ export default function ClientCardPage() {
                         <div className="text-[17px] font-semibold text-[var(--slate-900)]">{a.workout?.name ?? '—'}</div>
                         <div className="text-[15px] text-[var(--slate-400)] mt-[2px]">{dateLabel}</div>
                       </div>
-                      <span className={`text-[15px] font-bold px-[7px] py-[2px] rounded-[20px] shrink-0 ${
+                      <span className={`text-[13px] font-bold leading-none px-[9px] py-[4px] rounded-full shrink-0 ${
                         started ? 'bg-[var(--amber-100)] text-[var(--amber-800)]' : 'bg-[var(--slate-100)] text-[var(--slate-500)]'
                       }`}>
                         {done}/{totalEx}
@@ -192,7 +192,7 @@ export default function ClientCardPage() {
                       <div className="text-[15px] text-[var(--slate-400)] mt-[2px]">{dateLabel}</div>
                     </div>
                     <div className="flex gap-[5px] shrink-0 items-center">
-                      <span className={`text-[15px] font-bold px-[7px] py-[2px] rounded-[20px] ${
+                      <span className={`text-[13px] font-bold leading-none px-[9px] py-[4px] rounded-full ${
                         pct === 1 ? 'bg-[var(--green-100)] text-[var(--green-700)]'
                         : pct >= 0.6 ? 'bg-[var(--amber-100)] text-[var(--amber-800)]'
                         : 'bg-[var(--red-100)] text-[var(--red-800)]'

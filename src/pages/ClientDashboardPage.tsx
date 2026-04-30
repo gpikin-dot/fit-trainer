@@ -96,7 +96,7 @@ export default function ClientDashboardPage() {
   if (loading) {
     return (
       <Layout>
-        <div style={{ textAlign: 'center', padding: '48px 0', fontSize: 11, color: 'var(--slate-400)' }}>
+        <div style={{ textAlign: 'center', padding: '48px 0', fontSize: 17, color: 'var(--slate-400)' }}>
           Загрузка...
         </div>
       </Layout>
@@ -112,10 +112,10 @@ export default function ClientDashboardPage() {
       >
         {/* Greeting + name */}
         <div style={{ paddingTop: 11 }}>
-          <div style={{ fontSize: 9, color: 'var(--slate-400)' }}>
+          <div style={{ fontSize: 15, color: 'var(--slate-400)' }}>
             {getGreeting()}
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--slate-900)', marginTop: 1, marginBottom: 11, letterSpacing: '-0.01em' }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--slate-900)', marginTop: 1, marginBottom: 11, letterSpacing: '-0.01em' }}>
             {profile?.name ? shortName(profile.name) : ''}
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function ClientDashboardPage() {
               style={{
                 flex: 1,
                 padding: '8px 4px',
-                fontSize: 10,
+                fontSize: 16,
                 fontWeight: 600,
                 color: tab === key ? 'var(--indigo-500)' : 'var(--slate-400)',
                 textAlign: 'center',
@@ -163,15 +163,15 @@ export default function ClientDashboardPage() {
                 marginBottom: 10,
               }}>
                 {/* Label */}
-                <div style={{ fontSize: 8, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 5 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 5 }}>
                   {inProgress ? 'В процессе' : 'Тренировка сегодня'}
                 </div>
                 {/* Name */}
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--slate-900)', letterSpacing: '-0.01em', marginBottom: 3 }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--slate-900)', letterSpacing: '-0.01em', marginBottom: 3 }}>
                   {todayWorkout.workout?.name}
                 </div>
                 {/* Meta */}
-                <div style={{ fontSize: 9, color: 'var(--slate-400)', marginBottom: inProgress ? 8 : 10 }}>
+                <div style={{ fontSize: 15, color: 'var(--slate-400)', marginBottom: inProgress ? 8 : 10 }}>
                   {todayWorkout.exerciseCount} упражнений · {fmtDate(today)}
                 </div>
 
@@ -179,8 +179,8 @@ export default function ClientDashboardPage() {
                 {inProgress && (
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <span style={{ fontSize: 9, color: 'var(--slate-400)' }}>Упражнений</span>
-                      <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--indigo-500)' }}>
+                      <span style={{ fontSize: 15, color: 'var(--slate-400)' }}>Упражнений</span>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--indigo-500)' }}>
                         {todayWorkout.completedCount} / {todayWorkout.exerciseCount}
                       </span>
                     </div>
@@ -200,7 +200,7 @@ export default function ClientDashboardPage() {
                     border: 'none',
                     borderRadius: 9,
                     padding: 10,
-                    fontSize: 11,
+                    fontSize: 17,
                     fontWeight: 700,
                     cursor: 'pointer',
                     fontFamily: 'var(--font)',
@@ -215,7 +215,7 @@ export default function ClientDashboardPage() {
             {/* Ближайшие */}
             {upcoming.length > 0 && (
               <>
-                <div style={{ fontSize: 8, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '10px 0 6px' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '10px 0 6px' }}>
                   Ближайшие
                 </div>
                 {upcoming.map(a => (
@@ -238,14 +238,14 @@ export default function ClientDashboardPage() {
                     }}
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-900)' }}>
+                      <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--slate-900)' }}>
                         {a.workout?.name}
                       </div>
-                      <div style={{ fontSize: 9, color: 'var(--slate-400)', marginTop: 1 }}>
+                      <div style={{ fontSize: 15, color: 'var(--slate-400)', marginTop: 1 }}>
                         {a.planned_date ? fmtDate(a.planned_date) : 'Без даты'}
                       </div>
                     </div>
-                    <span style={{ color: 'var(--slate-300)', fontSize: 12, flexShrink: 0 }}>›</span>
+                    <span style={{ color: 'var(--slate-300)', fontSize: 16, flexShrink: 0 }}>›</span>
                   </button>
                 ))}
               </>
@@ -253,7 +253,7 @@ export default function ClientDashboardPage() {
 
             {/* Empty */}
             {!todayWorkout && upcoming.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '32px 0 16px', fontSize: 11, color: 'var(--slate-400)', lineHeight: 1.6 }}>
+              <div style={{ textAlign: 'center', padding: '32px 0 16px', fontSize: 17, color: 'var(--slate-400)', lineHeight: 1.6 }}>
                 Тренировок на сегодня нет.<br />Тренер скоро назначит.
               </div>
             )}
@@ -264,7 +264,7 @@ export default function ClientDashboardPage() {
         {tab === 'history' && (
           history.length === 0
             ? (
-              <div style={{ textAlign: 'center', padding: '32px 0 16px', fontSize: 11, color: 'var(--slate-400)', lineHeight: 1.6 }}>
+              <div style={{ textAlign: 'center', padding: '32px 0 16px', fontSize: 17, color: 'var(--slate-400)', lineHeight: 1.6 }}>
                 История пуста
               </div>
             )
@@ -301,17 +301,17 @@ export default function ClientDashboardPage() {
                     }}
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-900)' }}>
+                      <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--slate-900)' }}>
                         {a.workout?.name}
                       </div>
-                      <div style={{ fontSize: 9, color: 'var(--slate-400)', marginTop: 2 }}>
+                      <div style={{ fontSize: 15, color: 'var(--slate-400)', marginTop: 2 }}>
                         {dateLabel}
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
                       <span style={{
                         ...badgeStyle,
-                        fontSize: 9,
+                        fontSize: 15,
                         fontWeight: 700,
                         padding: '2px 7px',
                         borderRadius: 20,
@@ -319,7 +319,7 @@ export default function ClientDashboardPage() {
                       }}>
                         {a.completedCount}/{a.exerciseCount}
                       </span>
-                      <span style={{ color: 'var(--slate-300)', fontSize: 12, flexShrink: 0 }}>›</span>
+                      <span style={{ color: 'var(--slate-300)', fontSize: 16, flexShrink: 0 }}>›</span>
                     </div>
                   </button>
                 )

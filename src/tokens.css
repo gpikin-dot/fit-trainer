@@ -126,9 +126,9 @@ body {
 /* ── МОБИЛЬНАЯ ОБЁРТКА (ОБЯЗАТЕЛЬНО) ───────────────────────── */
 /*
   КРИТИЧНО: без этого приложение растягивается на весь экран десктопа.
-  Разработчик должен обернуть всё приложение в элемент с id="app-root".
+  React рендерит в #root (см. index.html → <div id="root">).
 */
-#app-root {
+#root {
   max-width: 430px;
   margin: 0 auto;
   min-height: 100vh;
@@ -223,7 +223,7 @@ body {
   color: #FFF;
   border: none;
   border-radius: var(--r-btn);
-  padding: 12px;
+  padding: 10px;
   font-size: var(--text-body);
   font-weight: 700;
   font-family: var(--font-base);
@@ -252,7 +252,7 @@ body {
   color: var(--indigo-500);
   border: 1.5px dashed var(--indigo-300);
   border-radius: var(--r-btn);
-  padding: 12px;
+  padding: 10px;
   font-size: var(--text-nav);
   font-weight: 700;
   font-family: var(--font-base);
@@ -282,7 +282,7 @@ body {
   background: #FFF;
   border: 1px solid var(--border-default);
   border-radius: var(--r-card);
-  padding: 10px 12px;
+  padding: 9px 11px;
   margin-bottom: 5px;
 }
 
@@ -294,7 +294,7 @@ body {
 /* Шеврон › */
 .chev {
   color: var(--slate-300);
-  font-size: var(--text-title);
+  font-size: var(--text-body);
   flex-shrink: 0;
   margin-left: auto;
 }
@@ -306,7 +306,7 @@ body {
   color: var(--slate-400);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin: 10px 0 6px;
+  margin: 8px 0 5px;
 }
 .sec-label:first-child { margin-top: 0; }
 
@@ -315,7 +315,7 @@ body {
 .badge {
   font-size: var(--text-meta);
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: var(--r-pill);
   white-space: nowrap;
   flex-shrink: 0;
@@ -343,7 +343,7 @@ body {
   font-size: var(--text-meta);
   font-weight: 600;
   border-radius: var(--r-pill);
-  padding: 3px 8px;
+  padding: 2px 7px;
 }
 .status-pill--started { background: var(--green-50);   color: var(--green-600); }
 .status-pill--pending { background: var(--slate-50);   color: var(--slate-400); }
@@ -387,7 +387,7 @@ body {
   width: 100%;
   border: 1px solid var(--slate-200);
   border-radius: var(--r-md);
-  padding: 10px 12px;
+  padding: 8px 10px;
   font-size: var(--text-body);
   font-family: var(--font-base);
   color: var(--slate-900);
@@ -463,7 +463,7 @@ body {
 .modal-sheet {
   background: #FFF;
   border-radius: var(--r-modal);
-  padding: 20px 16px 24px;
+  padding: 18px 16px 22px;
   width: 100%;
 }
 .modal-sheet__title {

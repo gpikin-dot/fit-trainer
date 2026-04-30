@@ -49,7 +49,7 @@ export default function RegisterTrainerPage() {
 
           <form onSubmit={handleSubmit}>
             <div className="mb-[10px]">
-              <label className="block text-[var(--fs-4xs)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[0.44rem] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Имя
               </label>
               <input
@@ -62,7 +62,7 @@ export default function RegisterTrainerPage() {
               />
             </div>
             <div className="mb-[10px]">
-              <label className="block text-[var(--fs-4xs)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[0.44rem] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Email
               </label>
               <input
@@ -74,7 +74,7 @@ export default function RegisterTrainerPage() {
               />
             </div>
             <div className="mb-[10px]">
-              <label className="block text-[var(--fs-4xs)] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
+              <label className="block text-[0.44rem] font-bold text-[var(--slate-500)] uppercase tracking-[0.04em] mb-1">
                 Пароль
               </label>
               <input

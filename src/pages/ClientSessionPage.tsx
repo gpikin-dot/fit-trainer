@@ -145,7 +145,7 @@ export default function ClientSessionPage() {
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center py-20 text-[var(--slate-400)] text-[var(--text-meta)]">Загрузка...</div>
+        <div className="flex items-center justify-center py-20 text-[var(--slate-400)] text-[15px]">Загрузка...</div>
       </Layout>
     )
   }
@@ -153,7 +153,7 @@ export default function ClientSessionPage() {
   if (notFound || !assignment || !workout) {
     return (
       <Layout>
-        <div className="flex items-center justify-center py-20 text-[var(--slate-400)] text-[var(--text-meta)]">Не найдено</div>
+        <div className="flex items-center justify-center py-20 text-[var(--slate-400)] text-[15px]">Не найдено</div>
       </Layout>
     )
   }
@@ -166,24 +166,24 @@ export default function ClientSessionPage() {
         {/* Back */}
         <button
           onClick={() => navigate('/client')}
-          className="text-[var(--text-nav)] font-semibold text-[var(--slate-500)] flex items-center gap-1 mb-[9px]"
+          className="text-[16px] font-semibold text-[var(--slate-500)] flex items-center gap-1 mb-[9px]"
         >
           ← Мои тренировки
         </button>
 
-        <h1 className="text-[var(--text-heading)] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{workout.name}</h1>
-        <p className="text-[var(--text-meta)] text-[var(--slate-400)] mb-[11px]">{fmtDate(completedAt)}</p>
+        <h1 className="text-[26px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{workout.name}</h1>
+        <p className="text-[15px] text-[var(--slate-400)] mb-[11px]">{fmtDate(completedAt)}</p>
 
         {/* Status card */}
         <div className="bg-white border border-[var(--border)] rounded-[10px] px-[12px] py-[11px] mb-[10px]">
           <div className="flex justify-between mb-[9px]">
             <div className="flex gap-[5px] items-center">
               <span className="text-[0.875rem] text-[var(--green-600)]">✓</span>
-              <span className="text-[var(--text-body)] font-bold text-[var(--green-600)]">Выполнена</span>
+              <span className="text-[17px] font-bold text-[var(--green-600)]">Выполнена</span>
             </div>
             <div className="text-right">
-              <div className="text-[var(--text-title)] font-bold text-[var(--slate-900)] leading-none">{completedCount} / {totalExercises}</div>
-              <div className="text-[var(--text-meta)] text-[var(--slate-400)] mt-[2px]">упражнений</div>
+              <div className="text-[24px] font-bold text-[var(--slate-900)] leading-none">{completedCount} / {totalExercises}</div>
+              <div className="text-[15px] text-[var(--slate-400)] mt-[2px]">упражнений</div>
             </div>
           </div>
           <div className="h-[5px] bg-[var(--slate-100)] rounded-full overflow-hidden">
@@ -205,24 +205,24 @@ export default function ClientSessionPage() {
 
           return (
             <div key={ex.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
-              <p className="text-[var(--text-body)] font-bold text-[var(--slate-900)] mb-[4px]">{ex.name}</p>
+              <p className="text-[17px] font-bold text-[var(--slate-900)] mb-[4px]">{ex.name}</p>
 
               {hasResult ? (
                 <>
-                  <p className="text-[var(--text-meta)] text-[var(--slate-400)] mb-[2px]">
+                  <p className="text-[15px] text-[var(--slate-400)] mb-[2px]">
                     план: {ex.sets}×{ex.reps} · {ex.weight_kg} кг
                   </p>
-                  <p className="text-[var(--text-meta)] text-[var(--slate-700)]">
+                  <p className="text-[15px] text-[var(--slate-700)]">
                     факт: {ex.sets}×<span className={valueClass(repsCompare)}>{result.actual_reps ?? ex.reps}</span>{' '}
                     · <span className={valueClass(weightCompare)}>{result.actual_weight_kg ?? ex.weight_kg}</span> кг
                   </p>
                 </>
               ) : (
-                <p className="text-[var(--text-meta)] text-[var(--slate-300)] italic">Пропущено</p>
+                <p className="text-[15px] text-[var(--slate-300)] italic">Пропущено</p>
               )}
 
               {result?.client_note ? (
-                <p className="text-[var(--text-meta)] text-[var(--slate-500)] italic mt-[3px]">«{result.client_note}»</p>
+                <p className="text-[15px] text-[var(--slate-500)] italic mt-[3px]">«{result.client_note}»</p>
               ) : null}
             </div>
           )

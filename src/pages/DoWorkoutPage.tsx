@@ -285,7 +285,7 @@ export default function DoWorkoutPage() {
 
   if (!loaded) return (
     <Layout>
-      <div style={{ textAlign: 'center', padding: '48px 0', fontSize: 11, color: 'var(--slate-400)' }}>
+      <div style={{ textAlign: 'center', padding: '48px 0', fontSize: 17, color: 'var(--slate-400)' }}>
         Загрузка...
       </div>
     </Layout>
@@ -301,19 +301,19 @@ export default function DoWorkoutPage() {
       >
         <button
           onClick={() => navigate('/client')}
-          style={{ fontSize: 10, fontWeight: 600, color: 'var(--indigo-500)', background: 'none', border: 'none', cursor: 'pointer', marginBottom: 7, display: 'block', fontFamily: 'var(--font)' }}
+          style={{ fontSize: 16, fontWeight: 600, color: 'var(--indigo-500)', background: 'none', border: 'none', cursor: 'pointer', marginBottom: 7, display: 'block', fontFamily: 'var(--font)' }}
         >
           ← Сегодня
         </button>
-        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--slate-900)', letterSpacing: '-0.01em', marginBottom: 7 }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--slate-900)', letterSpacing: '-0.01em', marginBottom: 7 }}>
           {workout?.name}
         </div>
         {error && (
-          <div style={{ fontSize: 9, color: 'var(--red-600)', marginBottom: 5 }}>{error}</div>
+          <div style={{ fontSize: 15, color: 'var(--red-600)', marginBottom: 5 }}>{error}</div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-          <span style={{ fontSize: 9, color: 'var(--slate-400)' }}>Упражнений</span>
-          <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--indigo-500)' }}>
+          <span style={{ fontSize: 15, color: 'var(--slate-400)' }}>Упражнений</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--indigo-500)' }}>
             {completedExCount} / {exercises.length}
           </span>
         </div>
@@ -350,12 +350,12 @@ export default function DoWorkoutPage() {
                 marginBottom: 6,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--slate-900)' }}>{name}</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--green-700)', background: 'var(--green-100)', borderRadius: 20, padding: '2px 7px', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)' }}>{name}</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--green-700)', background: 'var(--green-100)', borderRadius: 20, padding: '2px 7px', whiteSpace: 'nowrap' }}>
                     ✓ {st.sets.filter(s => s.completed).length}/{st.sets.length}
                   </span>
                 </div>
-                <div style={{ fontSize: 9, color: 'var(--slate-700)', lineHeight: 1.6 }}>{summary}</div>
+                <div style={{ fontSize: 15, color: 'var(--slate-700)', lineHeight: 1.6 }}>{summary}</div>
               </div>
             )
           }
@@ -368,8 +368,8 @@ export default function DoWorkoutPage() {
                 borderRadius: 10, padding: '10px 11px', marginBottom: 6, opacity: 0.55,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--slate-900)' }}>{name}</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--slate-500)', background: 'var(--slate-100)', borderRadius: 20, padding: '2px 7px' }}>Пропущено</span>
+                  <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)' }}>{name}</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--slate-500)', background: 'var(--slate-100)', borderRadius: 20, padding: '2px 7px' }}>Пропущено</span>
                 </div>
               </div>
             )
@@ -382,13 +382,13 @@ export default function DoWorkoutPage() {
                 background: 'var(--white)', border: '1px solid var(--indigo-300)',
                 borderRadius: 10, padding: '10px 11px', marginBottom: 6,
               }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--slate-900)', marginBottom: 4 }}>{name}</div>
-                <div style={{ fontSize: 9, color: 'var(--slate-400)', marginBottom: 8 }}>{plan}</div>
+                <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)', marginBottom: 4 }}>{name}</div>
+                <div style={{ fontSize: 15, color: 'var(--slate-400)', marginBottom: 8 }}>{plan}</div>
 
                 {/* Sets table header */}
                 <div style={{ display: 'grid', gridTemplateColumns: '18px 1fr 1fr 26px', gap: 4, marginBottom: 4 }}>
                   {['#', 'Повт', 'Вес, кг', ''].map((h, i) => (
-                    <div key={i} style={{ fontSize: 8, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: i === 0 ? 'left' : 'center' }}>
+                    <div key={i} style={{ fontSize: 13, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: i === 0 ? 'left' : 'center' }}>
                       {h}
                     </div>
                   ))}
@@ -397,7 +397,7 @@ export default function DoWorkoutPage() {
                 {/* Set rows */}
                 {st.sets.map((s, i) => (
                   <div key={i} style={{ display: 'grid', gridTemplateColumns: '18px 1fr 1fr 26px', gap: 4, alignItems: 'center', marginBottom: 3 }}>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--slate-400)', textAlign: 'center', paddingTop: 2 }}>{i + 1}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--slate-400)', textAlign: 'center', paddingTop: 2 }}>{i + 1}</div>
                     <input
                       type="text" inputMode="numeric" value={s.reps}
                       onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
@@ -406,7 +406,7 @@ export default function DoWorkoutPage() {
                       style={{
                         border: `1px solid ${s.completed ? 'var(--green-200)' : 'var(--slate-200)'}`,
                         borderRadius: 6, padding: '5px 3px',
-                        fontSize: 12, fontWeight: 700, color: s.completed ? 'var(--green-700)' : 'var(--slate-900)',
+                        fontSize: 16, fontWeight: 700, color: s.completed ? 'var(--green-700)' : 'var(--slate-900)',
                         textAlign: 'center', background: s.completed ? 'var(--green-50)' : 'var(--slate-50)',
                         width: '100%', fontFamily: 'var(--font)',
                       }}
@@ -419,7 +419,7 @@ export default function DoWorkoutPage() {
                       style={{
                         border: `1px solid ${s.completed ? 'var(--green-200)' : 'var(--slate-200)'}`,
                         borderRadius: 6, padding: '5px 3px',
-                        fontSize: 12, fontWeight: 700, color: s.completed ? 'var(--green-700)' : 'var(--slate-900)',
+                        fontSize: 16, fontWeight: 700, color: s.completed ? 'var(--green-700)' : 'var(--slate-900)',
                         textAlign: 'center', background: s.completed ? 'var(--green-50)' : 'var(--slate-50)',
                         width: '100%', fontFamily: 'var(--font)',
                       }}
@@ -432,7 +432,7 @@ export default function DoWorkoutPage() {
                         border: s.completed ? 'none' : '1.5px solid var(--slate-300)',
                         background: s.completed ? 'var(--green-600)' : 'var(--white)',
                         color: s.completed ? 'var(--white)' : 'transparent',
-                        fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 17, display: 'flex', alignItems: 'center', justifyContent: 'center',
                         cursor: 'pointer', flexShrink: 0,
                       }}
                     >
@@ -449,7 +449,7 @@ export default function DoWorkoutPage() {
                   placeholder="Заметка (необязательно)..."
                   style={{
                     width: '100%', border: '1px solid var(--slate-200)', borderRadius: 6,
-                    padding: '5px 8px', fontSize: 9, color: 'var(--slate-600)',
+                    padding: '5px 8px', fontSize: 15, color: 'var(--slate-600)',
                     background: 'var(--slate-50)', marginTop: 7, fontStyle: 'italic',
                     fontFamily: 'var(--font)',
                   }}
@@ -457,10 +457,10 @@ export default function DoWorkoutPage() {
 
                 {/* Footer */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-                  <button onClick={() => addSet(ex.id)} style={{ fontSize: 9, fontWeight: 700, color: 'var(--indigo-500)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)' }}>
+                  <button onClick={() => addSet(ex.id)} style={{ fontSize: 15, fontWeight: 700, color: 'var(--indigo-500)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)' }}>
                     + подход
                   </button>
-                  <button onClick={() => skipExercise(ex.id)} style={{ fontSize: 9, color: 'var(--slate-400)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)' }}>
+                  <button onClick={() => skipExercise(ex.id)} style={{ fontSize: 15, color: 'var(--slate-400)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)' }}>
                     Пропустить упражнение
                   </button>
                 </div>
@@ -477,10 +477,10 @@ export default function DoWorkoutPage() {
               onClick={() => setActiveExId(ex.id)}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--slate-900)' }}>{name}</span>
-                <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--indigo-500)', flexShrink: 0 }}>Начать →</span>
+                <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)' }}>{name}</span>
+                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--indigo-500)', flexShrink: 0 }}>Начать →</span>
               </div>
-              <div style={{ fontSize: 9, color: 'var(--slate-400)' }}>{plan}</div>
+              <div style={{ fontSize: 15, color: 'var(--slate-400)' }}>{plan}</div>
             </div>
           )
         })}
@@ -498,7 +498,7 @@ export default function DoWorkoutPage() {
           boxShadow: '0 -4px 20px rgba(15,23,42,.10)',
         }}>
           {/* Label */}
-          <div style={{ fontSize: 8, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '.08em', textAlign: 'center', marginBottom: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '.08em', textAlign: 'center', marginBottom: 10 }}>
             {timerLabel}
           </div>
 
@@ -517,7 +517,7 @@ export default function DoWorkoutPage() {
                 />
               </svg>
               <div style={{
-                fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em',
+                fontSize: 36, fontWeight: 800, letterSpacing: '-0.02em',
                 color: timerExpired ? 'var(--red-500)' : 'var(--slate-900)',
                 position: 'relative', zIndex: 1,
               }}>
@@ -527,11 +527,11 @@ export default function DoWorkoutPage() {
 
             {timerExpired ? (
               <div style={{ textAlign: 'center', marginTop: 4 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--slate-900)' }}>Время вышло!</div>
-                <div style={{ fontSize: 9, color: 'var(--slate-400)', marginTop: 2 }}>Можно начинать подход</div>
+                <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)' }}>Время вышло!</div>
+                <div style={{ fontSize: 15, color: 'var(--slate-400)', marginTop: 2 }}>Можно начинать подход</div>
               </div>
             ) : timerNextEx ? (
-              <div style={{ fontSize: 9, color: 'var(--slate-400)', marginTop: 3, textAlign: 'center' }}>
+              <div style={{ fontSize: 15, color: 'var(--slate-400)', marginTop: 3, textAlign: 'center' }}>
                 следующий: {timerNextEx}
               </div>
             ) : null}
@@ -541,13 +541,13 @@ export default function DoWorkoutPage() {
           <div style={{ display: 'flex', gap: 6 }}>
             <button
               onClick={() => skipTimer()}
-              style={{ flex: 1, background: 'var(--slate-50)', border: '1px solid var(--slate-200)', color: 'var(--slate-500)', borderRadius: 8, padding: 8, fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)' }}
+              style={{ flex: 1, background: 'var(--slate-50)', border: '1px solid var(--slate-200)', color: 'var(--slate-500)', borderRadius: 8, padding: 8, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)' }}
             >
               Пропустить отдых
             </button>
             <button
               onClick={() => addTime(30)}
-              style={{ flex: 1, background: 'var(--white)', border: '1px solid var(--slate-200)', color: 'var(--slate-400)', borderRadius: 8, padding: 8, fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)' }}
+              style={{ flex: 1, background: 'var(--white)', border: '1px solid var(--slate-200)', color: 'var(--slate-400)', borderRadius: 8, padding: 8, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)' }}
             >
               +30 сек
             </button>
@@ -564,7 +564,7 @@ export default function DoWorkoutPage() {
             style={{
               width: '100%', background: 'var(--indigo-500)', color: 'var(--white)',
               border: 'none', borderRadius: 9, padding: 10,
-              fontSize: 11, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
+              fontSize: 17, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
               opacity: saving ? 0.6 : 1, fontFamily: 'var(--font)', letterSpacing: '0.01em',
             }}
           >
@@ -577,20 +577,20 @@ export default function DoWorkoutPage() {
       {showConfirm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.3)', display: 'flex', alignItems: 'flex-end', zIndex: 100 }}>
           <div style={{ background: 'var(--white)', borderRadius: '16px 16px 0 0', padding: '18px 16px 22px', width: '100%', maxWidth: 390, margin: '0 auto' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--slate-900)', marginBottom: 4 }}>Завершить тренировку?</div>
-            <div style={{ fontSize: 9, color: 'var(--slate-500)', lineHeight: 1.5, marginBottom: 12 }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--slate-900)', marginBottom: 4 }}>Завершить тренировку?</div>
+            <div style={{ fontSize: 15, color: 'var(--slate-500)', lineHeight: 1.5, marginBottom: 12 }}>
               Выполнено {exercises.filter(ex => exState[ex.id]?.sets.some(s => s.completed)).length} из {exercises.length} упражнений. Оставшиеся будут отмечены как пропущенные.
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <button
                 onClick={() => { setShowConfirm(false); handleFinish() }}
-                style={{ width: '100%', background: 'var(--white)', border: '1px solid var(--red-200)', color: 'var(--red-500)', borderRadius: 9, padding: 10, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)' }}
+                style={{ width: '100%', background: 'var(--white)', border: '1px solid var(--red-200)', color: 'var(--red-500)', borderRadius: 9, padding: 10, fontSize: 17, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)' }}
               >
                 Да, завершить
               </button>
               <button
                 onClick={() => setShowConfirm(false)}
-                style={{ width: '100%', background: 'var(--slate-50)', border: '1px solid var(--slate-200)', color: 'var(--slate-500)', borderRadius: 9, padding: 9, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)' }}
+                style={{ width: '100%', background: 'var(--slate-50)', border: '1px solid var(--slate-200)', color: 'var(--slate-500)', borderRadius: 9, padding: 9, fontSize: 17, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)' }}
               >
                 Продолжить тренировку
               </button>
@@ -603,30 +603,30 @@ export default function DoWorkoutPage() {
       {showDoneModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.3)', display: 'flex', alignItems: 'flex-end', zIndex: 100 }}>
           <div style={{ background: 'var(--white)', borderRadius: '16px 16px 0 0', padding: '22px 16px 26px', width: '100%', maxWidth: 390, margin: '0 auto', textAlign: 'center' }}>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>🎉</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--slate-900)', marginBottom: 3 }}>Тренировка завершена!</div>
-            <div style={{ fontSize: 10, color: 'var(--slate-500)', marginBottom: 14 }}>
+            <div style={{ fontSize: 44, marginBottom: 8 }}>🎉</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--slate-900)', marginBottom: 3 }}>Тренировка завершена!</div>
+            <div style={{ fontSize: 16, color: 'var(--slate-500)', marginBottom: 14 }}>
               {workout?.name} · {completedAtStr ?? new Date().toLocaleDateString('ru', { day: 'numeric', month: 'long' })}
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 22, marginBottom: 16 }}>
               <div>
-                <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)', lineHeight: 1 }}>
+                <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--slate-900)', lineHeight: 1 }}>
                   {doneStats.done}/{doneStats.total}
                 </div>
-                <div style={{ fontSize: 9, color: 'var(--slate-400)', marginTop: 2 }}>упражнений</div>
+                <div style={{ fontSize: 15, color: 'var(--slate-400)', marginTop: 2 }}>упражнений</div>
               </div>
               {doneStats.abovePlan > 0 && (
                 <div>
-                  <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--indigo-500)', lineHeight: 1 }}>
+                  <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--indigo-500)', lineHeight: 1 }}>
                     +{doneStats.abovePlan}
                   </div>
-                  <div style={{ fontSize: 9, color: 'var(--slate-400)', marginTop: 2 }}>выше плана</div>
+                  <div style={{ fontSize: 15, color: 'var(--slate-400)', marginTop: 2 }}>выше плана</div>
                 </div>
               )}
             </div>
             <button
               onClick={() => navigate('/client')}
-              style={{ width: '100%', background: 'var(--indigo-500)', color: 'var(--white)', border: 'none', borderRadius: 9, padding: 10, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', letterSpacing: '0.01em' }}
+              style={{ width: '100%', background: 'var(--indigo-500)', color: 'var(--white)', border: 'none', borderRadius: 9, padding: 10, fontSize: 17, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', letterSpacing: '0.01em' }}
             >
               Готово
             </button>

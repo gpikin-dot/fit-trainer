@@ -1,24 +1,23 @@
 /* ============================================================
    FitTrainer — Design Tokens & Base Styles v2
-   Источник: мокапы 01–07, адаптивная типографика
+   Источник: мокапы 01–07, типографика
    Подключить глобально: import './design-tokens.css'
 
-   КАК РАБОТАЕТ АДАПТИВНОСТЬ:
-   html получает clamp(15px, 4.1vw, 18px).
-   Все шрифты в rem — масштабируются вместе с базой.
-   320px телефон → база ~15px, 390px iPhone → 16px, планшет → 18px.
+   ТИПОГРАФИКА: 5-уровневая семантическая шкала.
+   Базовый размер: 16px (фиксированный).
+   Все шрифты в rem — абсолютные значения, не масштабируются.
    ============================================================ */
 
 /* ── СБРОС ─────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── АДАПТИВНАЯ БАЗА ────────────────────────────────────────── */
+/* ── БАЗА ШРИФТА ────────────────────────────────────────────── */
 /*
-  1rem = 16px на iPhone 390px (целевое устройство).
-  Не менять без пересчёта rem-значений ниже.
+  1rem = 16px — фиксированное значение на всех устройствах.
+  Шрифт одинаково выглядит на мобильном и десктопе.
 */
 html {
-  font-size: clamp(15px, 4.1vw, 18px);
+  font-size: 16px;
 }
 
 /* ── ШРИФТ ─────────────────────────────────────────────────── */
@@ -37,26 +36,19 @@ body {
 
 /* ── ШКАЛА РАЗМЕРОВ ШРИФТОВ ─────────────────────────────────── */
 /*
-  Все значения в rem. При базе 16px (390px экран):
-  --fs-4xs = 0.438rem = 7px   ← лейблы полей (ИМЯ / EMAIL / ПАРОЛЬ)
-  --fs-2xs = 0.625rem = 10px  ← вспомогательное
-  --fs-xs  = 0.688rem = 11px  ← баджи, подписи
-  --fs-sm  = 0.75rem  = 12px  ← табы, back-ссылка
-  --fs-md  = 0.813rem = 13px  ← строки списков, кнопки, инпуты
-  --fs-lg  = 0.938rem = 15px  ← имя клиента в карточке, модалки
-  --fs-xl  = 1.063rem = 17px  ← имя тренера в хедере
-  --fs-2xl = 1.125rem = 18px  ← заголовок страницы
+  5-уровневая семантическая шкала. База: 16px.
+  --text-heading = 1.375rem = 22px  ← заголовки страниц (Вход, Регистрация, dashboard)
+  --text-title   = 0.9375rem = 15px ← названия секций, карточек, модалок, имя тренера
+  --text-body    = 0.8125rem = 13px ← списки, инпуты, кнопки, основной контент
+  --text-sub     = 0.6875rem = 11px ← даты, счётчики, хелпер-текст, табы, back-ссылки
+  --text-label   = 0.5625rem = 9px  ← лейблы полей (ИМЯ/EMAIL/ПАРОЛЬ uppercase), бейджи, статусы
 */
 :root {
-  --fs-4xs: 0.438rem;  /* 7px  ← лейблы полей (ИМЯ / EMAIL / ПАРОЛЬ)    */
-  --fs-3xs: 0.563rem;  /* 9px  ← бейджи, пилюли статуса                 */
-  --fs-2xs: 0.625rem;  /* 10px ← вспомогательный текст                  */
-  --fs-xs:  0.688rem;  /* 11px ← баджи, подписи                         */
-  --fs-sm:  0.75rem;   /* 12px ← табы, back-ссылка                      */
-  --fs-md:  0.813rem;  /* 13px ← строки списков, кнопки, инпуты         */
-  --fs-lg:  0.938rem;  /* 15px ← имя клиента в карточке, модалки        */
-  --fs-xl:  1.063rem;  /* 17px ← имя тренера в хедере                   */
-  --fs-2xl: 1.125rem;  /* 18px ← заголовок страницы                     */
+  --text-heading: 1.375rem;  /* 22px — page titles: Вход, Регистрация, dashboard heading */
+  --text-title:   0.9375rem; /* 15px — section titles, card names, modal titles, trainer name in header */
+  --text-body:    0.8125rem; /* 13px — list rows, inputs, buttons, main content */
+  --text-sub:     0.6875rem; /* 11px — dates, counts, helper text, back-links, tabs */
+  --text-label:   0.5625rem; /* 9px  — field labels (ИМЯ/EMAIL/ПАРОЛЬ uppercase), badges, status pills */
 }
 
 /* ── ЦВЕТА ─────────────────────────────────────────────────── */
@@ -153,11 +145,11 @@ body {
   padding: 11px 14px 0;
 }
 .header__greeting {
-  font-size: var(--fs-xs);
+  font-size: var(--text-sub);
   color: var(--slate-400);
 }
 .header__name {
-  font-size: var(--fs-xl);
+  font-size: var(--text-title);
   font-weight: 700;
   color: var(--slate-900);
   margin-top: 1px;
@@ -173,7 +165,7 @@ body {
 .tab {
   flex: 1;
   padding: 8px 4px;
-  font-size: var(--fs-sm);
+  font-size: var(--text-sub);
   font-weight: 600;
   color: var(--slate-400);
   text-align: center;
@@ -188,7 +180,7 @@ body {
 
 /* Back-ссылка */
 .back-link {
-  font-size: var(--fs-sm);
+  font-size: var(--text-sub);
   font-weight: 600;
   color: var(--indigo-500);
   margin-bottom: 9px;
@@ -203,7 +195,7 @@ body {
   border-radius: var(--r-full);
   background: var(--indigo-50);
   color: var(--indigo-500);
-  font-size: var(--fs-xs);
+  font-size: var(--text-sub);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -213,13 +205,13 @@ body {
 .avatar--lg {
   width: 34px;
   height: 34px;
-  font-size: var(--fs-sm);
+  font-size: var(--text-sub);
   border: 1.5px solid var(--indigo-200);
 }
 .avatar--sm {
   width: 24px;
   height: 24px;
-  font-size: 0.563rem;
+  font-size: var(--text-label);
 }
 
 /* ── КНОПКИ ────────────────────────────────────────────────── */
@@ -232,7 +224,7 @@ body {
   border: none;
   border-radius: var(--r-btn);
   padding: 12px;
-  font-size: var(--fs-md);
+  font-size: var(--text-body);
   font-weight: 700;
   font-family: var(--font-base);
   cursor: pointer;
@@ -247,7 +239,7 @@ body {
   border: 1px solid var(--slate-200);
   border-radius: var(--r-btn);
   padding: 11px;
-  font-size: var(--fs-md);
+  font-size: var(--text-body);
   font-weight: 600;
   font-family: var(--font-base);
   cursor: pointer;
@@ -261,7 +253,7 @@ body {
   border: 1.5px dashed var(--indigo-300);
   border-radius: var(--r-btn);
   padding: 12px;
-  font-size: var(--fs-sm);
+  font-size: var(--text-sub);
   font-weight: 700;
   font-family: var(--font-base);
   cursor: pointer;
@@ -278,7 +270,7 @@ body {
   border: 1px solid var(--red-200);
   border-radius: var(--r-md);
   padding: 8px 10px;
-  font-size: var(--fs-xs);
+  font-size: var(--text-sub);
   font-weight: 700;
   font-family: var(--font-base);
   cursor: pointer;
@@ -302,14 +294,14 @@ body {
 /* Шеврон › */
 .chev {
   color: var(--slate-300);
-  font-size: var(--fs-lg);
+  font-size: var(--text-title);
   flex-shrink: 0;
   margin-left: auto;
 }
 
 /* Секция-лейбл */
 .sec-label {
-  font-size: var(--fs-2xs);
+  font-size: var(--text-sub);
   font-weight: 700;
   color: var(--slate-400);
   text-transform: uppercase;
@@ -321,7 +313,7 @@ body {
 /* ── БАДЖИ ─────────────────────────────────────────────────── */
 
 .badge {
-  font-size: var(--fs-xs);
+  font-size: var(--text-label);
   font-weight: 700;
   padding: 3px 8px;
   border-radius: var(--r-pill);
@@ -348,7 +340,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: var(--fs-xs);
+  font-size: var(--text-label);
   font-weight: 600;
   border-radius: var(--r-pill);
   padding: 3px 8px;
@@ -383,7 +375,7 @@ body {
 
 .form-label {
   display: block;
-  font-size: var(--fs-xs);
+  font-size: var(--text-label);
   font-weight: 700;
   color: var(--slate-500);
   text-transform: uppercase;
@@ -396,7 +388,7 @@ body {
   border: 1px solid var(--slate-200);
   border-radius: var(--r-md);
   padding: 10px 12px;
-  font-size: var(--fs-md);
+  font-size: var(--text-body);
   font-family: var(--font-base);
   color: var(--slate-900);
   background: var(--slate-50);
@@ -408,7 +400,7 @@ body {
 
 /* Ячейки упражнений (подходы / повторы / вес) */
 .f-cell-label {
-  font-size: var(--fs-2xs);
+  font-size: var(--text-sub);
   font-weight: 700;
   color: var(--slate-400);
   text-transform: uppercase;
@@ -420,7 +412,7 @@ body {
   border: 1px solid var(--slate-200);
   border-radius: var(--r-xs);
   padding: 6px 4px;
-  font-size: var(--fs-md);
+  font-size: var(--text-body);
   font-weight: 700;
   color: var(--slate-900);
   text-align: center;
@@ -433,14 +425,14 @@ body {
   color: var(--indigo-700);
 }
 .f-cell-val--muted {
-  font-size: var(--fs-xs);
+  font-size: var(--text-sub);
   font-weight: 400;
   color: var(--slate-400);
 }
 .f-cell-val--comment {
   text-align: left;
   padding-left: 7px;
-  font-size: var(--fs-xs);
+  font-size: var(--text-sub);
   font-weight: 400;
   color: var(--slate-600);
   font-style: italic;
@@ -451,7 +443,7 @@ body {
 .f-cell-val--empty {
   color: var(--slate-300);
   font-weight: 400;
-  font-size: var(--fs-sm);
+  font-size: var(--text-sub);
 }
 
 /* Сетки полей */
@@ -475,13 +467,13 @@ body {
   width: 100%;
 }
 .modal-sheet__title {
-  font-size: var(--fs-lg);
+  font-size: var(--text-title);
   font-weight: 700;
   color: var(--slate-900);
   margin-bottom: 4px;
 }
 .modal-sheet__sub {
-  font-size: var(--fs-xs);
+  font-size: var(--text-sub);
   color: var(--slate-500);
   margin-bottom: 12px;
   line-height: 1.5;
@@ -492,7 +484,7 @@ body {
 .empty-state {
   text-align: center;
   padding: 32px 0 20px;
-  font-size: var(--fs-md);
+  font-size: var(--text-body);
   color: var(--slate-400);
   line-height: 1.6;
 }

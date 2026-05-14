@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { LogOut } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
 import type { AssignedWorkout, Workout } from '../types/database'
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
 
 const DAYS_RU = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 const MONTHS_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
@@ -19,20 +18,14 @@ function toDateStr(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-function getGreeting(): string {
-  const h = new Date().getHours()
-  if (h >= 5 && h < 12) return 'Доброе утро,'
-  if (h >= 12 && h < 18) return 'Добрый день,'
-  return 'Добрый вечер,'
+function pluralizeEx(n: number): string {
+  const mod10 = n % 10
+  const mod100 = n % 100
+  if (mod100 >= 11 && mod100 <= 19) return `${n} упражнений`
+  if (mod10 === 1) return `${n} упражнение`
+  if (mod10 >= 2 && mod10 <= 4) return `${n} упражнения`
+  return `${n} упражнений`
 }
-
-function shortName(full: string): string {
-  const parts = full.trim().split(/\s+/)
-  if (parts.length >= 2) return `${parts[0]} ${parts[1][0]}.`
-  return full
-}
-
-// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface AssignmentData extends AssignedWorkout {
   workout: Workout
@@ -40,14 +33,12 @@ interface AssignmentData extends AssignedWorkout {
   completedCount: number
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
-
 export default function ClientDashboardPage() {
   const navigate = useNavigate()
-  const { profile } = useAuth()
+  const { profile, signOut } = useAuth()
   const [assignments, setAssignments] = useState<AssignmentData[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'today' | 'history'>('today')
+  const [tab, setTab] = useState<'active' | 'history' | 'progress'>('active')
 
   useEffect(() => { if (profile) loadData() }, [profile])
 
@@ -78,252 +69,164 @@ export default function ClientDashboardPage() {
   const pending = assignments.filter(a => a.status === 'pending')
   const history = assignments.filter(a => a.status === 'completed')
 
-  const todayWorkout = pending.find(a => a.planned_date === today)
-  const upcoming = pending
-    .filter(a => a.id !== todayWorkout?.id)
-    .sort((a, b) => {
-      if (!a.planned_date && !b.planned_date) return 0
-      if (!a.planned_date) return 1
-      if (!b.planned_date) return -1
-      return a.planned_date.localeCompare(b.planned_date)
-    })
-
-  const inProgress = todayWorkout && todayWorkout.completedCount > 0
-  const progressPct = todayWorkout && todayWorkout.exerciseCount > 0
-    ? Math.round(todayWorkout.completedCount / todayWorkout.exerciseCount * 100)
-    : 0
+  const activeSorted = [...pending].sort((a, b) => {
+    const aT = a.planned_date === today ? 0 : 1
+    const bT = b.planned_date === today ? 0 : 1
+    if (aT !== bT) return aT - bT
+    if (!a.planned_date && !b.planned_date) return 0
+    if (!a.planned_date) return 1
+    if (!b.planned_date) return -1
+    return a.planned_date.localeCompare(b.planned_date)
+  })
 
   if (loading) {
     return (
       <Layout>
-        <div style={{ textAlign: 'center', padding: '48px 0', fontSize: 17, color: 'var(--slate-400)' }}>
-          Загрузка...
-        </div>
+        <div className="text-center py-12 text-[var(--slate-400)] text-[15px]">Загрузка...</div>
       </Layout>
     )
   }
 
+  const initials = (profile?.name ?? '?').slice(0, 2).toUpperCase()
+
   return (
     <Layout>
-      {/* ── Sticky header ─────────────────────────────────── */}
-      <div
-        className="sticky top-0 z-10 -mx-[13px] px-[14px]"
-        style={{ background: 'var(--white)' }}
-      >
-        {/* Greeting + name */}
-        <div style={{ paddingTop: 11 }}>
-          <div style={{ fontSize: 15, color: 'var(--slate-400)' }}>
-            {getGreeting()}
-          </div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--slate-900)', marginTop: 1, marginBottom: 11, letterSpacing: '-0.01em' }}>
-            {profile?.name ? shortName(profile.name) : ''}
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex" style={{ borderBottom: '1.5px solid var(--border-light)' }}>
-          {(['today', 'history'] as const).map(key => (
+      {/* Header — FitTrainer wordmark + name + avatar */}
+      <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[16px] py-[14px] border-b border-[var(--border)]">
+        <div className="flex items-center justify-between">
+          <div className="text-[20px] font-extrabold text-[var(--blue-600)]">FitTrainer</div>
+          <div className="flex items-center gap-[8px]">
+            <div className="text-[20px] font-extrabold text-[var(--slate-700)]">{profile?.name}</div>
+            <div className="w-[34px] h-[34px] rounded-full bg-[var(--blue-50)] text-[var(--blue-600)] flex items-center justify-center text-[11px] font-bold border-[1.5px] border-[var(--blue-200)]">
+              {initials}
+            </div>
             <button
-              key={key}
-              onClick={() => setTab(key)}
-              style={{
-                flex: 1,
-                padding: '8px 4px',
-                fontSize: 16,
-                fontWeight: 600,
-                color: tab === key ? 'var(--indigo-500)' : 'var(--slate-400)',
-                textAlign: 'center',
-                background: 'none',
-                border: 'none',
-                borderBottom: tab === key ? '2px solid var(--indigo-500)' : '2px solid transparent',
-                marginBottom: -1.5,
-                cursor: 'pointer',
-                fontFamily: 'var(--font)',
-              }}
+              onClick={() => signOut()}
+              className="ml-[4px] w-[28px] h-[28px] flex items-center justify-center text-[var(--slate-400)] hover:text-[var(--slate-600)] rounded-full hover:bg-[var(--slate-100)] transition-colors"
+              title="Выйти"
             >
-              {key === 'today' ? 'Сегодня' : 'История'}
+              <LogOut className="w-[16px] h-[16px]" />
             </button>
-          ))}
+          </div>
         </div>
       </div>
 
-      {/* ── Body ──────────────────────────────────────────── */}
-      <div style={{ padding: '11px 0 14px' }}>
+      {/* Tabs — Активные | История | Прогресс */}
+      <div className="sticky top-[60px] z-10 flex bg-white -mx-[13px] px-[16px] border-b border-[var(--border)]">
+        {([
+          { key: 'active', label: 'Активные' },
+          { key: 'history', label: 'История' },
+          { key: 'progress', label: 'Прогресс' },
+        ] as const).map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`flex-1 py-[11px] text-[15px] font-medium text-center border-b-2 -mb-[1px] transition-colors ${
+              tab === key ? 'text-[var(--blue-600)] border-[var(--blue-600)]' : 'text-[var(--slate-500)] border-transparent'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
-        {/* ══ СЕГОДНЯ ══════════════════════════════════════ */}
-        {tab === 'today' && (
+      {/* Body */}
+      <div className="pt-[8px] pb-[32px]">
+
+        {/* ACTIVE */}
+        {tab === 'active' && (
           <>
-            {todayWorkout ? (
-              /* Today block */
-              <div style={{
-                background: 'var(--white)',
-                border: '1px solid var(--border)',
-                borderRadius: 12,
-                padding: '13px 13px 11px',
-                marginBottom: 10,
-              }}>
-                {/* Label */}
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 5 }}>
-                  {inProgress ? 'В процессе' : 'Тренировка сегодня'}
-                </div>
-                {/* Name */}
-                <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--slate-900)', letterSpacing: '-0.01em', marginBottom: 3 }}>
-                  {todayWorkout.workout?.name}
-                </div>
-                {/* Meta */}
-                <div style={{ fontSize: 15, color: 'var(--slate-400)', marginBottom: inProgress ? 8 : 10 }}>
-                  {todayWorkout.exerciseCount} упражнений · {fmtDate(today)}
-                </div>
-
-                {/* Progress (in-progress state) */}
-                {inProgress && (
-                  <>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <span style={{ fontSize: 15, color: 'var(--slate-400)' }}>Упражнений</span>
-                      <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--indigo-500)' }}>
-                        {todayWorkout.completedCount} / {todayWorkout.exerciseCount}
-                      </span>
-                    </div>
-                    <div style={{ height: 4, background: 'var(--slate-100)', borderRadius: 2, overflow: 'hidden', marginBottom: 10 }}>
-                      <div style={{ height: '100%', borderRadius: 2, background: 'var(--indigo-500)', width: `${progressPct}%` }} />
-                    </div>
-                  </>
-                )}
-
-                {/* CTA */}
+            {activeSorted.length === 0 && (
+              <div className="text-center py-[40px] px-[8px] text-[14px] text-[var(--slate-400)] leading-[1.6]">
+                Пока нет активных тренировок. Как только тренер назначит — они появятся здесь.
+              </div>
+            )}
+            {activeSorted.map(a => {
+              const isToday = a.planned_date === today
+              const dateLabel = isToday
+                ? 'Сегодня'
+                : a.planned_date
+                  ? fmtDate(a.planned_date)
+                  : 'Без даты'
+              return (
                 <button
-                  onClick={() => navigate(`/client/workout/${todayWorkout.id}`)}
-                  style={{
-                    width: '100%',
-                    background: 'var(--indigo-500)',
-                    color: 'var(--white)',
-                    border: 'none',
-                    borderRadius: 9,
-                    padding: 10,
-                    fontSize: 17,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    fontFamily: 'var(--font)',
-                    letterSpacing: '0.01em',
-                  }}
+                  key={a.id}
+                  onClick={() => navigate(`/client/workout/${a.id}`)}
+                  className={`w-full flex items-center justify-between gap-[10px] text-left rounded-[10px] px-[14px] py-[14px] mb-[5px] border ${
+                    isToday
+                      ? 'bg-[var(--blue-50)] border-[var(--blue-100)]'
+                      : 'bg-white border-[var(--border)]'
+                  }`}
                 >
-                  {inProgress ? 'Продолжить' : 'Начать тренировку'}
-                </button>
-              </div>
-            ) : null}
-
-            {/* Ближайшие */}
-            {upcoming.length > 0 && (
-              <>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '10px 0 6px' }}>
-                  Ближайшие
-                </div>
-                {upcoming.map(a => (
-                  <button
-                    key={a.id}
-                    onClick={() => navigate(`/client/workout/${a.id}`)}
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      textAlign: 'left',
-                      background: 'var(--white)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 10,
-                      padding: '9px 11px',
-                      marginBottom: 5,
-                      cursor: 'pointer',
-                      fontFamily: 'var(--font)',
-                    }}
-                  >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--slate-900)' }}>
-                        {a.workout?.name}
-                      </div>
-                      <div style={{ fontSize: 15, color: 'var(--slate-400)', marginTop: 1 }}>
-                        {a.planned_date ? fmtDate(a.planned_date) : 'Без даты'}
-                      </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[16px] font-semibold text-[var(--slate-900)] mb-[3px] truncate">
+                      {a.workout?.name}
                     </div>
-                    <span style={{ color: 'var(--slate-300)', fontSize: 16, flexShrink: 0 }}>›</span>
-                  </button>
-                ))}
-              </>
-            )}
-
-            {/* Empty */}
-            {!todayWorkout && upcoming.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '32px 0 16px', fontSize: 17, color: 'var(--slate-400)', lineHeight: 1.6 }}>
-                Тренировок на сегодня нет.<br />Тренер скоро назначит.
-              </div>
-            )}
+                    <div className={`text-[12px] ${isToday ? 'text-[var(--blue-600)] font-semibold' : 'text-[var(--slate-400)]'}`}>
+                      {dateLabel} · {pluralizeEx(a.exerciseCount)}
+                    </div>
+                  </div>
+                  <span className="text-[var(--slate-300)] text-[20px] shrink-0">›</span>
+                </button>
+              )
+            })}
           </>
         )}
 
-        {/* ══ ИСТОРИЯ ══════════════════════════════════════ */}
+        {/* HISTORY */}
         {tab === 'history' && (
           history.length === 0
             ? (
-              <div style={{ textAlign: 'center', padding: '32px 0 16px', fontSize: 17, color: 'var(--slate-400)', lineHeight: 1.6 }}>
+              <div className="text-center py-[40px] px-[8px] text-[14px] text-[var(--slate-400)] leading-[1.6]">
                 История пуста
               </div>
             )
             : history.map(a => {
-                const pct = a.exerciseCount > 0 ? a.completedCount / a.exerciseCount : 0
+                const pct = a.exerciseCount > 0 ? Math.round(a.completedCount / a.exerciseCount * 100) : 0
                 const dateLabel = a.completed_at
                   ? fmtDate(a.completed_at)
                   : a.planned_date ? fmtDate(a.planned_date) : '—'
 
-                const badgeStyle: React.CSSProperties = pct === 1
-                  ? { background: 'var(--green-100)', color: 'var(--green-700)' }
-                  : pct >= 0.6
-                  ? { background: 'var(--amber-100)', color: 'var(--amber-800)' }
-                  : { background: 'var(--red-100)', color: 'var(--red-800)' }
+                const badge = pct === 100
+                  ? 'bg-[var(--green-100)] text-[var(--green-700)]'
+                  : pct >= 60
+                  ? 'bg-[var(--amber-100)] text-[var(--amber-800)]'
+                  : pct > 0
+                  ? 'bg-[var(--red-100)] text-[var(--red-800)]'
+                  : 'bg-[var(--slate-100)] text-[var(--slate-500)]'
 
                 return (
                   <button
                     key={a.id}
                     onClick={() => navigate(`/client/session/${a.id}`)}
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 6,
-                      textAlign: 'left',
-                      background: 'var(--white)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 10,
-                      padding: '9px 11px',
-                      marginBottom: 5,
-                      cursor: 'pointer',
-                      fontFamily: 'var(--font)',
-                    }}
+                    className="w-full flex items-center justify-between gap-[6px] text-left rounded-[10px] px-[12px] py-[10px] mb-[5px] bg-white border border-[var(--border)]"
                   >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--slate-900)' }}>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[15px] font-medium text-[var(--slate-900)] truncate">
                         {a.workout?.name}
                       </div>
-                      <div style={{ fontSize: 15, color: 'var(--slate-400)', marginTop: 2 }}>
+                      <div className="text-[12px] text-[var(--slate-400)] mt-[2px]">
                         {dateLabel}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
-                      <span style={{
-                        ...badgeStyle,
-                        fontSize: 15,
-                        fontWeight: 700,
-                        padding: '2px 7px',
-                        borderRadius: 20,
-                        whiteSpace: 'nowrap',
-                      }}>
-                        {a.completedCount}/{a.exerciseCount}
-                      </span>
-                      <span style={{ color: 'var(--slate-300)', fontSize: 16, flexShrink: 0 }}>›</span>
-                    </div>
+                    <span className={`text-[11px] font-bold px-[8px] py-[2px] rounded-full whitespace-nowrap ${badge}`}>
+                      {pct}%
+                    </span>
+                    <span className="text-[var(--slate-300)] text-[17px] shrink-0">›</span>
                   </button>
                 )
               })
+        )}
+
+        {/* PROGRESS — placeholder */}
+        {tab === 'progress' && (
+          <div className="flex flex-col items-center gap-[12px] py-[48px] px-[16px]">
+            <div className="text-[32px]">📊</div>
+            <div className="text-[16px] font-semibold text-[var(--slate-700)]">Раздел в разработке</div>
+            <div className="text-[13px] text-[var(--slate-400)] text-center max-w-[240px] leading-[1.5]">
+              Здесь будет отображаться динамика весов, посещаемость и другие показатели прогресса.
+            </div>
+          </div>
         )}
 
       </div>

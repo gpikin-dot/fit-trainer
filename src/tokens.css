@@ -56,13 +56,24 @@ body {
   /* Фон страницы */
   --bg-page: #EEF1F6;
 
-  /* Primary (indigo) */
-  --indigo-50:  #EEF2FF;
-  --indigo-100: #E0E7FF;
-  --indigo-200: #C7D2FE;
-  --indigo-300: #A5B4FC;
-  --indigo-500: #6366F1;  /* ← основной акцент */
-  --indigo-700: #4338CA;
+  /* Primary (blue, по прототипу/ТЗ v2 §2.1) */
+  /* Имена `--indigo-*` сохранены как алиасы для обратной совместимости */
+  --indigo-50:  #EFF6FF;
+  --indigo-100: #DBEAFE;
+  --indigo-200: #BFDBFE;
+  --indigo-300: #93C5FD;
+  --indigo-500: #2563EB;  /* ← основной акцент (blue-600 в ТЗ) */
+  --indigo-700: #1D4ED8;
+
+  /* Прямые blue-токены для нового кода */
+  --blue-50:  #EFF6FF;
+  --blue-100: #DBEAFE;
+  --blue-200: #BFDBFE;
+  --blue-300: #93C5FD;
+  --blue-400: #60A5FA;
+  --blue-500: #3B82F6;
+  --blue-600: #2563EB;
+  --blue-700: #1D4ED8;
 
   /* Нейтральные (slate) */
   --slate-50:  #F8FAFC;

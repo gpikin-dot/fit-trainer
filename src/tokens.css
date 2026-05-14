@@ -53,8 +53,8 @@ body {
 
 /* ── ЦВЕТА ─────────────────────────────────────────────────── */
 :root {
-  /* Фон страницы */
-  --bg-page: #EEF1F6;
+  /* Фон страницы (slate-50 как в прототипе) */
+  --bg-page: #F8FAFC;
 
   /* Primary (blue, по прототипу/ТЗ v2 §2.1) */
   /* Имена `--indigo-*` сохранены как алиасы для обратной совместимости */
@@ -140,7 +140,7 @@ body {
   React рендерит в #root (см. index.html → <div id="root">).
 */
 #root {
-  max-width: 430px;
+  max-width: 390px;
   margin: 0 auto;
   min-height: 100vh;
   background: var(--bg-page);

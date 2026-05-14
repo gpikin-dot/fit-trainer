@@ -22,7 +22,9 @@ interface ExState {
 
 function storageKey(id: string) { return `workout_progress_${id}` }
 
-const CIRCUM = 188.5   // 2π × r=30 для SVG 72×72
+// Прототип ТЗ §4.5.4: SVG-таймер 110×110, r=44, strokeWidth=6
+const TIMER_R = 44
+const TIMER_CIRC = 2 * Math.PI * TIMER_R   // ≈ 276.46
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -198,6 +200,26 @@ export default function DoWorkoutPage() {
     setActiveExId(next?.id ?? null)
   }
 
+  // Кликнули на done-карточку → возвращаем в active, сбрасываем галочки
+  function reopenExercise(exId: string) {
+    setExState(prev => ({
+      ...prev,
+      [exId]: {
+        ...prev[exId],
+        sets: prev[exId].sets.map(s => ({ ...s, completed: false })),
+        skipped: false,
+      },
+    }))
+    setActiveExId(exId)
+    skipTimer()
+  }
+
+  // Кликнули на skipped-карточку → возвращаем в idle
+  function unskipExercise(exId: string) {
+    setExState(prev => ({ ...prev, [exId]: { ...prev[exId], skipped: false } }))
+    setActiveExId(exId)
+  }
+
   function updateSet(exId: string, idx: number, field: 'reps' | 'weight', val: string) {
     setExState(prev => ({
       ...prev,
@@ -274,7 +296,9 @@ export default function DoWorkoutPage() {
 
   const completedExCount = exercises.filter(ex => exState[ex.id]?.sets.every(s => s.completed)).length
   const progressPct = exercises.length > 0 ? Math.round(completedExCount / exercises.length * 100) : 0
-  const timerOffset = timerTotal > 0 ? CIRCUM * (1 - timerSec / timerTotal) : 0
+  const timerProgress = timerTotal > 0 ? timerSec / timerTotal : 0
+  const timerDash = TIMER_CIRC * timerProgress
+  const timerGap = TIMER_CIRC - timerDash
   const timerExpired = timerActive && timerSec === 0
 
   const completedAtStr = assignment?.completed_at
@@ -336,40 +360,59 @@ export default function DoWorkoutPage() {
           const name = ex.exercise_library.name_ru ?? ex.exercise_library.name_en ?? '—'
           const plan = `план: ${ex.sets} × ${ex.reps}${ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}`
 
-          // ── Done card ──────────────────────────────────
+          // ── Done card (clickable → reopen) ─────────────
           if (isDone) {
             const summary = st.sets
               .map((s, i) => `п.${i + 1}: ${s.reps}×${s.weight}кг`)
               .join('  ')
             return (
-              <div key={ex.id} style={{
-                background: 'var(--green-50)',
-                border: '1px solid var(--green-200)',
-                borderRadius: 10,
-                padding: '10px 11px',
-                marginBottom: 6,
-              }}>
+              <div
+                key={ex.id}
+                onClick={() => reopenExercise(ex.id)}
+                style={{
+                  background: 'var(--green-50)',
+                  border: '1px solid var(--green-200)',
+                  borderRadius: 10,
+                  padding: '10px 11px',
+                  marginBottom: 6,
+                  cursor: 'pointer',
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                   <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)' }}>{name}</span>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--green-700)', background: 'var(--green-100)', borderRadius: 20, padding: '2px 7px', whiteSpace: 'nowrap' }}>
-                    ✓ {st.sets.filter(s => s.completed).length}/{st.sets.length}
+                  <span style={{ fontSize: 13, color: 'var(--slate-400)', whiteSpace: 'nowrap' }}>
+                    Изменить ›
                   </span>
                 </div>
-                <div style={{ fontSize: 15, color: 'var(--slate-700)', lineHeight: 1.6 }}>{summary}</div>
+                <div style={{ fontSize: 13, color: 'var(--green-700)', fontWeight: 600, marginBottom: 4 }}>
+                  ✓ {st.sets.filter(s => s.completed).length} подходов выполнено
+                </div>
+                <div style={{ fontSize: 14, color: 'var(--slate-700)', lineHeight: 1.6 }}>{summary}</div>
               </div>
             )
           }
 
-          // ── Skipped card ───────────────────────────────
+          // ── Skipped card (clickable → unskip) ─────────
           if (isSkipped) {
             return (
-              <div key={ex.id} style={{
-                background: 'var(--white)', border: '1px solid var(--border)',
-                borderRadius: 10, padding: '10px 11px', marginBottom: 6, opacity: 0.55,
-              }}>
+              <div
+                key={ex.id}
+                onClick={() => unskipExercise(ex.id)}
+                style={{
+                  background: 'var(--slate-100)',
+                  border: '1px solid var(--slate-200)',
+                  borderRadius: 10, padding: '10px 11px', marginBottom: 6, opacity: 0.7,
+                  cursor: 'pointer',
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)' }}>{name}</span>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--slate-500)', background: 'var(--slate-100)', borderRadius: 20, padding: '2px 7px' }}>Пропущено</span>
+                  <div>
+                    <div style={{ fontSize: 17, fontWeight: 500, color: 'var(--slate-400)' }}>{name}</div>
+                    <div style={{ fontSize: 13, color: 'var(--slate-400)', marginTop: 2 }}>Пропущено</div>
+                  </div>
+                  <span style={{ fontSize: 13, color: 'var(--slate-500)', whiteSpace: 'nowrap' }}>
+                    Вернуть ›
+                  </span>
                 </div>
               </div>
             )
@@ -385,30 +428,33 @@ export default function DoWorkoutPage() {
                 <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)', marginBottom: 4 }}>{name}</div>
                 <div style={{ fontSize: 15, color: 'var(--slate-400)', marginBottom: 8 }}>{plan}</div>
 
-                {/* Sets table header */}
-                <div style={{ display: 'grid', gridTemplateColumns: '18px 1fr 1fr 26px', gap: 4, marginBottom: 4 }}>
-                  {['#', 'Повт', 'Вес, кг', ''].map((h, i) => (
-                    <div key={i} style={{ fontSize: 13, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: i === 0 ? 'left' : 'center' }}>
-                      {h}
-                    </div>
-                  ))}
+                {/* Sets table header — прототип ТЗ §4.5.3: grid 18px 1fr 1fr 34px */}
+                <div style={{ display: 'grid', gridTemplateColumns: '18px 1fr 1fr 34px', gap: 6, marginBottom: 6, alignItems: 'center' }}>
+                  <span />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Повторы</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Вес, кг</span>
+                  <span />
                 </div>
 
                 {/* Set rows */}
                 {st.sets.map((s, i) => (
-                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '18px 1fr 1fr 26px', gap: 4, alignItems: 'center', marginBottom: 3 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--slate-400)', textAlign: 'center', paddingTop: 2 }}>{i + 1}</div>
+                  <div key={i} style={{
+                    display: 'grid', gridTemplateColumns: '18px 1fr 1fr 34px',
+                    gap: 6, alignItems: 'center', padding: '6px 0',
+                    borderBottom: i < st.sets.length - 1 ? '1px solid var(--slate-100)' : 'none',
+                    opacity: s.completed ? 0.55 : 1,
+                  }}>
+                    <span style={{ fontSize: 11, color: 'var(--slate-400)', textAlign: 'center' }}>{i + 1}</span>
                     <input
                       type="text" inputMode="numeric" value={s.reps}
                       onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
                       onFocus={e => e.target.select()}
                       readOnly={s.completed}
                       style={{
-                        border: `1px solid ${s.completed ? 'var(--green-200)' : 'var(--slate-200)'}`,
-                        borderRadius: 6, padding: '5px 3px',
-                        fontSize: 16, fontWeight: 700, color: s.completed ? 'var(--green-700)' : 'var(--slate-900)',
-                        textAlign: 'center', background: s.completed ? 'var(--green-50)' : 'var(--slate-50)',
-                        width: '100%', fontFamily: 'var(--font)',
+                        width: '100%', padding: '7px 4px', textAlign: 'center',
+                        fontSize: 16, fontWeight: 600, borderRadius: 8,
+                        border: '1.5px solid var(--slate-200)', boxSizing: 'border-box',
+                        background: '#fff', color: 'var(--slate-900)', fontFamily: 'var(--font)',
                       }}
                     />
                     <input
@@ -417,26 +463,28 @@ export default function DoWorkoutPage() {
                       onFocus={e => e.target.select()}
                       readOnly={s.completed}
                       style={{
-                        border: `1px solid ${s.completed ? 'var(--green-200)' : 'var(--slate-200)'}`,
-                        borderRadius: 6, padding: '5px 3px',
-                        fontSize: 16, fontWeight: 700, color: s.completed ? 'var(--green-700)' : 'var(--slate-900)',
-                        textAlign: 'center', background: s.completed ? 'var(--green-50)' : 'var(--slate-50)',
-                        width: '100%', fontFamily: 'var(--font)',
+                        width: '100%', padding: '7px 4px', textAlign: 'center',
+                        fontSize: 16, fontWeight: 600, borderRadius: 8,
+                        border: '1.5px solid var(--slate-200)', boxSizing: 'border-box',
+                        background: '#fff', color: 'var(--slate-900)', fontFamily: 'var(--font)',
                       }}
                     />
-                    {/* Checkbox */}
+                    {/* Set-check — прототип ТЗ §4.5.3: круг 34×34, blue-600 при done */}
                     <button
-                      onClick={() => markSet(ex.id, i)}
+                      onClick={() => !s.completed && markSet(ex.id, i)}
                       style={{
-                        width: 24, height: 24, borderRadius: '50%',
-                        border: s.completed ? 'none' : '1.5px solid var(--slate-300)',
-                        background: s.completed ? 'var(--green-600)' : 'var(--white)',
-                        color: s.completed ? 'var(--white)' : 'transparent',
-                        fontSize: 17, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', flexShrink: 0,
+                        width: 34, height: 34, borderRadius: '50%',
+                        border: s.completed ? '2px solid var(--blue-600)' : '2px solid var(--slate-300)',
+                        background: s.completed ? 'var(--blue-600)' : '#fff',
+                        color: s.completed ? '#fff' : 'var(--slate-300)',
+                        fontSize: 15, fontWeight: 600,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: s.completed ? 'default' : 'pointer',
+                        flexShrink: 0, padding: 0, fontFamily: 'var(--font)',
+                        transition: 'background .15s, border-color .15s, color .15s',
                       }}
                     >
-                      {s.completed ? '✓' : ''}
+                      ✓
                     </button>
                   </div>
                 ))}
@@ -489,69 +537,96 @@ export default function DoWorkoutPage() {
         <div style={{ height: 80 }} />
       </div>
 
-      {/* ── Timer Sheet ───────────────────────────────────── */}
+      {/* ── Timer Sheet — прототип ТЗ §4.5.4 ────────────── */}
       {timerActive && (
         <div className="shrink-0" style={{
-          background: 'var(--white)',
-          borderRadius: '14px 14px 0 0',
-          padding: '14px 16px 18px',
-          boxShadow: '0 -4px 20px rgba(15,23,42,.10)',
+          margin: '10px 16px 14px',
+          padding: '16px 14px',
+          background: timerExpired ? '#FEF2F2' : '#F0FDF4',
+          border: `1px solid ${timerExpired ? '#FCA5A5' : '#BBF7D0'}`,
+          borderRadius: 14,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 10,
         }}>
-          {/* Label */}
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '.08em', textAlign: 'center', marginBottom: 10 }}>
-            {timerLabel}
+          {/* Label «ОТДЫХ» */}
+          <div style={{
+            fontSize: 11, fontWeight: 600,
+            color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
+            textTransform: 'uppercase', letterSpacing: '0.08em',
+          }}>
+            {timerExpired ? 'ВРЕМЯ ВЫШЛО' : 'ОТДЫХ'}
           </div>
 
-          {/* Ring + number */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ position: 'relative', width: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="72" height="72" viewBox="0 0 72 72" style={{ position: 'absolute', top: 0, left: 0, transform: 'rotate(-90deg)' }}>
-                <circle cx="36" cy="36" r="30" fill="none" stroke="var(--slate-100)" strokeWidth="5" />
-                <circle
-                  cx="36" cy="36" r="30" fill="none"
-                  stroke={timerExpired ? 'var(--red-500)' : 'var(--indigo-500)'}
-                  strokeWidth="5" strokeLinecap="round"
-                  strokeDasharray={CIRCUM}
-                  strokeDashoffset={timerOffset}
-                  style={{ transition: 'stroke-dashoffset 1s linear' }}
-                />
-              </svg>
+          {/* SVG-ring 110×110 */}
+          <div style={{ position: 'relative', width: 110, height: 110 }}>
+            <svg width="110" height="110" style={{ transform: 'rotate(-90deg)' }}>
+              <circle cx="55" cy="55" r={TIMER_R} fill="none" stroke="#D1FAE5" strokeWidth="6" />
+              <circle
+                cx="55" cy="55" r={TIMER_R} fill="none"
+                stroke={timerExpired ? 'var(--red-500)' : 'var(--green-600)'}
+                strokeWidth="6" strokeLinecap="round"
+                strokeDasharray={`${timerDash} ${timerGap}`}
+                strokeDashoffset="0"
+                style={{ transition: 'stroke-dasharray 1s linear' }}
+              />
+            </svg>
+            <div style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+            }}>
               <div style={{
-                fontSize: 36, fontWeight: 800, letterSpacing: '-0.02em',
-                color: timerExpired ? 'var(--red-500)' : 'var(--slate-900)',
-                position: 'relative', zIndex: 1,
+                fontSize: 32, fontWeight: 700, lineHeight: 1,
+                color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
               }}>
                 {fmt(timerSec)}
               </div>
+              <div style={{
+                fontSize: 10, marginTop: 2,
+                color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
+                opacity: 0.6,
+              }}>
+                сек
+              </div>
             </div>
-
-            {timerExpired ? (
-              <div style={{ textAlign: 'center', marginTop: 4 }}>
-                <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)' }}>Время вышло!</div>
-                <div style={{ fontSize: 15, color: 'var(--slate-400)', marginTop: 2 }}>Можно начинать подход</div>
-              </div>
-            ) : timerNextEx ? (
-              <div style={{ fontSize: 15, color: 'var(--slate-400)', marginTop: 3, textAlign: 'center' }}>
-                следующий: {timerNextEx}
-              </div>
-            ) : null}
           </div>
 
+          {timerNextEx && !timerExpired && (
+            <div style={{ fontSize: 13, color: 'var(--slate-500)', textAlign: 'center' }}>
+              следующее: {timerNextEx}
+            </div>
+          )}
+
           {/* Buttons */}
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={() => skipTimer()}
-              style={{ flex: 1, background: 'var(--slate-50)', border: '1px solid var(--slate-200)', color: 'var(--slate-500)', borderRadius: 8, padding: 8, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)' }}
+              style={{
+                background: '#fff', border: '1.5px solid var(--slate-200)',
+                color: 'var(--slate-600)', borderRadius: 8,
+                padding: '6px 12px', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'var(--font)',
+              }}
             >
-              Пропустить отдых
+              Пропустить
             </button>
             <button
               onClick={() => addTime(30)}
-              style={{ flex: 1, background: 'var(--white)', border: '1px solid var(--slate-200)', color: 'var(--slate-400)', borderRadius: 8, padding: 8, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)' }}
+              style={{
+                background: '#fff', border: '1.5px solid #A7F3D0',
+                color: 'var(--green-600)', borderRadius: 8,
+                padding: '6px 12px', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'var(--font)',
+              }}
             >
               +30 сек
             </button>
           </div>
+
+          {/* Hidden, but keep timerLabel reachable for future debugging */}
+          <span hidden>{timerLabel}</span>
         </div>
       )}
 

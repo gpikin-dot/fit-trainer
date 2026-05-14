@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Copy, Check } from 'lucide-react'
+import { Plus, Copy, Check, LogOut } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
@@ -52,7 +52,7 @@ export default function TrainerDashboardPage() {
   const navigate = useNavigate()
   const { profile, signOut } = useAuth()
   const [tab, setTab] = useState<'today' | 'clients' | 'library'>('today')
-  const [menuOpen, setMenuOpen] = useState(false)
+
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [workoutStats, setWorkoutStats] = useState<Map<string, { exerciseCount: number; usageCount: number }>>(new Map())
   const [clients, setClients] = useState<ClientStat[]>([])
@@ -224,31 +224,13 @@ export default function TrainerDashboardPage() {
             <div className="text-[24px] font-bold text-[var(--slate-900)] tracking-[-0.01em] mb-[11px]">{profile?.name}</div>
           </div>
 
-          {/* ··· menu */}
-          <div className="relative">
-            <button
-              onClick={() => setMenuOpen(o => !o)}
-              className="w-[28px] h-[28px] flex items-center justify-center text-[var(--slate-400)] hover:text-[var(--slate-600)] rounded-full hover:bg-[var(--slate-100)] transition-colors mt-[2px]"
-            >
-              <span className="text-[17px] leading-none tracking-widest">···</span>
-            </button>
-
-            {menuOpen && (
-              <>
-                {/* backdrop */}
-                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                {/* dropdown */}
-                <div className="absolute right-0 top-[32px] z-50 bg-white border border-[var(--border)] rounded-[10px] shadow-[0_4px_16px_rgba(0,0,0,0.10)] overflow-hidden min-w-[148px]">
-                  <button
-                    onClick={() => { setMenuOpen(false); signOut() }}
-                    className="w-full text-left px-[12px] py-[10px] text-[16px] font-semibold text-[var(--red-500)] hover:bg-[var(--slate-50)] flex items-center gap-[7px]"
-                  >
-                    <span className="text-[16px]">→</span> Выйти из аккаунта
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          {/* Logout */}
+          <button
+            onClick={() => signOut()}
+            className="w-[32px] h-[32px] flex items-center justify-center text-[var(--slate-300)] hover:text-[var(--slate-500)] rounded-full hover:bg-[var(--slate-100)] transition-colors mt-[2px]"
+          >
+            <LogOut className="w-[18px] h-[18px]" />
+          </button>
         </div>
 
         {/* Tabs */}
@@ -371,9 +353,10 @@ export default function TrainerDashboardPage() {
             )}
 
             {todayItems.length === 0 && upcomingItems.length === 0 && openDateItems.length === 0 && (
-              <div className="text-center text-[15px] text-[var(--slate-400)] leading-[1.6] py-[28px]">
-                Нет активных тренировок на сегодня.<br />
-                Назначьте клиентам через их карточку.
+              <div className="text-center py-[32px] px-[4px]">
+                <div className="text-[0.813rem] text-[var(--slate-400)] leading-[1.6]">
+                  Пока здесь пусто. Пригласите клиента в разделе «Клиенты» или создайте шаблон тренировки в разделе «Шаблоны».
+                </div>
               </div>
             )}
           </div>

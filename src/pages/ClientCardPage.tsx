@@ -146,17 +146,24 @@ export default function ClientCardPage() {
                 const pct = totalEx > 0 ? Math.round((done / totalEx) * 100) : 0
 
                 return (
-                  <div key={a.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
+                  <div
+                    key={a.id}
+                    onClick={!started ? () => navigate(`/trainer/workout/${a.workout_id}`) : undefined}
+                    className={`bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px] ${!started ? 'cursor-pointer' : ''}`}
+                  >
                     <div className="flex items-center justify-between gap-[6px]">
                       <div className="flex-1 min-w-0">
                         <div className="text-[17px] font-semibold text-[var(--slate-900)]">{a.workout?.name ?? '—'}</div>
                         <div className="text-[15px] text-[var(--slate-400)] mt-[2px]">{dateLabel}</div>
                       </div>
-                      <span className={`inline-flex items-center text-[13px] font-bold px-[9px] py-[4px] rounded-full shrink-0 ${
-                        started ? 'bg-[var(--amber-100)] text-[var(--amber-800)]' : 'bg-[var(--slate-100)] text-[var(--slate-500)]'
-                      }`}>
-                        {done}/{totalEx}
-                      </span>
+                      <div className="flex items-center gap-[5px] shrink-0">
+                        <span className={`inline-flex items-center text-[13px] font-bold px-[9px] py-[4px] rounded-full ${
+                          started ? 'bg-[var(--amber-100)] text-[var(--amber-800)]' : 'bg-[var(--slate-100)] text-[var(--slate-500)]'
+                        }`}>
+                          {done}/{totalEx}
+                        </span>
+                        {!started && <span className="text-[var(--slate-300)] text-[16px]">›</span>}
+                      </div>
                     </div>
                     <div className="mt-[7px] h-[3px] bg-[var(--slate-100)] rounded-full overflow-hidden">
                       <div

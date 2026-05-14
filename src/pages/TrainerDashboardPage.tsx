@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Copy, Check, LogOut } from 'lucide-react'
+import { Copy, Check, LogOut } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
@@ -8,41 +8,10 @@ import { Modal } from '../components/UI'
 import { canCreateWorkout, canInviteClient } from '../lib/planLimits'
 import type { Workout, Profile, Invite } from '../types/database'
 
-const DAYS_SHORT = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
-const MONTHS_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
-
-function getGreeting(): string {
-  const h = new Date().getHours()
-  if (h >= 5 && h < 12) return 'Доброе утро,'
-  if (h >= 12 && h < 18) return 'Добрый день,'
-  return 'Добрый вечер,'
-}
-
-function fmtDate(iso: string) {
-  const d = new Date(iso.includes('T') ? iso : iso + 'T00:00:00')
-  return `${DAYS_SHORT[d.getDay()]}, ${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}.`
-}
-
-interface TodayItem {
-  assignId: string
-  clientId: string
-  clientName: string
-  workoutName: string
-  exerciseCount: number
-  completedCount: number
-  started: boolean
-}
-
-interface ScheduledItem {
-  assignId: string
-  clientId: string
-  clientName: string
-  workoutName: string
-  plannedDate: string
-}
-
 interface ClientStat extends Profile {
   compliance: number | null
+  hasWorkoutToday: boolean
+  pendingCount: number
   nextWorkoutDate: string | null
   lastWorkoutDate: string | null
   missedCount: number
@@ -51,14 +20,11 @@ interface ClientStat extends Profile {
 export default function TrainerDashboardPage() {
   const navigate = useNavigate()
   const { profile, signOut } = useAuth()
-  const [tab, setTab] = useState<'today' | 'clients' | 'library'>('today')
+  const [tab, setTab] = useState<'clients' | 'templates'>('clients')
 
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [workoutStats, setWorkoutStats] = useState<Map<string, { exerciseCount: number; usageCount: number }>>(new Map())
   const [clients, setClients] = useState<ClientStat[]>([])
-  const [todayItems, setTodayItems] = useState<TodayItem[]>([])
-  const [upcomingItems, setUpcomingItems] = useState<ScheduledItem[]>([])
-  const [openDateItems, setOpenDateItems] = useState<ScheduledItem[]>([])
   const [, setInvites] = useState<Invite[]>([])
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null)
@@ -66,7 +32,6 @@ export default function TrainerDashboardPage() {
   const [loading, setLoading] = useState(true)
 
   const today = new Date().toISOString().split('T')[0]
-  const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
   useEffect(() => {
     if (!profile) return
@@ -115,61 +80,33 @@ export default function TrainerDashboardPage() {
     const clientIds = clientList.map(c => c.id)
     const { data: assignments } = await supabase
       .from('assigned_workouts')
-      .select('*, workout:workouts(name)')
+      .select('*')
       .in('client_id', clientIds)
 
     const all = assignments ?? []
 
-    const todayRaw = all.filter(a => a.planned_date === today && a.status === 'pending')
-    const upcomingRaw = all
-      .filter(a => a.planned_date && a.planned_date > today && a.planned_date <= nextWeek && a.status === 'pending')
-      .sort((a, b) => a.planned_date.localeCompare(b.planned_date))
-    const openRaw = all.filter(a => !a.planned_date && a.status === 'pending')
-
-    const todayData = await Promise.all(todayRaw.map(async a => {
-      const client = clientList.find(c => c.id === a.client_id)!
-      const [{ count }, { data: results }] = await Promise.all([
-        supabase.from('exercises').select('*', { count: 'exact', head: true }).eq('workout_id', a.workout_id),
-        supabase.from('exercise_results').select('completed').eq('assigned_workout_id', a.id),
-      ])
-      return {
-        assignId: a.id,
-        clientId: client.id,
-        clientName: client.name,
-        workoutName: (a.workout as { name: string } | null)?.name ?? '—',
-        exerciseCount: count ?? 0,
-        completedCount: (results ?? []).filter(r => r.completed).length,
-        started: (results ?? []).length > 0,
-      } as TodayItem
-    }))
-
-    const toScheduled = (a: typeof all[0]): ScheduledItem => {
-      const client = clientList.find(c => c.id === a.client_id)!
-      return {
-        assignId: a.id,
-        clientId: client.id,
-        clientName: client.name,
-        workoutName: (a.workout as { name: string } | null)?.name ?? '—',
-        plannedDate: a.planned_date ?? '',
-      }
-    }
-
-    setTodayItems(todayData)
-    setUpcomingItems(upcomingRaw.map(toScheduled))
-    setOpenDateItems(openRaw.map(toScheduled))
-
     const statsClients: ClientStat[] = clientList.map(c => {
       const mine = all.filter(a => a.client_id === c.id)
       const completed = mine.filter(a => a.status === 'completed')
+      const pending = mine.filter(a => a.status === 'pending')
       const compliance = mine.length > 0 ? Math.round(completed.length / mine.length * 100) : null
       const lastWorkoutDate = completed
         .filter(a => a.completed_at)
         .sort((a, b) => b.completed_at!.localeCompare(a.completed_at!))[0]?.completed_at ?? null
-      const nextWorkoutDate = mine
-        .filter(a => a.status === 'pending' && a.planned_date && a.planned_date >= today)
+      const nextWorkoutDate = pending
+        .filter(a => a.planned_date && a.planned_date >= today)
         .sort((a, b) => a.planned_date!.localeCompare(b.planned_date!))[0]?.planned_date ?? null
-      const missedCount = mine.filter(a => a.status === 'pending' && a.planned_date && a.planned_date < today).length
-      return { ...c, compliance, lastWorkoutDate, nextWorkoutDate, missedCount }
+      const missedCount = pending.filter(a => a.planned_date && a.planned_date < today).length
+      const hasWorkoutToday = pending.some(a => a.planned_date === today)
+      return {
+        ...c,
+        compliance,
+        hasWorkoutToday,
+        pendingCount: pending.length,
+        nextWorkoutDate,
+        lastWorkoutDate,
+        missedCount,
+      }
     })
 
     setClients(statsClients)
@@ -214,292 +151,128 @@ export default function TrainerDashboardPage() {
     </Layout>
   )
 
+  const initials = (profile?.name ?? '?').slice(0, 2).toUpperCase()
+  const todayClients = clients.filter(c => c.hasWorkoutToday)
+  const otherClients = clients.filter(c => !c.hasWorkoutToday)
+
   return (
     <Layout>
-      {/* Sticky header */}
-      <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[14px]">
-        <div className="pt-[11px] pb-0 flex items-start justify-between">
-          <div>
-            <div className="text-[15px] text-[var(--slate-400)]">{getGreeting()}</div>
-            <div className="text-[24px] font-bold text-[var(--slate-900)] tracking-[-0.01em] mb-[11px]">{profile?.name}</div>
-          </div>
-
-          {/* Logout */}
-          <button
-            onClick={() => signOut()}
-            className="w-[32px] h-[32px] flex items-center justify-center text-[var(--slate-300)] hover:text-[var(--slate-500)] rounded-full hover:bg-[var(--slate-100)] transition-colors mt-[2px]"
-          >
-            <LogOut className="w-[18px] h-[18px]" />
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex" style={{ borderBottom: '1.5px solid var(--slate-100)' }}>
-          {([
-            { key: 'today', label: 'Сегодня' },
-            { key: 'clients', label: 'Клиенты' },
-            { key: 'library', label: 'Шаблоны' },
-          ] as const).map(({ key, label }) => (
+      {/* Header — FitTrainer wordmark + name/avatar */}
+      <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[16px] py-[14px] border-b border-[var(--border)]">
+        <div className="flex items-center justify-between">
+          <div className="text-[20px] font-extrabold text-[var(--blue-600)]">FitTrainer</div>
+          <div className="flex items-center gap-[8px]">
+            <div className="text-[20px] font-extrabold text-[var(--slate-700)]">{profile?.name}</div>
+            <div className="w-[34px] h-[34px] rounded-full bg-[var(--blue-50)] text-[var(--blue-600)] flex items-center justify-center text-[11px] font-bold border-[1.5px] border-[var(--blue-200)]">
+              {initials}
+            </div>
             <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={`flex-1 py-[8px] text-[16px] font-semibold text-center border-b-2 -mb-[1.5px] transition-colors ${
-                tab === key ? 'text-[var(--indigo-500)] border-[var(--indigo-500)]' : 'text-[var(--slate-400)] border-transparent'
-              }`}
+              onClick={() => signOut()}
+              className="ml-[4px] w-[28px] h-[28px] flex items-center justify-center text-[var(--slate-400)] hover:text-[var(--slate-600)] rounded-full hover:bg-[var(--slate-100)] transition-colors"
+              title="Выйти"
             >
-              {label}
+              <LogOut className="w-[16px] h-[16px]" />
             </button>
-          ))}
+          </div>
         </div>
       </div>
 
+      {/* Tabs — Клиенты | Шаблоны */}
+      <div className="sticky top-[60px] z-10 flex bg-white -mx-[13px] px-[16px] border-b border-[var(--border)]">
+        {([
+          { key: 'clients', label: 'Клиенты' },
+          { key: 'templates', label: 'Шаблоны' },
+        ] as const).map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`flex-1 py-[11px] text-[15px] font-medium text-center border-b-2 -mb-[1px] transition-colors ${
+              tab === key ? 'text-[var(--blue-600)] border-[var(--blue-600)]' : 'text-[var(--slate-500)] border-transparent'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Body */}
-      <div className="px-0 pt-[11px] pb-[14px]">
+      <div className="pt-[8px] pb-[32px]">
         {error && (
-          <div className="text-[15px] text-red-500 mb-2">{error}</div>
+          <div className="text-[14px] text-[var(--red-500)] mb-2 px-[3px]">{error}</div>
         )}
 
-        {/* TODAY */}
-        {tab === 'today' && (
-          <div>
-            {todayItems.length > 0 && (
-              <div>
-                <div className="text-[11px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
-                  Тренировки сегодня
-                </div>
-                {todayItems.map(item => (
-                  <div
-                    key={item.assignId}
-                    onClick={() => navigate(`/trainer/client/${item.clientId}`)}
-                    className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px] cursor-pointer"
-                  >
-                    <div className="flex items-center gap-[8px]">
-                      <div className="w-[28px] h-[28px] rounded-full bg-[var(--indigo-50)] flex items-center justify-center shrink-0 text-[16px] font-bold text-[var(--indigo-500)]">
-                        {item.clientName.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[17px] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
-                        <div className="text-[15px] text-[var(--slate-400)] mt-[1px] truncate">{item.workoutName}</div>
-                        <div className="mt-[4px]">
-                          {item.started ? (
-                            <span className="text-[15px] font-semibold bg-[var(--green-50)] text-[var(--green-600)] px-[7px] py-[2px] rounded-[20px]">
-                              ● Начата
-                            </span>
-                          ) : (
-                            <span className="text-[15px] font-semibold bg-[var(--slate-50)] text-[var(--slate-400)] px-[7px] py-[2px] rounded-[20px]">
-                              ● Не начата
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <span className="text-[var(--slate-300)] text-[17px]">›</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {upcomingItems.length > 0 && (
-              <div className="mt-[8px]">
-                <div className="text-[11px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
-                  Ближайшие дни
-                </div>
-                <div className="bg-white border border-[var(--border)] rounded-[10px] overflow-hidden">
-                  {upcomingItems.map((item, idx) => {
-                    const d = new Date(item.plannedDate + 'T00:00:00')
-                    return (
-                      <div
-                        key={item.assignId}
-                        onClick={() => navigate(`/trainer/client/${item.clientId}`)}
-                        className={`px-[11px] py-[7px] flex items-center gap-2 cursor-pointer ${idx < upcomingItems.length - 1 ? 'border-b border-[var(--slate-50)]' : ''}`}
-                      >
-                        <div className="w-[26px] shrink-0 text-center">
-                          <div className="text-[11px] text-[var(--slate-400)] uppercase">{DAYS_SHORT[d.getDay()]}</div>
-                          <div className="text-[13px] font-bold text-[var(--slate-900)] leading-tight">{d.getDate()}</div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[17px] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
-                          <div className="text-[15px] text-[var(--slate-400)] mt-[1px]">{item.workoutName}</div>
-                        </div>
-                        <span className="text-[var(--slate-300)] text-[17px]">›</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {openDateItems.length > 0 && (
-              <div className="mt-[8px]">
-                <div className="text-[11px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
-                  Открытая дата
-                </div>
-                <div className="bg-white border border-[var(--border)] rounded-[10px] overflow-hidden">
-                  {openDateItems.map((item, idx) => (
-                    <div
-                      key={item.assignId}
-                      onClick={() => navigate(`/trainer/client/${item.clientId}`)}
-                      className={`px-[11px] py-[7px] flex items-center gap-2 cursor-pointer ${idx < openDateItems.length - 1 ? 'border-b border-[var(--slate-50)]' : ''}`}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[17px] font-semibold text-[var(--slate-900)]">{item.clientName}</div>
-                        <div className="text-[15px] text-[var(--slate-400)] mt-[1px]">{item.workoutName}</div>
-                      </div>
-                      <span className="text-[var(--slate-300)] text-[17px]">›</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {todayItems.length === 0 && upcomingItems.length === 0 && openDateItems.length === 0 && (
-              <div className="text-center py-[32px] px-[4px]">
-                <div className="text-[0.813rem] text-[var(--slate-400)] leading-[1.6]">
-                  Пока здесь пусто. Пригласите клиента в разделе «Клиенты» или создайте шаблон тренировки в разделе «Шаблоны».
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* CLIENTS */}
+        {/* CLIENTS TAB */}
         {tab === 'clients' && (
           <div>
+            {todayClients.length > 0 && (
+              <>
+                <SectionLabel>Сегодня</SectionLabel>
+                {todayClients.map(c => (
+                  <ClientCard key={c.id} client={c} highlight today onClick={() => navigate(`/trainer/client/${c.id}`)} />
+                ))}
+                <Separator />
+              </>
+            )}
+            {otherClients.map(c => (
+              <ClientCard key={c.id} client={c} onClick={() => navigate(`/trainer/client/${c.id}`)} />
+            ))}
+            {clients.length === 0 && (
+              <div className="text-center text-[14px] text-[var(--slate-400)] leading-[1.6] py-[40px]">
+                Клиентов пока нет.<br />Пригласите первого.
+              </div>
+            )}
             <button
               onClick={handleCreateInvite}
-              className="border-[1.5px] border-dashed border-[var(--indigo-300)] bg-[var(--indigo-50)] rounded-[10px] px-[10px] py-[10px] text-[16px] font-bold text-[var(--indigo-500)] w-full mb-[11px]"
+              className="w-full mt-[20px] border-[1.5px] border-dashed border-[var(--blue-400)] bg-white text-[var(--blue-600)] rounded-[10px] py-[12px] text-[15px] font-semibold hover:bg-[var(--blue-50)] transition-colors"
             >
-              + Пригласить нового клиента
+              + Пригласить клиента
             </button>
-
-            {clients.length === 0 ? (
-              <div className="text-center text-[15px] text-[var(--slate-400)] leading-[1.6] py-[28px]">
-                Клиентов пока нет.<br />
-                Пригласите первого.
-              </div>
-            ) : (
-              clients.map(c => {
-                const isMissed = c.compliance !== null && c.compliance < 60 && c.missedCount > 0
-                const compBadge = c.compliance === null
-                  ? { bg: 'bg-[var(--slate-100)]', text: 'text-[var(--slate-500)]', label: '—' }
-                  : c.compliance >= 80
-                  ? { bg: 'bg-[var(--green-100)]', text: 'text-[var(--green-700)]', label: `${c.compliance}%` }
-                  : c.compliance >= 60
-                  ? { bg: 'bg-[var(--amber-100)]', text: 'text-[var(--amber-800)]', label: `${c.compliance}%` }
-                  : { bg: 'bg-[var(--red-100)]', text: 'text-[var(--red-800)]', label: `${c.compliance}%` }
-
-                const subtitle = c.missedCount > 0
-                  ? `Пропустил ${c.missedCount} ${c.missedCount === 1 ? 'тренировку' : 'тренировки'}`
-                  : c.nextWorkoutDate
-                    ? `Следующая: ${fmtDate(c.nextWorkoutDate)}`
-                    : c.lastWorkoutDate
-                      ? `Последняя: ${fmtDate(c.lastWorkoutDate)}`
-                      : 'Нет тренировок'
-
-                return (
-                  <div
-                    key={c.id}
-                    onClick={() => navigate(`/trainer/client/${c.id}`)}
-                    className={`border rounded-[10px] px-[11px] py-[9px] mb-[5px] cursor-pointer flex items-center gap-[8px] ${
-                      isMissed ? 'border-[var(--red-200)] bg-[var(--red-50)]' : 'border-[var(--border)] bg-white'
-                    }`}
-                  >
-                    <div className={`w-[28px] h-[28px] rounded-full flex items-center justify-center shrink-0 text-[16px] font-bold ${
-                      isMissed ? 'bg-[var(--red-50)] text-[var(--red-500)]' : 'bg-[var(--indigo-50)] text-[var(--indigo-500)]'
-                    }`}>
-                      {c.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between gap-1 items-center">
-                        <span className="text-[17px] font-semibold text-[var(--slate-900)]">{c.name}</span>
-                        {c.compliance !== null && (
-                          <span className={`text-[15px] font-bold px-[7px] py-[2px] rounded-[20px] shrink-0 ${compBadge.bg} ${compBadge.text}`}>
-                            {compBadge.label}
-                          </span>
-                        )}
-                      </div>
-                      <div className={`text-[15px] mt-[2px] ${isMissed ? 'text-[var(--red-400)]' : 'text-[var(--slate-400)]'}`}>
-                        {subtitle}
-                      </div>
-                    </div>
-                    <span className="text-[var(--slate-300)] text-[17px]">›</span>
-                  </div>
-                )
-              })
-            )}
           </div>
         )}
 
-        {/* TEMPLATES */}
-        {tab === 'library' && (() => {
+        {/* TEMPLATES TAB */}
+        {tab === 'templates' && (() => {
           const favorites = workouts.filter(w => w.is_favorite)
           const rest = workouts.filter(w => !w.is_favorite)
-
-          const WorkoutRow = (w: Workout) => {
-            const stats = workoutStats.get(w.id)
-            return (
-              <div
-                key={w.id}
-                onClick={() => navigate(`/trainer/workout/${w.id}`)}
-                className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px] flex items-center gap-[8px] cursor-pointer"
-              >
-                <span
-                  onClick={e => toggleFavorite(e, w)}
-                  className={`text-[12px] shrink-0 ${w.is_favorite ? 'text-[#F59E0B]' : 'text-[var(--slate-200)]'}`}
-                >★</span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[17px] font-semibold text-[var(--slate-900)]">{w.name}</div>
-                  <div className="text-[15px] text-[var(--slate-400)] mt-[1px]">
-                    {stats?.exerciseCount ?? 0} упр.
-                    {(stats?.usageCount ?? 0) > 0 && ` · ${stats!.usageCount} раз`}
-                  </div>
-                </div>
-                <span className="text-[var(--slate-300)] text-[17px]">›</span>
-              </div>
-            )
-          }
-
           return (
             <div>
               {favorites.length > 0 && (
-                <div>
-                  <div className="text-[11px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
-                    Избранные
-                  </div>
-                  {favorites.map(WorkoutRow)}
-                </div>
+                <>
+                  <SectionLabel>Избранное</SectionLabel>
+                  {favorites.map(w => (
+                    <TemplateRow
+                      key={w.id}
+                      workout={w}
+                      stats={workoutStats.get(w.id)}
+                      onClick={() => navigate(`/trainer/workout/${w.id}`)}
+                      onToggleStar={e => toggleFavorite(e, w)}
+                    />
+                  ))}
+                  {rest.length > 0 && <Separator />}
+                </>
               )}
-
-              {favorites.length > 0 && rest.length > 0 && (
-                <div className="flex items-center gap-[6px] my-[7px]">
-                  <div className="flex-1 h-[1px] bg-[var(--border)]" />
-                  <span className="text-[11px] font-bold text-[var(--slate-400)] uppercase tracking-[0.06em]">Все шаблоны</span>
-                  <div className="flex-1 h-[1px] bg-[var(--border)]" />
-                </div>
+              {rest.length > 0 && favorites.length > 0 && (
+                <SectionLabel>Все шаблоны</SectionLabel>
               )}
-
-              {rest.length > 0 && (
-                <div>
-                  {favorites.length === 0 && (
-                    <div className="text-[11px] font-bold text-[var(--slate-400)] uppercase tracking-[0.08em] mb-[5px]">
-                      Все шаблоны
-                    </div>
-                  )}
-                  {rest.map(WorkoutRow)}
-                </div>
-              )}
-
+              {rest.map(w => (
+                <TemplateRow
+                  key={w.id}
+                  workout={w}
+                  stats={workoutStats.get(w.id)}
+                  onClick={() => navigate(`/trainer/workout/${w.id}`)}
+                  onToggleStar={e => toggleFavorite(e, w)}
+                />
+              ))}
               {workouts.length === 0 && (
-                <div className="text-center text-[15px] text-[var(--slate-400)] leading-[1.6] py-[28px]">
-                  Нет шаблонов.<br />Создайте первый!
+                <div className="text-center text-[14px] text-[var(--slate-400)] leading-[1.6] py-[40px]">
+                  Шаблонов пока нет.<br />Создайте первый!
                 </div>
               )}
-
               <button
                 onClick={handleCreateWorkout}
-                className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[16px] font-bold rounded-[9px] py-[10px] mt-[8px] flex items-center justify-center gap-1"
+                className="w-full mt-[20px] border-[1.5px] border-dashed border-[var(--blue-400)] bg-white text-[var(--blue-600)] rounded-[10px] py-[12px] text-[15px] font-semibold hover:bg-[var(--blue-50)] transition-colors"
               >
-                <Plus className="w-3.5 h-3.5" /> Новый шаблон
+                + Новый шаблон
               </button>
             </div>
           )
@@ -510,6 +283,106 @@ export default function TrainerDashboardPage() {
         <InviteModal invite={latestInvite} onClose={() => setShowInviteModal(false)} />
       )}
     </Layout>
+  )
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-[11px] font-semibold text-[var(--slate-400)] uppercase tracking-[0.08em] mt-[10px] mb-[5px] first:mt-0">
+      {children}
+    </div>
+  )
+}
+
+function Separator() {
+  return <div className="h-[1px] bg-[var(--border)] my-[10px]" />
+}
+
+function ClientCard({
+  client, highlight = false, today = false, onClick,
+}: {
+  client: ClientStat; highlight?: boolean; today?: boolean; onClick: () => void
+}) {
+  const initials = client.name.slice(0, 2).toUpperCase()
+  const isMissed = client.compliance !== null && client.compliance < 60 && client.missedCount > 0
+
+  const statusLabel = today
+    ? 'Сегодня'
+    : client.pendingCount > 0
+      ? `Назначено: ${client.pendingCount}`
+      : 'Не назначено'
+
+  const statusColor = today
+    ? 'text-[var(--blue-600)]'
+    : client.pendingCount > 0
+      ? 'text-[var(--slate-500)]'
+      : 'text-[var(--slate-400)]'
+
+  return (
+    <div
+      onClick={onClick}
+      className={`flex items-center gap-[10px] px-[12px] py-[10px] rounded-[10px] mb-[5px] cursor-pointer border ${
+        highlight
+          ? 'bg-[var(--blue-50)] border-[var(--blue-100)]'
+          : isMissed
+            ? 'bg-[var(--red-50)] border-[var(--red-200)]'
+            : 'bg-white border-[var(--border)]'
+      }`}
+    >
+      <div className={`w-[40px] h-[40px] rounded-full flex items-center justify-center shrink-0 text-[12px] font-bold ${
+        highlight
+          ? 'bg-[var(--blue-500)] text-white'
+          : isMissed
+            ? 'bg-[var(--red-100)] text-[var(--red-600)]'
+            : 'bg-[var(--blue-50)] text-[var(--blue-600)]'
+      }`}>
+        {initials}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[15px] font-semibold text-[var(--slate-900)] truncate">{client.name}</div>
+        {client.compliance !== null ? (
+          <div className={`text-[12px] mt-[2px] font-medium ${
+            client.compliance >= 80 ? 'text-[var(--green-600)]'
+              : client.compliance >= 60 ? 'text-[#D97706]'
+              : 'text-[var(--red-600)]'
+          }`}>
+            Посещ. {client.compliance}%
+          </div>
+        ) : (
+          <div className="text-[12px] mt-[2px] text-[var(--slate-400)]">Новый клиент</div>
+        )}
+      </div>
+      <span className={`text-[13px] font-medium shrink-0 ${statusColor}`}>{statusLabel}</span>
+      <span className="text-[var(--slate-300)] text-[17px] shrink-0">›</span>
+    </div>
+  )
+}
+
+function TemplateRow({
+  workout, stats, onClick, onToggleStar,
+}: {
+  workout: Workout
+  stats?: { exerciseCount: number; usageCount: number }
+  onClick: () => void
+  onToggleStar: (e: React.MouseEvent) => void
+}) {
+  return (
+    <div className="flex items-center gap-[6px] px-[12px] py-[10px] rounded-[10px] mb-[5px] bg-white border border-[var(--border)]">
+      <button
+        onClick={onToggleStar}
+        className={`text-[17px] shrink-0 px-[2px] ${workout.is_favorite ? 'text-[#F59E0B]' : 'text-[var(--slate-300)]'}`}
+        title={workout.is_favorite ? 'Убрать из избранного' : 'В избранное'}
+      >
+        {workout.is_favorite ? '★' : '☆'}
+      </button>
+      <div className="flex-1 min-w-0 cursor-pointer" onClick={onClick}>
+        <div className="text-[15px] font-medium text-[var(--slate-900)] truncate">{workout.name}</div>
+        <div className="text-[12px] text-[var(--slate-400)] mt-[2px]">
+          {stats?.exerciseCount ?? 0} упр{(stats?.usageCount ?? 0) > 0 && ` · ${stats!.usageCount} назначений`}
+        </div>
+      </div>
+      <span onClick={onClick} className="text-[var(--slate-300)] text-[17px] shrink-0 cursor-pointer">›</span>
+    </div>
   )
 }
 
@@ -525,31 +398,29 @@ function InviteModal({ invite, onClose }: { invite: Invite; onClose: () => void 
 
   return (
     <Modal onClose={onClose}>
-      <h2 className="text-[20px] font-bold text-[var(--slate-900)] mb-1">Приглашение создано</h2>
-      <p className="text-[15px] text-[var(--slate-500)] leading-[1.5] mb-3">
-        Отправьте эту ссылку клиенту. Действует 7 дней, использовать можно один раз.
+      <h2 className="text-[17px] font-bold text-[var(--slate-900)] mb-[6px]">Пригласить клиента</h2>
+      <p className="text-[13px] text-[var(--slate-500)] leading-[1.5] mb-[14px]">
+        Отправьте эту ссылку клиенту. Она действует 7&nbsp;дней и&nbsp;её можно использовать один&nbsp;раз.
       </p>
-      <div className="bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[7px] px-[9px] py-[7px]">
-        <span className="text-[15px] font-mono text-[var(--slate-600)] break-all">{link}</span>
+      <div className="bg-[var(--slate-100)] rounded-[8px] px-[12px] py-[10px] mb-[12px]">
+        <span className="text-[13px] font-mono text-[var(--slate-600)] break-all">{link}</span>
       </div>
-      <div className="flex gap-[6px] mt-3">
-        <button
-          onClick={copy}
-          className="flex-1 bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[16px] font-bold rounded-[8px] py-[9px] flex items-center justify-center gap-1"
-        >
-          {copied ? (
-            <><Check className="w-3.5 h-3.5" /> ✓ Скопировано</>
-          ) : (
-            <><Copy className="w-3.5 h-3.5" /> Скопировать</>
-          )}
-        </button>
-        <button
-          onClick={onClose}
-          className="text-[16px] text-[var(--slate-500)] px-[4px] py-[9px]"
-        >
-          Закрыть
-        </button>
-      </div>
+      <button
+        onClick={copy}
+        className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[12px] flex items-center justify-center gap-[6px] mb-[8px]"
+      >
+        {copied ? (
+          <><Check className="w-4 h-4" /> Скопировано</>
+        ) : (
+          <><Copy className="w-4 h-4" /> Скопировать ссылку</>
+        )}
+      </button>
+      <button
+        onClick={onClose}
+        className="w-full bg-white border border-[var(--slate-200)] text-[var(--slate-700)] text-[15px] font-semibold rounded-[10px] py-[12px]"
+      >
+        Закрыть
+      </button>
     </Modal>
   )
 }

@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FitTrainer — Прототип</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #E2E8F0; }
+body { min-height: 100vh; display: flex; justify-content: center; padding: 0; }
+
+.app-wrapper {
+  width: 390px;
+  min-height: 100vh;
+  background: #F8FAFC;
+  position: relative;
+  overflow-x: hidden;
+  box-shadow: 0 0 40px rgba(0,0,0,0.15);
+}
+
+:root {
+  --blue-50: #EFF6FF; --blue-100: #DBEAFE; --blue-200: #BFDBFE; --blue-300: #93C5FD; --blue-400: #60A5FA; --blue-500: #3B82F6; --blue-600: #2563EB;
+  --green-50: #F0FDF4; --green-100: #DCFCE7; --green-600: #16A34A; --green-700: #15803D;
+  --amber-100: #FEF3C7; --amber-800: #92400E;
+  --red-100: #FEE2E2; --red-800: #991B1B;
+  --slate-50: #F8FAFC; --slate-100: #F1F5F9; --slate-200: #E2E8F0; --slate-300: #CBD5E1;
+  --slate-400: #94A3B8; --slate-500: #64748B; --slate-600: #475569;
+  --slate-700: #334155; --slate-800: #1E293B; --slate-900: #0F172A;
+  --border: #E8EDF3;
+}
+
+.header {
+  display: flex; align-items: center; padding: 13px 16px;
+  border-bottom: 1px solid var(--border); background: #fff;
+  position: sticky; top: 0; z-index: 20;
+}
+.header-title { font-size: 1rem; font-weight: 600; color: var(--slate-900); flex: 1; text-align: center; }
+.back-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--blue-600); font-size: 1.4rem; cursor: pointer; background: none; border: none; flex-shrink: 0; }
+
+.tabs { display: flex; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 49px; z-index: 10; }
+.tab { flex: 1; padding: 11px 0; text-align: center; font-size: 0.938rem; font-weight: 500; color: var(--slate-500); border-bottom: 2px solid transparent; cursor: pointer; background: none; border-top: none; border-left: none; border-right: none; }
+.tab.active { color: var(--blue-600); border-bottom-color: var(--blue-600); }
+
+.card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 5px; }
+.card-done { background: var(--green-50); border-color: #BBF7D0; }
+.card-skipped { background: var(--slate-100); border-color: var(--slate-200); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.938rem; font-weight: 500; cursor: pointer; border: none; padding: 10px 16px; font-family: inherit; transition: opacity 0.15s; }
+.btn:active { opacity: 0.8; }
+/* Залитая — главное действие */
+.btn-primary { background: var(--blue-600); color: #fff; width: 100%; padding: 13px; border-radius: 10px; border: none; }
+/* В рамке — второстепенное действие */
+.btn-outline { background: #fff !important; color: var(--blue-600) !important; border: 1.5px solid var(--blue-200) !important; width: 100%; padding: 12px; border-radius: 10px; }
+.btn-outline:hover { border-color: var(--blue-500) !important; }
+/* Пунктир — добавить в список */
+.btn-dashed { background: #fff !important; color: var(--blue-600) !important; border: 1.5px dashed #60A5FA !important; width: 100%; padding: 12px; border-radius: 10px; }
+.btn-dashed:hover { border-color: var(--blue-600) !important; background: var(--blue-50) !important; }
+/* Серая — отмена/нейтральное */
+.btn-secondary { background: var(--slate-100); color: var(--slate-700); border: none; }
+.btn-sm { padding: 6px 12px; font-size: 0.813rem; }
+
+.badge { display: inline-flex; align-items: center; border-radius: 20px; font-size: 0.688rem; font-weight: 500; padding: 2px 8px; }
+.badge-green { background: var(--green-100); color: var(--green-700); }
+.badge-amber { background: var(--amber-100); color: var(--amber-800); }
+.badge-red { background: var(--red-100); color: var(--red-800); }
+.badge-gray { background: var(--slate-100); color: var(--slate-500); }
+.badge-blue { background: var(--blue-100); color: var(--blue-600); }
+
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--blue-50); color: var(--blue-600); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
+
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], textarea {
+  width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+  font-size: 0.938rem; font-family: inherit; color: var(--slate-800); outline: none; background: #fff;
+}
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input:focus, textarea:focus { border-color: var(--blue-500); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+label { display: block; font-size: 0.75rem; font-weight: 500; color: var(--slate-600); margin-bottom: 4px; }
+
+.progress-bar { height: 4px; background: var(--slate-200); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 2px; background: var(--blue-500); transition: width 0.3s; }
+.progress-fill.green { background: #22C55E; }
+
+.section-header { font-size: 0.688rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--slate-400); padding: 10px 0 5px; }
+
+.separator { height: 1px; background: var(--border); margin: 10px 0; }
+
+.set-row { display: grid; grid-template-columns: 18px 1fr 1fr 34px; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--slate-100); }
+.set-row:last-child { border-bottom: none; }
+.set-num { font-size: 0.688rem; color: var(--slate-400); text-align: center; }
+.set-input { width: 100% !important; padding: 7px 4px !important; text-align: center !important; font-size: 1rem !important; font-weight: 600 !important; box-sizing: border-box !important; border-radius: 8px !important; }
+.set-check { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--slate-300); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; font-family: inherit; color: var(--slate-300); transition: background 0.15s, border-color 0.15s, color 0.15s; padding: 0; }
+.set-check.done { background: var(--blue-600); border-color: var(--blue-600); color: #fff; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
+.modal-sheet { background: #fff; border-radius: 16px 16px 0 0; width: 390px; padding: 24px 16px; max-height: 85vh; overflow-y: auto; }
+.modal-handle { width: 36px; height: 4px; background: var(--slate-300); border-radius: 2px; margin: 0 auto 16px; }
+
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.confirm-dialog { background: #fff; border-radius: 14px; padding: 20px; width: 100%; max-width: 320px; }
+
+.pill { padding: 8px 14px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 0.813rem; cursor: pointer; background: #fff; color: var(--slate-700); font-family: inherit; }
+.pill.selected { background: var(--blue-600); border-color: var(--blue-600); color: #fff; }
+
+.empty-state { text-align: center; padding: 40px 24px; color: var(--slate-400); font-size: 0.813rem; line-height: 1.6; }
+.bottom-safe { height: 32px; }
+
+.ex-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+.ex-grid-3 > *, .ex-grid-2 > * { min-width: 0; }
+
+/* Компактный инпут для полей упражнения */
+input.num-input {
+  width: 100% !important;
+  min-width: 0 !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+  padding: 7px 2px !important;
+  text-align: center !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  font-family: inherit !important;
+  color: var(--slate-800) !important;
+  outline: none !important;
+  background: #fff !important;
+  box-sizing: border-box !important;
+  -moz-appearance: textfield !important;
+}
+input.num-input::-webkit-inner-spin-button,
+input.num-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input.num-input:focus { border-color: var(--blue-500) !important; box-shadow: 0 0 0 2px rgba(59,130,246,0.15) !important; }
+.ex-field { background: var(--slate-100); border-radius: 6px; padding: 8px 6px; text-align: center; }
+.ex-field-label { font-size: 0.625rem; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.ex-field-value { font-size: 1.125rem; font-weight: 600; color: var(--slate-800); }
+
+.timer-box { margin: 10px 16px 0; padding: 16px 14px; background: #F0FDF4; border-radius: 14px; text-align: center; border: 1px solid #BBF7D0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useReducer } = React;
+
+// ─── MOCK DATA ───────────────────────────────────────────────────
+
+const CLIENTS_DATA = [
+  { id: 'c1', name: 'Григорий П.', initials: 'ГП', attendance: 85 },
+  { id: 'c2', name: 'Анна К.', initials: 'АК', attendance: 72 },
+  { id: 'c3', name: 'Дмитрий С.', initials: 'ДС', attendance: 45 },
+];
+
+const EXERCISES_LIB = [
+  { id: 'ex1',  name: 'Жим штанги лёжа',          category: 'Грудь' },
+  { id: 'ex2',  name: 'Разводка гантелей лёжа',    category: 'Грудь' },
+  { id: 'ex3',  name: 'Жим гантелей лёжа',         category: 'Грудь' },
+  { id: 'ex4',  name: 'Отжимания на брусьях',       category: 'Грудь' },
+  { id: 'ex5',  name: 'Кроссовер в блоке',          category: 'Грудь' },
+  { id: 'ex6',  name: 'Жим гантелей сидя',          category: 'Плечи' },
+  { id: 'ex7',  name: 'Тяга штанги к подбородку',   category: 'Плечи' },
+  { id: 'ex8',  name: 'Махи гантелями в стороны',   category: 'Плечи' },
+  { id: 'ex9',  name: 'Армейский жим',              category: 'Плечи' },
+  { id: 'ex10', name: 'Тяга верхнего блока',        category: 'Спина' },
+  { id: 'ex11', name: 'Тяга штанги в наклоне',      category: 'Спина' },
+  { id: 'ex12', name: 'Тяга гантели одной рукой',   category: 'Спина' },
+  { id: 'ex13', name: 'Подтягивания',               category: 'Спина' },
+  { id: 'ex14', name: 'Гиперэкстензия',             category: 'Спина' },
+  { id: 'ex15', name: 'Приседания со штангой',      category: 'Ноги' },
+  { id: 'ex16', name: 'Жим ногами',                 category: 'Ноги' },
+  { id: 'ex17', name: 'Выпады с гантелями',         category: 'Ноги' },
+  { id: 'ex18', name: 'Сгибание ног в тренажёре',   category: 'Ноги' },
+  { id: 'ex19', name: 'Разгибание ног в тренажёре', category: 'Ноги' },
+  { id: 'ex20', name: 'Икры стоя',                  category: 'Ноги' },
+  { id: 'ex21', name: 'Подъём на бицепс со штангой', category: 'Руки' },
+  { id: 'ex22', name: 'Подъём на бицепс с гантелями', category: 'Руки' },
+  { id: 'ex23', name: 'Французский жим',            category: 'Руки' },
+  { id: 'ex24', name: 'Трицепс на блоке',           category: 'Руки' },
+  { id: 'ex25', name: 'Молотковые сгибания',        category: 'Руки' },
+  { id: 'ex26', name: 'Скручивания на пресс',       category: 'Пресс' },
+  { id: 'ex27', name: 'Планка',                     category: 'Пресс' },
+  { id: 'ex28', name: 'Подъём ног в висе',          category: 'Пресс' },
+];
+
+const exName = id => EXERCISES_LIB.find(e => e.id === id)?.name || id;
+
+const TEMPLATES_INIT = [
+  {
+    id: 'wt1', name: 'Push Day A', starred: true, usedCount: 14,
+    exercises: [
+      { exId: 'ex1', sets: 4, reps: 8, weight: 80, rest: 90, note: 'Локти чуть внутрь' },
+      { exId: 'ex2', sets: 3, reps: 12, weight: 22, rest: 60, note: '' },
+      { exId: 'ex3', sets: 3, reps: 10, weight: 24, rest: 60, note: '' },
+    ]
+  },
+  {
+    id: 'wt2', name: 'Pull Day A', starred: false, usedCount: 9,
+    exercises: [
+      { exId: 'ex4', sets: 4, reps: 10, weight: 0, rest: 60, note: 'Тяга к груди' },
+      { exId: 'ex5', sets: 3, reps: 8, weight: 60, rest: 90, note: '' },
+      { exId: 'ex8', sets: 3, reps: 12, weight: 16, rest: 45, note: '' },
+    ]
+  },
+  {
+    id: 'wt3', name: 'Legs Day', starred: true, usedCount: 6,
+    exercises: [
+      { exId: 'ex6', sets: 4, reps: 6, weight: 100, rest: 120, note: 'До параллели' },
+      { exId: 'ex7', sets: 3, reps: 12, weight: 120, rest: 90, note: '' },
+    ]
+  },
+];
+
+const ASSIGNED_INIT = [
+  { id: 'aw1', clientId: 'c1', templateId: 'wt1', date: 'today', status: 'pending', executedBy: null, clientNote: null },
+  { id: 'aw2', clientId: 'c1', templateId: 'wt2', date: null, status: 'pending', executedBy: null, clientNote: null },
+  { id: 'aw3', clientId: 'c2', templateId: 'wt3', date: 'tomorrow', status: 'pending', executedBy: null, clientNote: null },
+  {
+    id: 'aw4', clientId: 'c1', templateId: 'wt1', date: '22 апреля', status: 'completed', executedBy: 'trainer', clientNote: null,
+    result: { total: 3, done: 3, pct: 100, exercises: [
+      { exId: 'ex1', sets: [{p:{r:8,w:80},a:{r:8,w:80}},{p:{r:8,w:80},a:{r:9,w:80}},{p:{r:8,w:80},a:{r:7,w:80}},{p:{r:8,w:80},a:{r:7,w:80}}] },
+      { exId: 'ex2', sets: [{p:{r:12,w:22},a:{r:12,w:22}},{p:{r:12,w:22},a:{r:11,w:22}},{p:{r:12,w:22},a:{r:10,w:22}}] },
+      { exId: 'ex3', sets: [{p:{r:10,w:24},a:{r:10,w:24}},{p:{r:10,w:24},a:{r:10,w:24}},{p:{r:10,w:24},a:{r:8,w:24}}] },
+    ]}
+  },
+  {
+    id: 'aw5', clientId: 'c1', templateId: 'wt2', date: '18 апреля', status: 'completed', executedBy: 'client', clientNote: 'Спина отлично, бицепс к концу устал — третий подход не дал',
+    result: { total: 3, done: 2, pct: 67, exercises: [
+      { exId: 'ex4', sets: [{p:{r:10,w:0},a:{r:10,w:0}},{p:{r:10,w:0},a:{r:10,w:0}},{p:{r:10,w:0},a:{r:9,w:0}},{p:{r:10,w:0},a:{r:8,w:0}}] },
+      { exId: 'ex5', sets: [{p:{r:8,w:60},a:{r:8,w:60}},{p:{r:8,w:60},a:{r:7,w:60}},{p:{r:8,w:60},a:{r:6,w:60}}] },
+      { exId: 'ex8', sets: [{p:{r:12,w:16},a:{r:0,w:16},skipped:true},{p:{r:12,w:16},a:{r:0,w:16},skipped:true},{p:{r:12,w:16},a:{r:0,w:16},skipped:true}] },
+    ]}
+  },
+];
+
+// ─── HELPERS ─────────────────────────────────────────────────────
+
+function pluralize(n, one, few, many) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 19) return `${n} ${many}`;
+  if (mod10 === 1) return `${n} ${one}`;
+  if (mod10 >= 2 && mod10 <= 4) return `${n} ${few}`;
+  return `${n} ${many}`;
+}
+// pluralize(1, 'тренировка', 'тренировки', 'тренировок') → "1 тренировка"
+// pluralize(2, ...) → "2 тренировки"
+// pluralize(5, ...) → "5 тренировок"
+
+function formatDate(d) {
+  if (!d) return 'Без даты';
+  if (d === 'today') {
+    return new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  if (d === 'tomorrow') {
+    const t = new Date(); t.setDate(t.getDate() + 1);
+    return t.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function attendanceColor(pct) {
+  if (pct >= 80) return 'var(--green-600)';
+  if (pct >= 60) return '#D97706';
+  return '#DC2626';
+}
+
+function completionCls(pct) {
+  if (pct === 100) return 'badge-green';
+  if (pct > 0) return 'badge-amber';
+  return 'badge-gray';
+}
+
+function clientStatus(clientId, assigned) {
+  const active = assigned.filter(a => a.clientId === clientId && a.status === 'pending');
+  if (active.some(a => a.date === 'today')) return { label: 'Сегодня', color: 'var(--blue-600)' };
+  if (active.length > 0) return { label: `Назначено: ${active.length}`, color: 'var(--slate-500)' };
+  return { label: 'Не назначено', color: 'var(--slate-400)' };
+}
+
+function buildExerciseSets(templateExercises) {
+  return templateExercises.map(ex => ({
+    exId: ex.exId,
+    state: 'idle',
+    restSec: ex.rest,
+    sets: Array.from({ length: ex.sets }, (_, i) => ({
+      id: i,
+      plannedReps: ex.reps, plannedWeight: ex.weight,
+      actualReps: ex.reps, actualWeight: ex.weight,
+      done: false,
+    }))
+  }));
+}
+
+// ─── UI ATOMS ────────────────────────────────────────────────────
+
+function Header({ title, onBack, right }) {
+  return (
+    <div className="header">
+      <button className="back-btn" onClick={onBack} style={{ visibility: onBack ? 'visible' : 'hidden' }}>‹</button>
+      <div className="header-title">{title}</div>
+      <div style={{ width: 32, display: 'flex', justifyContent: 'flex-end' }}>{right}</div>
+    </div>
+  );
+}
+
+function Tabs({ tabs, active, onChange }) {
+  return (
+    <div className="tabs">
+      {tabs.map(t => (
+        <button key={t.id} className={`tab ${active === t.id ? 'active' : ''}`} onClick={() => onChange(t.id)}>{t.label}</button>
+      ))}
+    </div>
+  );
+}
+
+function ProgressBar({ pct, green }) {
+  return (
+    <div className="progress-bar">
+      <div className={`progress-fill ${(green || pct === 100) ? 'green' : ''}`} style={{ width: `${pct}%` }} />
+    </div>
+  );
+}
+
+function Confirm({ title, body, onCancel, onOk, okLabel = 'Подтвердить', danger }) {
+  return (
+    <div className="confirm-overlay">
+      <div className="confirm-dialog">
+        <div style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 8 }}>{title}</div>
+        <div style={{ fontSize: '0.813rem', color: 'var(--slate-500)', marginBottom: 16, lineHeight: 1.5 }}>{body}</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-secondary" style={{ flex: 1 }} onClick={onCancel}>Отмена</button>
+          <button className="btn" style={{ flex: 1, background: danger ? '#DC2626' : 'var(--blue-600)', color: '#fff' }} onClick={onOk}>{okLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SCREEN: LOGIN ────────────────────────────────────────────────
+
+function ForgotPasswordScreen({ onBack }) {
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+
+  return (
+    <div>
+      <Header title="Восстановление пароля" onBack={onBack} />
+      <div style={{ padding: '24px 24px' }}>
+        {!sent ? (
+          <>
+            <div style={{ fontSize: '0.813rem', color: 'var(--slate-500)', marginBottom: 20, lineHeight: 1.6 }}>
+              Введите email — отправим ссылку для сброса пароля.
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label>Email</label>
+              <input type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+            </div>
+            <button className="btn btn-primary" disabled={!email} onClick={() => setSent(true)}>
+              Отправить ссылку
+            </button>
+          </>
+        ) : (
+          <div style={{ textAlign: 'center', paddingTop: 16 }}>
+            <div style={{ fontSize: '2rem', marginBottom: 12 }}>📬</div>
+            <div style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 8 }}>Письмо отправлено</div>
+            <div style={{ fontSize: '0.813rem', color: 'var(--slate-500)', lineHeight: 1.6, marginBottom: 24 }}>
+              Проверьте {email}. Ссылка действует 24 часа.
+            </div>
+            <button className="btn btn-secondary" style={{ width: '100%' }} onClick={onBack}>
+              Вернуться ко входу
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LoginScreen({ onLogin, onForgot }) {
+  return (
+    <div style={{ padding: '60px 24px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>FitTrainer</div>
+        <div style={{ fontSize: '0.813rem', color: 'var(--slate-400)', marginTop: 6 }}>Прототип — выберите роль</div>
+      </div>
+      <button className="btn btn-primary" onClick={() => onLogin('trainer')}>Войти как тренер</button>
+      <button className="btn btn-primary" style={{ background: 'var(--slate-700)' }} onClick={() => onLogin('client')}>Войти как клиент</button>
+      <div style={{ textAlign: 'center', marginTop: 8 }}>
+        <span style={{ fontSize: '0.813rem', color: 'var(--blue-600)', cursor: 'pointer' }} onClick={onForgot}>Забыли пароль?</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── SCREEN: TRAINER DASHBOARD ────────────────────────────────────
+
+function TrainerDashboard({ state, dispatch, navigate, profile, params }) {
+  const [tab, setTab] = useState(params?.tab || 'clients');
+  useEffect(() => { if (params?.tab) setTab(params.tab); }, [params?.tab]);
+  const [showInvite, setShowInvite] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const { assigned, templates } = state;
+
+  const todayClients = CLIENTS_DATA.filter(c => clientStatus(c.id, assigned).label === 'Сегодня');
+  const otherClients = CLIENTS_DATA.filter(c => clientStatus(c.id, assigned).label !== 'Сегодня');
+
+  const inviteLink = 'https://fittrainer.app/invite/abc123xyz';
+
+  function copyLink() {
+    navigator.clipboard?.writeText(inviteLink).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div>
+      <div style={{ padding: '14px 16px', background: '#fff', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>FitTrainer</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+          onClick={() => navigate('profileSettings', { role: 'trainer' })}>
+          <div style={{ fontSize: '1.25rem', color: 'var(--slate-700)', fontWeight: 800 }}>{profile.name}</div>
+          {profile.photo
+            ? <img src={profile.photo} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} />
+            : <div className="avatar" style={{ width: 34, height: 34, fontSize: '0.688rem' }}>МТ</div>}
+        </div>
+      </div>
+      <Tabs tabs={[{ id: 'clients', label: 'Клиенты' }, { id: 'templates', label: 'Шаблоны' }]} active={tab} onChange={setTab} />
+
+      {tab === 'clients' && (
+        <div style={{ padding: '8px 16px' }}>
+          {todayClients.length > 0 && (
+            <>
+              <div className="section-header">Сегодня</div>
+              {todayClients.map(c => <ClientRow key={c.id} client={c} status={clientStatus(c.id, assigned)} onClick={() => navigate('clientCard', { clientId: c.id })} highlight />)}
+              <div className="separator" />
+            </>
+          )}
+          {otherClients.map(c => <ClientRow key={c.id} client={c} status={clientStatus(c.id, assigned)} onClick={() => navigate('clientCard', { clientId: c.id })} />)}
+          <button className="btn btn-dashed" style={{ marginTop: 24 }} onClick={() => setShowInvite(true)}>
+            + Пригласить клиента
+          </button>
+          <div className="bottom-safe" />
+        </div>
+      )}
+
+      {showInvite && (
+        <div className="confirm-overlay" onClick={() => setShowInvite(false)}>
+          <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--slate-800)', marginBottom: 6 }}>Пригласить клиента</div>
+            <div style={{ fontSize: '0.813rem', color: 'var(--slate-400)', marginBottom: 16, lineHeight: 1.5 }}>
+              Отправьте ссылку клиенту. Она действует 7 дней и является одноразовой.
+            </div>
+            <div style={{ background: 'var(--slate-100)', borderRadius: 8, padding: '10px 12px', marginBottom: 12 }}>
+              <span style={{ fontSize: '0.813rem', color: 'var(--slate-600)', wordBreak: 'break-all' }}>{inviteLink}</span>
+            </div>
+            <button className="btn btn-primary" style={{ marginBottom: 8 }} onClick={copyLink}>
+              {copied ? '✓ Скопировано' : 'Скопировать ссылку'}
+            </button>
+            <button className="btn btn-outline" onClick={() => setShowInvite(false)}>Закрыть</button>
+          </div>
+        </div>
+      )}
+
+      {tab === 'templates' && (
+        <div style={{ padding: '8px 16px' }}>
+          {templates.some(t => t.starred) && (
+            <>
+              <div className="section-header">Избранное</div>
+              {templates.filter(t => t.starred).map(t => <TemplateRow key={t.id} t={t} onClick={() => navigate('templateView', { templateId: t.id })} onStar={() => dispatch({ type: 'TOGGLE_STAR', id: t.id })} />)}
+              <div className="separator" />
+              <div className="section-header">Все шаблоны</div>
+            </>
+          )}
+          {templates.filter(t => !t.starred).map(t => <TemplateRow key={t.id} t={t} onClick={() => navigate('templateView', { templateId: t.id })} onStar={() => dispatch({ type: 'TOGGLE_STAR', id: t.id })} />)}
+          <button className="btn btn-dashed" style={{ marginTop: 24 }}
+            onClick={() => navigate('newTemplate', {})}>+ Новый шаблон</button>
+          <div className="bottom-safe" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ClientRow({ client, status, onClick, highlight }) {
+  return (
+    <div className="card" style={{ cursor: 'pointer', background: highlight ? 'var(--blue-50)' : '#fff', borderColor: highlight ? 'var(--blue-100)' : 'var(--border)' }} onClick={onClick}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="avatar" style={highlight ? { background: 'var(--blue-500)', color: '#fff' } : {}}>{client.initials}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: '0.938rem', fontWeight: 600, marginBottom: 3 }}>{client.name}</div>
+          <span style={{ fontSize: '0.75rem', fontWeight: 500, color: attendanceColor(client.attendance) }}>Посещ. {client.attendance}%</span>
+        </div>
+        <span style={{ fontSize: '0.813rem', fontWeight: 500, color: status.color, textAlign: 'right', flexShrink: 0 }}>{status.label}</span>
+        <span style={{ color: 'var(--slate-300)', fontSize: '1.1rem', flexShrink: 0 }}>›</span>
+      </div>
+    </div>
+  );
+}
+
+function TemplateRow({ t, onClick, onStar }) {
+  return (
+    <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: t.starred ? '#F59E0B' : 'var(--slate-300)', padding: '0 4px 0 0', flexShrink: 0 }}
+        onClick={e => { e.stopPropagation(); onStar(); }}>
+        {t.starred ? '★' : '☆'}
+      </button>
+      <div style={{ flex: 1, cursor: 'pointer' }} onClick={onClick}>
+        <div style={{ fontSize: '0.938rem', fontWeight: 500 }}>{t.name}</div>
+        <div style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginTop: 2 }}>{t.exercises.length} упр · {t.usedCount} назначений</div>
+      </div>
+      <span style={{ color: 'var(--slate-300)', fontSize: '1.1rem', cursor: 'pointer' }} onClick={onClick}>›</span>
+    </div>
+  );
+}
+
+function WorkoutCard({ name, subtitle, date, pct, badge, onClick }) {
+  return (
+    <div className="card" style={{ cursor: 'pointer' }} onClick={onClick}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+        <div style={{ flex: 1, marginRight: 10 }}>
+          <div style={{ fontSize: '0.938rem', fontWeight: 500 }}>{name}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginTop: 2 }}>{subtitle}</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {badge}
+          <span style={{ color: 'var(--slate-300)', fontSize: '1.1rem' }}>›</span>
+        </div>
+      </div>
+      <ProgressBar pct={pct} />
+    </div>
+  );
+}
+
+// ─── SCREEN: CLIENT CARD ──────────────────────────────────────────
+
+function ClientCardScreen({ clientId, state, dispatch, navigate, onBack }) {
+  const [tab, setTab] = useState('active');
+  const client = CLIENTS_DATA.find(c => c.id === clientId);
+  const { assigned, templates } = state;
+  const active = assigned.filter(a => a.clientId === clientId && a.status === 'pending');
+  const history = assigned.filter(a => a.clientId === clientId && a.status === 'completed');
+
+  return (
+    <div>
+      <Header title="" onBack={onBack} />
+      <div style={{ padding: '14px 16px', background: '#fff', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <div className="avatar" style={{ width: 52, height: 52, fontSize: '0.938rem' }}>{client.initials}</div>
+          <div>
+            <div style={{ fontSize: '1.063rem', fontWeight: 600, marginBottom: 8 }}>{client.name}</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <span className="badge badge-gray">{pluralize(history.length, 'тренировка', 'тренировки', 'тренировок')}</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 500, color: attendanceColor(client.attendance) }}>Посещ. {client.attendance}%</span>
+            </div>
+          </div>
+        </div>
+        <button className="btn btn-dashed" onClick={() => navigate('assignWizard', { clientId })}>+ Назначить тренировку</button>
+      </div>
+      <Tabs tabs={[{ id: 'active', label: 'Активные' }, { id: 'history', label: 'История' }, { id: 'progress', label: 'Прогресс' }]} active={tab} onChange={setTab} />
+
+      {tab === 'active' && (
+        <div style={{ padding: '8px 16px' }}>
+          {active.length === 0 && <div className="empty-state">Нет активных тренировок</div>}
+          {active.map(aw => {
+            const t = templates.find(t => t.id === aw.templateId);
+            return (
+              <WorkoutCard key={aw.id}
+                name={t?.name}
+                subtitle={pluralize(t?.exercises.length ?? 0, 'упражнение', 'упражнения', 'упражнений')}
+                date={formatDate(aw.date)}
+                pct={0}
+                badge={<span className="badge badge-gray">{formatDate(aw.date)}</span>}
+                onClick={() => navigate('assignedWorkoutPreview', { assignedId: aw.id, clientId })}
+              />
+            );
+          })}
+          <div className="bottom-safe" />
+        </div>
+      )}
+
+      {tab === 'history' && (
+        <div style={{ padding: '8px 16px' }}>
+          {history.length === 0 && <div className="empty-state">История пуста</div>}
+          {history.map(aw => {
+            const t = templates.find(t => t.id === aw.templateId);
+            const pct = aw.result?.pct ?? 0;
+            return (
+              <WorkoutCard key={aw.id}
+                name={t?.name}
+                subtitle={pluralize(t?.exercises.length ?? 0, 'упражнение', 'упражнения', 'упражнений')}
+                date={aw.date}
+                pct={pct}
+                badge={
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                    <span className={`badge ${completionCls(pct)}`}>{pct}%</span>
+                    <span className="badge badge-gray" style={{ fontSize: '0.563rem' }}>
+                      {aw.executedBy === 'trainer' ? 'С тренером' : 'Самостоятельно'}
+                    </span>
+                  </div>
+                }
+                onClick={() => navigate('sessionDetail', { assignedId: aw.id, fromTrainer: true })}
+              />
+            );
+          })}
+          <div className="bottom-safe" />
+        </div>
+      )}
+
+      {tab === 'progress' && (
+        <div className="empty-state">
+          <div style={{ fontSize: '2rem', marginBottom: 8 }}>📊</div>
+          <div style={{ fontWeight: 600, color: 'var(--slate-600)', marginBottom: 4 }}>Прогресс — скоро</div>
+          <div>Будет в следующей версии</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SCREEN: TEMPLATE VIEW ────────────────────────────────────────
+
+function TemplateViewScreen({ templateId, state, dispatch, navigate, onBack }) {
+  const tmpl = state.templates.find(t => t.id === templateId);
+  const [notePopup, setNotePopup] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  if (!tmpl) return null;
+
+  function copyTemplate() {
+    dispatch({ type: 'ADD_TEMPLATE', template: { ...tmpl, id: 'wt_' + Date.now(), name: tmpl.name + ' (копия)', starred: false, usedCount: 0 } });
+    navigate('trainerDashboard', { tab: 'templates' });
+  }
+
+  function deleteTemplate() {
+    dispatch({ type: 'DELETE_TEMPLATE', id: tmpl.id });
+    onBack();
+  }
+
+  return (
+    <div>
+      <Header title={tmpl.name} onBack={onBack} />
+      <div style={{ padding: '14px 16px' }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          <span className="badge badge-gray">{pluralize(tmpl.exercises.length, 'упражнение', 'упражнения', 'упражнений')}</span>
+          <span className="badge badge-gray">{tmpl.usedCount} назначений</span>
+        </div>
+        {tmpl.exercises.map((ex, i) => (
+          <div key={i} className="card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <div style={{ fontWeight: 500, fontSize: '1.063rem' }}>{exName(ex.exId)}</div>
+              {ex.note && (
+                <button onClick={() => setNotePopup(ex.note)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', padding: '0 0 0 8px', lineHeight: 1 }}>💬</button>
+              )}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+              {[['Подходы', ex.sets], ['Повторы', ex.reps], ['Вес, кг', ex.weight || '—']].map(([l, v]) => (
+                <div key={l} className="ex-field">
+                  <div className="ex-field-label">{l}</div>
+                  <div className="ex-field-value">{v}</div>
+                </div>
+              ))}
+              <div className="ex-field">
+                <div className="ex-field-label">Отдых, сек</div>
+                <div className="ex-field-value">{ex.rest}</div>
+              </div>
+              <div style={{ gridColumn: 'span 2' }} />
+            </div>
+          </div>
+        ))}
+        {notePopup && (
+          <div className="confirm-overlay" onClick={() => setNotePopup(null)}>
+            <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
+              <div style={{ fontSize: '0.688rem', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Заметка тренера</div>
+              <div style={{ fontSize: '0.938rem', color: 'var(--slate-800)', lineHeight: 1.6, marginBottom: 16 }}>{notePopup}</div>
+              <button className="btn btn-primary" onClick={() => setNotePopup(null)}>Закрыть</button>
+            </div>
+          </div>
+        )}
+        <div className="separator" />
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 12 }}>
+          <button className="btn btn-sm" style={{ background: '#fff', color: 'var(--blue-600)', border: '1.5px solid var(--blue-200)' }}
+            onClick={() => navigate('newTemplate', { editTemplateId: tmpl.id })}>Изменить</button>
+          <button className="btn btn-sm" style={{ background: '#fff', color: 'var(--blue-600)', border: '1.5px solid var(--blue-200)' }}
+            onClick={copyTemplate}>Копировать</button>
+          <button className="btn btn-sm" style={{ background: '#fff', color: '#DC2626', border: '1.5px solid #FCA5A5' }}
+            onClick={() => setShowDeleteConfirm(true)}>Удалить</button>
+        </div>
+
+        {showDeleteConfirm && (
+          <div className="confirm-overlay" onClick={() => setShowDeleteConfirm(false)}>
+            <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
+              <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--slate-800)', marginBottom: 8 }}>Удалить шаблон?</div>
+              <div style={{ fontSize: '0.813rem', color: 'var(--slate-400)', marginBottom: 16, lineHeight: 1.5 }}>
+                «{tmpl.name}» будет удалён. Назначенные тренировки останутся.
+              </div>
+              <button className="btn" style={{ background: '#DC2626', color: '#fff', width: '100%', padding: 13, borderRadius: 10, marginBottom: 8 }}
+                onClick={deleteTemplate}>Удалить</button>
+              <button className="btn btn-outline" onClick={() => setShowDeleteConfirm(false)}>Отмена</button>
+            </div>
+          </div>
+        )}
+        <button className="btn btn-primary" onClick={() => navigate('assignWizard', { templateId })}>Назначить клиенту</button>
+        <div className="separator" />
+        <div style={{ fontSize: '0.688rem', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Кто использовал</div>
+        {CLIENTS_DATA.map(c => {
+          const count = state.assigned.filter(a => a.clientId === c.id && a.templateId === tmpl.id && a.status === 'completed').length;
+          if (!count) return null;
+          return (
+            <div key={c.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}
+              onClick={() => navigate('clientCard', { clientId: c.id })}>
+              <span style={{ fontSize: '0.938rem' }}>{c.name}</span>
+              <span style={{ color: 'var(--slate-400)', fontSize: '0.75rem' }}>{count} раз</span>
+            </div>
+          );
+        })}
+        <div className="bottom-safe" />
+      </div>
+    </div>
+  );
+}
+
+// ─── CALENDAR PICKER ──────────────────────────────────────────────
+
+function CalendarPicker({ value, onChange, onClose }) {
+  const today = new Date();
+  const initDate = value ? new Date(value + 'T00:00:00') : new Date();
+  const [viewYear, setViewYear] = useState(initDate.getFullYear());
+  const [viewMonth, setViewMonth] = useState(initDate.getMonth());
+
+  const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  const DAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+  function prevMonth() {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  }
+  function nextMonth() {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  }
+
+  const firstDow = (() => { let d = new Date(viewYear, viewMonth, 1).getDay(); return d === 0 ? 6 : d - 1; })();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const cells = [...Array(firstDow).fill(null), ...Array.from({length: daysInMonth}, (_, i) => i + 1)];
+
+  function isToday(d) { return d === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear(); }
+  function isSelected(d) {
+    if (!value) return false;
+    const s = new Date(value + 'T00:00:00');
+    return d === s.getDate() && viewMonth === s.getMonth() && viewYear === s.getFullYear();
+  }
+  function pick(d) {
+    const mm = String(viewMonth + 1).padStart(2, '0');
+    const dd = String(d).padStart(2, '0');
+    onChange(`${viewYear}-${mm}-${dd}`);
+    onClose();
+  }
+
+  return (
+    <div className="confirm-overlay" onClick={onClose}>
+      <div className="confirm-dialog" onClick={e => e.stopPropagation()} style={{ padding: '20px 16px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.4rem', color: 'var(--slate-500)', padding: '0 8px', lineHeight: 1 }}>‹</button>
+          <div style={{ fontWeight: 600, fontSize: '0.938rem', color: 'var(--slate-800)' }}>{MONTHS[viewMonth]} {viewYear}</div>
+          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.4rem', color: 'var(--slate-500)', padding: '0 8px', lineHeight: 1 }}>›</button>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 6 }}>
+          {DAYS.map(d => (
+            <div key={d} style={{ textAlign: 'center', fontSize: '0.625rem', fontWeight: 600, color: 'var(--slate-400)', padding: '4px 0', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{d}</div>
+          ))}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+          {cells.map((d, i) => {
+            if (!d) return <div key={i} />;
+            const sel = isSelected(d);
+            const tod = isToday(d);
+            return (
+              <div key={i} onClick={() => pick(d)} style={{
+                textAlign: 'center', padding: '9px 0', borderRadius: 8, cursor: 'pointer',
+                background: sel ? 'var(--blue-600)' : tod ? 'var(--blue-50)' : 'transparent',
+                color: sel ? '#fff' : tod ? 'var(--blue-600)' : 'var(--slate-800)',
+                fontWeight: sel || tod ? 600 : 400,
+                fontSize: '0.875rem',
+                outline: tod && !sel ? '1.5px solid var(--blue-200)' : 'none',
+              }}>{d}</div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SCREEN: ASSIGN WIZARD ────────────────────────────────────────
+
+function AssignWizardScreen({ params, state, dispatch, navigate, onBack }) {
+  const { clientId: initClient, templateId: initTemplate } = params || {};
+  const firstStep = initClient ? (initTemplate ? 'customize' : 'template') : 'client';
+
+  const [step, setStep] = useState(firstStep);
+  const [selClient, setSelClient] = useState(initClient || null);
+  const [selTemplate, setSelTemplate] = useState(initTemplate || null);
+  const [dateChoice, setDateChoice] = useState('today');
+  const [customDate, setCustomDate] = useState('');
+  const [localExercises, setLocalExercises] = useState(null);
+  const [notePopup, setNotePopup] = useState(null);
+  const [showCustomLibrary, setShowCustomLibrary] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  function fmtDay(offset) {
+    const d = new Date(); d.setDate(d.getDate() + offset);
+    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  }
+  function fmtCustom(dateStr) {
+    if (!dateStr) return 'Нажмите, чтобы выбрать дату';
+    const d = new Date(dateStr + 'T00:00:00');
+    return 'Тренировка назначена на ' + d.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function updateCustomField(i, field, val) {
+    setLocalExercises(prev => prev.map((ex, idx) => idx === i ? { ...ex, [field]: val } : ex));
+  }
+
+  function removeCustomExercise(i) {
+    setLocalExercises(prev => prev.filter((_, idx) => idx !== i));
+  }
+
+  function addCustomMultiple(ids) {
+    setLocalExercises(prev => {
+      const newOnes = ids
+        .filter(id => !prev.some(e => e.exId === id))
+        .map(id => ({ exId: id, sets: 3, reps: 10, weight: 0, rest: 60, note: '' }));
+      return [...prev, ...newOnes];
+    });
+    setShowCustomLibrary(false);
+  }
+
+  function back() {
+    if (step === 'date') return setStep('customize');
+    if (step === 'customize') return setStep(initClient ? 'template' : 'client');
+    onBack();
+  }
+
+  function doAssign() {
+    dispatch({
+      type: 'ASSIGN_WORKOUT',
+      payload: {
+        id: 'aw_' + Date.now(),
+        clientId: selClient, templateId: selTemplate || initTemplate,
+        exercises: localExercises,
+        date: dateChoice === 'today' ? 'today' : dateChoice === 'tomorrow' ? 'tomorrow' : dateChoice === 'none' ? null : customDate,
+        status: 'pending', executedBy: null, clientNote: null,
+      }
+    });
+    navigate('clientCard', { clientId: selClient });
+  }
+
+  const stepNames = ['Клиент', 'Шаблон', 'Кастомизация', 'Дата'];
+  const stepMap = { client: 0, template: 1, customize: 2, date: 3 };
+  const currentIdx = stepMap[step];
+
+  if (showCustomLibrary) {
+    return (
+      <ExerciseLibraryScreen
+        onBack={() => setShowCustomLibrary(false)}
+        onConfirm={addCustomMultiple}
+        alreadyPickedIds={(localExercises || []).map(e => e.exId)}
+      />
+    );
+  }
+
+  return (
+    <div>
+      <Header title="Назначить тренировку" onBack={back} />
+      <div style={{ padding: '14px 16px' }}>
+        {/* Steps indicator */}
+        <div style={{ display: 'flex', gap: 4, marginBottom: 16 }}>
+          {stepNames.map((s, i) => {
+            const active = i === currentIdx;
+            const done = i < currentIdx;
+            return (
+              <div key={s} style={{ flex: 1, textAlign: 'center', fontSize: '0.563rem', fontWeight: 500, color: active ? 'var(--blue-600)' : done ? 'var(--green-600)' : 'var(--slate-300)', borderBottom: `2px solid ${active ? 'var(--blue-600)' : done ? 'var(--green-600)' : 'var(--slate-200)'}`, paddingBottom: 4 }}>
+                {done ? '✓' : s}
+              </div>
+            );
+          })}
+        </div>
+
+        {step === 'client' && (
+          <div>
+            <div style={{ fontSize: '0.813rem', color: 'var(--slate-500)', marginBottom: 10 }}>Выберите клиента</div>
+            {CLIENTS_DATA.map(c => (
+              <div key={c.id} className="card" style={{ cursor: 'pointer', background: selClient === c.id ? 'var(--blue-50)' : '#fff', borderColor: selClient === c.id ? 'var(--blue-500)' : 'var(--border)' }}
+                onClick={() => setSelClient(c.id)}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div className="avatar">{c.initials}</div>
+                  <span style={{ fontWeight: 500 }}>{c.name}</span>
+                  {selClient === c.id && <span style={{ marginLeft: 'auto', color: 'var(--blue-600)' }}>✓</span>}
+                </div>
+              </div>
+            ))}
+            <button className="btn btn-primary" style={{ marginTop: 12 }} disabled={!selClient} onClick={() => setStep('customize')}>Далее →</button>
+          </div>
+        )}
+
+        {step === 'template' && (
+          <div>
+            <div style={{ fontSize: '0.813rem', color: 'var(--slate-500)', marginBottom: 10 }}>Выберите шаблон</div>
+            {state.templates.map(t => (
+              <div key={t.id} className="card" style={{ cursor: 'pointer', background: '#fff', borderColor: 'var(--border)' }}
+                onClick={() => { setSelTemplate(t.id); setLocalExercises(t.exercises.map(ex => ({ ...ex }))); setStep('customize'); }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 500 }}>{t.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--slate-400)' }}>{pluralize(t.exercises.length, 'упражнение', 'упражнения', 'упражнений')}</div>
+                  </div>
+                  <span style={{ color: 'var(--slate-300)', fontSize: '1.2rem' }}>›</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {step === 'customize' && (() => {
+          const tmpl = state.templates.find(t => t.id === (selTemplate || initTemplate));
+          if (!tmpl) return null;
+          if (!localExercises) {
+            Promise.resolve().then(() => setLocalExercises(tmpl.exercises.map(ex => ({ ...ex }))));
+            return null;
+          }
+          return (
+            <div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginBottom: 12, lineHeight: 1.5 }}>
+                Можно изменить параметры для этой сессии — шаблон не меняется
+              </div>
+              {localExercises.map((ex, i) => (
+                <div key={i} className="card" style={{ marginBottom: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <div style={{ fontWeight: 500, fontSize: '1.063rem' }}>{exName(ex.exId)}</div>
+                    <button style={{ background: 'none', border: 'none', color: 'var(--slate-400)', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1 }}
+                      onClick={() => removeCustomExercise(i)}>✕</button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                    {[['Подходы', 'sets'], ['Повторы', 'reps'], ['Вес, кг', 'weight']].map(([l, f]) => (
+                      <div key={f} style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <label style={{ fontSize: '0.75rem', marginBottom: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{l}</label>
+                        </div>
+                        <input type="number" inputMode="numeric"
+                          onFocus={e => e.target.select()}
+                          onMouseUp={e => e.preventDefault()}
+                          onWheel={e => e.target.blur()}
+                          value={ex[f]}
+                          onChange={e => updateCustomField(i, f, +e.target.value)}
+                          style={{ width: '100%', height: 40, padding: '0 2px', textAlign: 'center', fontSize: '1.125rem', fontWeight: 600, border: '1px solid var(--border)', borderRadius: 6, background: '#fff', fontFamily: 'inherit', boxSizing: 'border-box', MozAppearance: 'textfield', outline: 'none' }} />
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <label style={{ fontSize: '0.75rem', marginBottom: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Отдых, сек</label>
+                      </div>
+                      <input type="number" inputMode="numeric"
+                        onFocus={e => e.target.select()}
+                        onMouseUp={e => e.preventDefault()}
+                        onWheel={e => e.target.blur()}
+                        value={ex.rest}
+                        onChange={e => updateCustomField(i, 'rest', +e.target.value)}
+                        style={{ width: '100%', height: 40, padding: '0 2px', textAlign: 'center', fontSize: '1.125rem', fontWeight: 600, border: '1px solid var(--border)', borderRadius: 6, background: '#fff', fontFamily: 'inherit', boxSizing: 'border-box', MozAppearance: 'textfield', outline: 'none' }} />
+                    </div>
+                    <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ height: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <label style={{ fontSize: '0.75rem', marginBottom: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Заметка тренера</label>
+                        <span style={{ fontSize: '0.563rem', color: (ex.note||'').length > 130 ? '#DC2626' : 'var(--slate-400)' }}>{(ex.note||'').length}/150</span>
+                      </div>
+                      <input type="text" placeholder="Необязательно" value={ex.note||''} maxLength={150}
+                        onChange={e => updateCustomField(i, 'note', e.target.value)}
+                        style={{ width: '100%', height: 40, padding: '0 8px', fontSize: '0.938rem', border: '1px solid var(--border)', borderRadius: 6, background: '#fff', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button className="btn btn-dashed" style={{ marginBottom: 10 }}
+                onClick={() => setShowCustomLibrary(true)}>
+                + Добавить упражнение
+              </button>
+              <button className="btn btn-primary" onClick={() => setStep('date')} disabled={!localExercises || localExercises.length === 0}
+                style={{ opacity: (!localExercises || localExercises.length === 0) ? 0.4 : 1 }}>
+                Далее →
+              </button>
+            </div>
+          );
+        })()}
+
+        {step === 'date' && (
+          <div>
+            <div style={{ fontSize: '0.813rem', color: 'var(--slate-500)', marginBottom: 12 }}>Когда выполнять?</div>
+
+            {[
+              { v: 'today',    label: 'Сегодня',  sub: fmtDay(0) },
+              { v: 'tomorrow', label: 'Завтра',    sub: fmtDay(1) },
+            ].map(({ v, label, sub }) => (
+              <div key={v} onClick={() => setDateChoice(v)}
+                className="card" style={{ cursor: 'pointer', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12,
+                  background: dateChoice === v ? 'var(--blue-50)' : '#fff',
+                  borderColor: dateChoice === v ? 'var(--blue-500)' : 'var(--border)' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 500 }}>{label}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginTop: 2 }}>{sub}</div>
+                </div>
+                <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${dateChoice === v ? 'var(--blue-600)' : 'var(--slate-300)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {dateChoice === v && <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--blue-600)' }} />}
+                </div>
+              </div>
+            ))}
+
+            <div onClick={() => setShowDatePicker(true)}
+              className="card" style={{ cursor: 'pointer', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12,
+                background: dateChoice === 'pick' ? 'var(--blue-50)' : '#fff',
+                borderColor: dateChoice === 'pick' ? 'var(--blue-500)' : 'var(--border)' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 500 }}>Выбрать дату</div>
+                <div style={{ fontSize: '0.75rem', marginTop: 2, color: dateChoice === 'pick' && customDate ? 'var(--blue-600)' : 'var(--slate-400)' }}>
+                  {fmtCustom(dateChoice === 'pick' ? customDate : '')}
+                </div>
+              </div>
+              <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${dateChoice === 'pick' ? 'var(--blue-600)' : 'var(--slate-300)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {dateChoice === 'pick' && <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--blue-600)' }} />}
+              </div>
+            </div>
+
+            <div onClick={() => setDateChoice('none')}
+              className="card" style={{ cursor: 'pointer', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12,
+                background: dateChoice === 'none' ? 'var(--blue-50)' : '#fff',
+                borderColor: dateChoice === 'none' ? 'var(--blue-500)' : 'var(--border)' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 500 }}>Без даты</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginTop: 2 }}>Клиент выполнит в любое время</div>
+              </div>
+              <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${dateChoice === 'none' ? 'var(--blue-600)' : 'var(--slate-300)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {dateChoice === 'none' && <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--blue-600)' }} />}
+              </div>
+            </div>
+
+            <button className="btn btn-primary" onClick={doAssign}
+              disabled={dateChoice === 'pick' && !customDate}
+              style={{ opacity: dateChoice === 'pick' && !customDate ? 0.4 : 1 }}>
+              Назначить
+            </button>
+          </div>
+        )}
+        <div className="bottom-safe" />
+      </div>
+      {showDatePicker && (
+        <CalendarPicker
+          value={customDate}
+          onChange={v => { setCustomDate(v); setDateChoice('pick'); }}
+          onClose={() => setShowDatePicker(false)}
+        />
+      )}
+      {notePopup && (
+        <div className="confirm-overlay" onClick={() => setNotePopup(null)}>
+          <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: '0.688rem', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Заметка тренера</div>
+            <div style={{ fontSize: '0.938rem', color: 'var(--slate-800)', lineHeight: 1.6, marginBottom: 16 }}>{notePopup}</div>
+            <button className="btn btn-primary" onClick={() => setNotePopup(null)}>Закрыть</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SCREEN: WORKOUT EXECUTION ────────────────────────────────────
+
+function WorkoutExecuteScreen({ assignedId, asTrainer, state, dispatch, navigate, onBack }) {
+  const aw = state.assigned.find(a => a.id === assignedId);
+  const tmpl = state.templates.find(t => t.id === aw?.templateId);
+  const client = CLIENTS_DATA.find(c => c.id === aw?.clientId);
+  const awExercises = aw?.exercises || tmpl?.exercises || [];
+
+  const [exercises, setExercises] = useState(() => buildExerciseSets(awExercises));
+  const [timer, setTimer] = useState(null);
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const [clientNote, setClientNote] = useState('');
+  const [notePopup, setNotePopup] = useState(null);
+
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (timer && timer.remaining > 0) {
+      timerRef.current = setTimeout(() => setTimer(t => t ? { ...t, remaining: t.remaining - 1 } : null), 1000);
+    } else if (timer?.remaining === 0) {
+      setTimer(null);
+    }
+    return () => clearTimeout(timerRef.current);
+  }, [timer]);
+
+  function startEx(i) {
+    setExercises(prev => prev.map((e, idx) => idx === i ? { ...e, state: 'active' } : e));
+  }
+
+  function skipEx(i) {
+    setExercises(prev => prev.map((e, idx) => idx === i ? { ...e, state: 'skipped' } : e));
+  }
+
+  function updateSet(exIdx, setIdx, field, val) {
+    setExercises(prev => prev.map((ex, i) => i !== exIdx ? ex : {
+      ...ex, sets: ex.sets.map((s, j) => j !== setIdx ? s : { ...s, [field]: val })
+    }));
+  }
+
+  function doneSet(exIdx, setIdx) {
+    setExercises(prev => {
+      const newEx = prev.map((ex, i) => {
+        if (i !== exIdx) return ex;
+        const newSets = ex.sets.map((s, j) => j === setIdx ? { ...s, done: true } : s);
+        const allDone = newSets.every(s => s.done);
+        return { ...ex, state: allDone ? 'done' : 'active', sets: newSets };
+      });
+      const allExDone = newEx.every(e => e.state === 'done' || e.state === 'skipped');
+      const restSec = exercises[exIdx].restSec;
+      if (restSec && !allExDone) setTimer({ remaining: restSec, total: restSec });
+      return newEx;
+    });
+  }
+
+  function reopenEx(i) {
+    setTimer(null);
+    setExercises(prev => prev.map((ex, idx) => idx !== i ? ex : {
+      ...ex, state: 'active',
+      sets: ex.sets.map(s => ({ ...s, done: false }))
+    }));
+  }
+
+  function unSkipEx(i) {
+    setExercises(prev => prev.map((ex, idx) => idx !== i ? ex : { ...ex, state: 'idle' }));
+  }
+
+  const doneCount = exercises.filter(e => e.state === 'done').length;
+  const total = exercises.length;
+  const pct = Math.round(doneCount / total * 100);
+
+  function tryFinish() {
+    if (doneCount < total) setShowFinishConfirm(true);
+    else setShowSummary(true);
+  }
+
+  function saveWorkout() {
+    dispatch({
+      type: 'COMPLETE_WORKOUT', assignedId,
+      executedBy: asTrainer ? 'trainer' : 'client',
+      clientNote,
+      exercises,
+    });
+    if (asTrainer) navigate('clientCard', { clientId: aw.clientId });
+    else navigate('clientDashboard', {});
+  }
+
+  return (
+    <div>
+      <div className="header">
+        <button className="back-btn" onClick={onBack}>‹</button>
+        <div className="header-title" style={{ fontSize: '0.938rem' }}>
+          {tmpl?.name}
+          {asTrainer && <span style={{ color: 'var(--slate-400)', fontWeight: 400 }}> · {client?.name}</span>}
+        </div>
+        <div style={{ width: 32, fontSize: '0.75rem', textAlign: 'right', color: 'var(--slate-400)' }}>{doneCount}/{total}</div>
+      </div>
+
+      <div style={{ padding: '8px 16px 0' }}>
+        <ProgressBar pct={pct} />
+      </div>
+
+      {timer && (() => {
+        const R = 44;
+        const circ = 2 * Math.PI * R;
+        const progress = timer.remaining / timer.total;
+        const dash = circ * progress;
+        const gap = circ - dash;
+        return (
+          <div className="timer-box">
+            <div style={{ fontSize: '0.688rem', fontWeight: 600, color: 'var(--green-600)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Отдых</div>
+            <div style={{ position: 'relative', width: 110, height: 110 }}>
+              <svg width="110" height="110" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="55" cy="55" r={R} fill="none" stroke="#D1FAE5" strokeWidth="6" />
+                <circle cx="55" cy="55" r={R} fill="none" stroke="var(--green-600)" strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeDasharray={`${dash} ${gap}`}
+                  strokeDashoffset="0" />
+              </svg>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--green-600)', lineHeight: 1 }}>{timer.remaining}</div>
+                <div style={{ fontSize: '0.625rem', color: 'var(--green-600)', opacity: 0.6, marginTop: 2 }}>сек</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn btn-sm" style={{ background: '#fff', color: 'var(--slate-600)', border: '1.5px solid var(--slate-200)', borderRadius: 8 }} onClick={() => setTimer(null)}>Пропустить</button>
+              <button className="btn btn-sm" style={{ background: '#fff', color: 'var(--green-600)', border: '1.5px solid #A7F3D0', borderRadius: 8 }}
+                onClick={() => setTimer(t => t ? { ...t, remaining: t.remaining + 30, total: t.total + 30 } : null)}>+30 сек</button>
+            </div>
+          </div>
+        );
+      })()}
+
+      <div style={{ padding: '8px 16px' }}>
+        {exercises.map((ex, i) => {
+          const exDef = awExercises[i];
+          if (ex.state === 'idle') return (
+            <div key={i} className="card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: '1.063rem' }}>{exName(ex.exId)}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginTop: 2 }}>
+                    {exDef?.sets} подх · {exDef?.reps} повт{exDef?.weight ? ` · ${exDef.weight} кг` : ''}
+                  </div>
+                  {exDef?.note && (
+                    <button onClick={() => setNotePopup(exDef.note)}
+                      style={{ marginTop: 6, background: 'var(--blue-50)', border: '1px solid var(--blue-100)', borderRadius: 6, padding: '3px 8px', fontSize: '0.688rem', color: 'var(--blue-600)', cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      💬 Заметка тренера
+                    </button>
+                  )}
+                </div>
+                <button className="btn btn-sm" style={{ background: 'var(--blue-600)', color: '#fff', flexShrink: 0, marginLeft: 8 }} onClick={() => startEx(i)}>Начать →</button>
+              </div>
+            </div>
+          );
+
+          if (ex.state === 'done') return (
+            <div key={i} className="card card-done" style={{ cursor: 'pointer' }} onClick={() => reopenEx(i)}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: '1.063rem' }}>{exName(ex.exId)}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--green-600)', marginTop: 2 }}>✓ {ex.sets.filter(s => s.done).length} подходов выполнено</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: '0.688rem', color: 'var(--slate-400)' }}>Изменить</span>
+                  <span style={{ color: 'var(--slate-300)', fontSize: '1.1rem' }}>›</span>
+                </div>
+              </div>
+            </div>
+          );
+
+          if (ex.state === 'skipped') return (
+            <div key={i} className="card card-skipped" style={{ cursor: 'pointer' }} onClick={() => unSkipEx(i)}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: '1.063rem', color: 'var(--slate-400)' }}>{exName(ex.exId)}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginTop: 2 }}>Пропущено</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: '0.688rem', color: 'var(--slate-500)' }}>Вернуть</span>
+                  <span style={{ color: 'var(--slate-400)', fontSize: '1.1rem' }}>›</span>
+                </div>
+              </div>
+            </div>
+          );
+
+          // active
+          return (
+            <div key={i} className="card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <div style={{ fontWeight: 600, fontSize: '0.938rem' }}>{exName(ex.exId)}</div>
+                <button style={{ background: 'none', border: 'none', fontSize: '0.75rem', color: 'var(--slate-400)', cursor: 'pointer' }} onClick={() => skipEx(i)}>Пропустить</button>
+              </div>
+              {exDef?.note && (
+                <button onClick={() => setNotePopup(exDef.note)}
+                  style={{ background: 'var(--blue-50)', border: '1px solid var(--blue-100)', borderRadius: 6, padding: '4px 10px', fontSize: '0.75rem', color: 'var(--blue-600)', cursor: 'pointer', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'inherit' }}>
+                  💬 Заметка тренера
+                </button>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: '18px 1fr 1fr 34px', gap: 6, marginBottom: 4, alignItems: 'center' }}>
+                <span />
+                <span style={{ fontSize: '0.563rem', color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Повторы</span>
+                <span style={{ fontSize: '0.563rem', color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Вес, кг</span>
+                <span />
+              </div>
+              {ex.sets.map((s, j) => (
+                <div key={j} className="set-row" style={{ opacity: s.done ? 0.5 : 1 }}>
+                  <span className="set-num">{j + 1}</span>
+                  <input type="number" inputMode="numeric" onFocus={e => e.target.select()} onMouseUp={e => e.preventDefault()} className="set-input" value={s.actualReps} disabled={s.done}
+                    onChange={e => updateSet(i, j, 'actualReps', +e.target.value)} />
+                  <input type="number" inputMode="numeric" onFocus={e => e.target.select()} onMouseUp={e => e.preventDefault()} className="set-input" value={s.actualWeight} disabled={s.done}
+                    onChange={e => updateSet(i, j, 'actualWeight', +e.target.value)} />
+                  <button className={`set-check ${s.done ? 'done' : ''}`} onClick={() => !s.done && doneSet(i, j)}>
+                    ✓
+                  </button>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+
+        <button className="btn btn-primary" style={{ background: 'var(--slate-700)', marginTop: 8 }} onClick={tryFinish}>
+          Завершить тренировку
+        </button>
+        <div className="bottom-safe" />
+      </div>
+
+      {notePopup && (
+        <div className="confirm-overlay" onClick={() => setNotePopup(null)}>
+          <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: '0.688rem', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Заметка тренера</div>
+            <div style={{ fontSize: '0.938rem', color: 'var(--slate-800)', lineHeight: 1.6, marginBottom: 16 }}>{notePopup}</div>
+            <button className="btn btn-primary" onClick={() => setNotePopup(null)}>Закрыть</button>
+          </div>
+        </div>
+      )}
+
+      {showFinishConfirm && (
+        <Confirm
+          title="Завершить тренировку?"
+          body={`Выполнено ${doneCount} из ${total}. Остальные упражнения будут пропущены.`}
+          onCancel={() => setShowFinishConfirm(false)}
+          onOk={() => { setShowFinishConfirm(false); setShowSummary(true); }}
+          okLabel="Завершить"
+        />
+      )}
+
+      {showSummary && (
+        <div className="modal-overlay">
+          <div className="modal-sheet">
+            <div className="modal-handle" />
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <div style={{ fontSize: '2.2rem', marginBottom: 6 }}>🎉</div>
+              <div style={{ fontSize: '1.063rem', fontWeight: 700 }}>Тренировка завершена!</div>
+              <div style={{ fontSize: '0.813rem', color: 'var(--slate-400)', marginTop: 4 }}>
+                Выполнено {doneCount} из {total} упражнений
+              </div>
+            </div>
+            <ProgressBar pct={pct} green />
+            {!asTrainer && (
+              <div style={{ marginTop: 16 }}>
+                <label>Как прошла тренировка? (необязательно)</label>
+                <textarea rows={3} placeholder="Напишите заметку..." value={clientNote}
+                  onChange={e => setClientNote(e.target.value)} style={{ resize: 'none', marginTop: 4 }} />
+              </div>
+            )}
+            <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={saveWorkout}>Готово</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SCREEN: ASSIGNED WORKOUT PREVIEW ────────────────────────────
+
+function AssignedWorkoutPreviewScreen({ assignedId, clientId, asTrainer, state, navigate, onBack }) {
+  const aw = state.assigned.find(a => a.id === assignedId);
+  const tmpl = state.templates.find(t => t.id === aw?.templateId);
+  const awExercises = aw?.exercises || tmpl?.exercises || [];
+  const [notePopup, setNotePopup] = useState(null);
+  if (!aw || !tmpl) return null;
+
+  return (
+    <div>
+      <Header title={tmpl.name} onBack={onBack} />
+      <div style={{ padding: '14px 16px' }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          <span className="badge badge-gray">{formatDate(aw.date)}</span>
+          <span className="badge badge-gray">{pluralize(awExercises.length, 'упражнение', 'упражнения', 'упражнений')}</span>
+        </div>
+
+        {awExercises.map((ex, i) => (
+          <div key={i} className="card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <div style={{ fontWeight: 500, fontSize: '1.063rem' }}>{exName(ex.exId)}</div>
+              {ex.note && (
+                <button onClick={() => setNotePopup(ex.note)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', padding: '0 0 0 8px', lineHeight: 1 }}>💬</button>
+              )}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+              {[['Подходы', ex.sets], ['Повторы', ex.reps], ['Вес, кг', ex.weight || '—']].map(([l, v]) => (
+                <div key={l} className="ex-field">
+                  <div className="ex-field-label">{l}</div>
+                  <div className="ex-field-value">{v}</div>
+                </div>
+              ))}
+              <div className="ex-field">
+                <div className="ex-field-label">Отдых, сек</div>
+                <div className="ex-field-value">{ex.rest}</div>
+              </div>
+              <div style={{ gridColumn: 'span 2' }} />
+            </div>
+          </div>
+        ))}
+        {notePopup && (
+          <div className="confirm-overlay" onClick={() => setNotePopup(null)}>
+            <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
+              <div style={{ fontSize: '0.688rem', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Заметка тренера</div>
+              <div style={{ fontSize: '0.938rem', color: 'var(--slate-800)', lineHeight: 1.6, marginBottom: 16 }}>{notePopup}</div>
+              <button className="btn btn-primary" onClick={() => setNotePopup(null)}>Закрыть</button>
+            </div>
+          </div>
+        )}
+
+        <div style={{ height: 16 }} />
+        <button className="btn btn-primary"
+          onClick={() => navigate('workoutExecute', { assignedId: aw.id, asTrainer: !!asTrainer })}>
+          {asTrainer ? 'Начать совместную тренировку' : 'Начать тренировку'}
+        </button>
+        <div className="bottom-safe" />
+      </div>
+    </div>
+  );
+}
+
+// ─── SCREEN: SESSION DETAIL ───────────────────────────────────────
+
+function SessionDetailScreen({ assignedId, fromTrainer, state, dispatch, navigate, onBack }) {
+  const aw = state.assigned.find(a => a.id === assignedId);
+  const tmpl = state.templates.find(t => t.id === aw?.templateId);
+  const client = CLIENTS_DATA.find(c => c.id === aw?.clientId);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState(null);
+  const [showReactivate, setShowReactivate] = useState(false);
+
+  if (!aw?.result) return <div style={{ padding: 20 }}>Нет данных</div>;
+
+  const pct = aw.result.pct;
+
+  function startEdit() {
+    setEditData(aw.result.exercises.map(ex => ({
+      ...ex, sets: ex.sets.map(s => ({ ...s, a: { ...s.a } }))
+    })));
+    setIsEditing(true);
+  }
+
+  function cancelEdit() { setIsEditing(false); setEditData(null); }
+
+  function saveEdit() {
+    dispatch({ type: 'UPDATE_WORKOUT_RESULT', assignedId, exercises: editData });
+    setIsEditing(false);
+    setEditData(null);
+  }
+
+  function updateEditSet(exIdx, setIdx, field, val) {
+    setEditData(prev => prev.map((ex, i) => i !== exIdx ? ex : {
+      ...ex, sets: ex.sets.map((s, j) => j !== setIdx ? s : { ...s, a: { ...s.a, [field]: +val } })
+    }));
+  }
+
+  function doReactivate() {
+    dispatch({ type: 'REACTIVATE_WORKOUT', assignedId });
+    setShowReactivate(false);
+    onBack();
+  }
+
+  const displayExercises = isEditing ? editData : aw.result.exercises;
+
+  return (
+    <div>
+      <Header title="Сессия" onBack={isEditing ? cancelEdit : onBack}
+        right={!isEditing
+          ? <button style={{ background: 'none', border: 'none', color: 'var(--blue-600)', fontSize: '0.813rem', fontWeight: 600, cursor: 'pointer', padding: 0 }} onClick={startEdit}>Изменить</button>
+          : <button style={{ background: 'none', border: 'none', color: 'var(--blue-600)', fontSize: '0.813rem', fontWeight: 600, cursor: 'pointer', padding: 0 }} onClick={saveEdit}>Сохранить</button>
+        }
+      />
+      <div style={{ padding: '14px 16px' }}>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: '1.063rem', fontWeight: 700, marginBottom: 6 }}>{tmpl?.name}</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <span className="badge badge-gray">{formatDate(aw.date)}</span>
+            {fromTrainer && <span className="badge badge-gray">{client?.name}</span>}
+            <span className="badge badge-gray">{aw.executedBy === 'trainer' ? 'С тренером' : 'Самостоятельно'}</span>
+            <span className={`badge ${completionCls(pct)}`}>{pct}%</span>
+          </div>
+        </div>
+
+        {displayExercises.map((rex, i) => (
+          <div key={i} className="card" style={{ marginBottom: 8 }}>
+            <div style={{ fontWeight: 600, fontSize: '0.938rem', marginBottom: 8 }}>{exName(rex.exId)}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '18px 1fr 1fr 1fr', gap: 4, marginBottom: 4 }}>
+              <span />
+              {['Повт план', 'Повт факт', 'Вес, кг'].map(l => (
+                <span key={l} style={{ fontSize: '0.563rem', color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase' }}>{l}</span>
+              ))}
+            </div>
+            {rex.sets.map((s, j) => {
+              const exceeded = !s.skipped && s.a.r > s.p.r;
+              const under = !s.skipped && s.a.r < s.p.r;
+              return (
+                <div key={j} style={{ display: 'grid', gridTemplateColumns: '18px 1fr 1fr 1fr', gap: 4, padding: '5px 0', borderBottom: '1px solid var(--slate-100)', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.688rem', color: 'var(--slate-400)', textAlign: 'center' }}>{j + 1}</span>
+                  <span style={{ textAlign: 'center', fontSize: '0.813rem', color: 'var(--slate-400)' }}>{s.p.r}</span>
+                  {isEditing ? (
+                    <input type="number" inputMode="numeric"
+                      onFocus={e => e.target.select()} onMouseUp={e => e.preventDefault()}
+                      value={s.a.r} onChange={e => updateEditSet(i, j, 'r', e.target.value)}
+                      style={{ textAlign: 'center', fontSize: '0.813rem', fontWeight: 600, border: '1.5px solid var(--blue-300)', borderRadius: 6, padding: '3px 2px', background: 'var(--blue-50)', fontFamily: 'inherit', outline: 'none', width: '100%', boxSizing: 'border-box' }} />
+                  ) : (
+                    <span style={{ textAlign: 'center', fontSize: '0.813rem', fontWeight: 500, color: s.skipped ? 'var(--slate-300)' : exceeded ? 'var(--green-600)' : under ? '#DC2626' : 'var(--slate-800)' }}>
+                      {s.skipped ? '—' : s.a.r}
+                    </span>
+                  )}
+                  {isEditing ? (
+                    <input type="number" inputMode="numeric"
+                      onFocus={e => e.target.select()} onMouseUp={e => e.preventDefault()}
+                      value={s.a.w || ''} onChange={e => updateEditSet(i, j, 'w', e.target.value)}
+                      style={{ textAlign: 'center', fontSize: '0.813rem', fontWeight: 600, border: '1.5px solid var(--blue-300)', borderRadius: 6, padding: '3px 2px', background: 'var(--blue-50)', fontFamily: 'inherit', outline: 'none', width: '100%', boxSizing: 'border-box' }} />
+                  ) : (
+                    <span style={{ textAlign: 'center', fontSize: '0.813rem', color: 'var(--slate-500)' }}>{s.a.w || '—'}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+
+        {aw.clientNote && (
+          <div style={{ padding: '12px', background: 'var(--slate-100)', borderRadius: 10, marginBottom: 12 }}>
+            <div style={{ fontSize: '0.688rem', color: 'var(--slate-400)', marginBottom: 4 }}>Заметка клиента</div>
+            <div style={{ fontSize: '0.813rem', color: 'var(--slate-700)', lineHeight: 1.5 }}>{aw.clientNote}</div>
+          </div>
+        )}
+
+        {!isEditing && (
+          <>
+            <button className="btn" style={{ background: '#fff', border: '1.5px solid var(--border)', color: 'var(--slate-600)', marginBottom: 10 }}
+              onClick={() => setShowReactivate(true)}>
+              Вернуть в активные
+            </button>
+            {fromTrainer && (
+              <button className="btn btn-primary" onClick={() => navigate('assignWizard', { clientId: aw.clientId, templateId: aw.templateId })}>
+                Повторить тренировку
+              </button>
+            )}
+          </>
+        )}
+        <div className="bottom-safe" />
+      </div>
+
+      {showReactivate && (
+        <Confirm
+          title="Вернуть тренировку?"
+          body="Тренировка снова станет активной. Результаты будут удалены."
+          onCancel={() => setShowReactivate(false)}
+          onOk={doReactivate}
+          okLabel="Вернуть"
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── SCREEN: CLIENT DASHBOARD ─────────────────────────────────────
+
+function ClientDashboardScreen({ state, navigate, profile }) {
+  const [tab, setTab] = useState('today');
+  const clientId = 'c1';
+  const { assigned, templates } = state;
+  const active = assigned.filter(a => a.clientId === clientId && a.status === 'pending');
+  const history = assigned.filter(a => a.clientId === clientId && a.status === 'completed');
+
+  return (
+    <div>
+      <div style={{ padding: '14px 16px', background: '#fff', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>FitTrainer</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+          onClick={() => navigate('profileSettings', { role: 'client' })}>
+          <div style={{ fontSize: '1.25rem', color: 'var(--slate-700)', fontWeight: 800 }}>{profile.name}</div>
+          {profile.photo
+            ? <img src={profile.photo} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} />
+            : <div className="avatar" style={{ width: 34, height: 34, fontSize: '0.688rem' }}>ГП</div>}
+        </div>
+      </div>
+      <Tabs tabs={[{ id: 'today', label: 'Активные' }, { id: 'history', label: 'История' }, { id: 'progress', label: 'Прогресс' }]} active={tab} onChange={setTab} />
+
+      {tab === 'today' && (
+        <div style={{ padding: '8px 16px' }}>
+          {active.length === 0 && (
+            <div className="empty-state">Пока нет активных тренировок. Как только тренер назначит — они появятся здесь.</div>
+          )}
+          {active.length > 0 && active.map(aw => {
+            const t = templates.find(t => t.id === aw.templateId);
+            const isToday = aw.date === 'today' || aw.date === new Date().toISOString().split('T')[0];
+            const exCount = pluralize((aw.exercises || t?.exercises || []).length, 'упражнение', 'упражнения', 'упражнений');
+            return (
+              <div key={aw.id} className="card"
+                style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}
+                onClick={() => navigate('assignedWorkoutPreview', { assignedId: aw.id, asTrainer: false })}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: 3 }}>{t?.name}</div>
+                  <div style={{ fontSize: '0.75rem', color: isToday ? 'var(--blue-600)' : 'var(--slate-400)' }}>
+                    {isToday ? 'Сегодня' : formatDate(aw.date)} · {exCount}
+                  </div>
+                </div>
+                <span style={{ color: 'var(--slate-300)', fontSize: '1.25rem', marginLeft: 8, flexShrink: 0 }}>›</span>
+              </div>
+            );
+          })}
+          <div className="bottom-safe" />
+        </div>
+      )}
+
+      {tab === 'history' && (
+        <div style={{ padding: '8px 16px' }}>
+          {history.length === 0 && <div className="empty-state">История пуста</div>}
+          {history.map(aw => {
+            const t = templates.find(t => t.id === aw.templateId);
+            const pct = aw.result?.pct ?? 0;
+            return (
+              <WorkoutCard key={aw.id}
+                name={t?.name}
+                subtitle={pluralize((aw.exercises || t?.exercises || []).length, 'упражнение', 'упражнения', 'упражнений')}
+                date={aw.date}
+                pct={pct}
+                badge={
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                    <span className={`badge ${completionCls(pct)}`}>{pct}%</span>
+                    <span className="badge badge-gray" style={{ fontSize: '0.563rem' }}>
+                      {aw.executedBy === 'trainer' ? 'С тренером' : 'Самостоятельно'}
+                    </span>
+                  </div>
+                }
+                onClick={() => navigate('sessionDetail', { assignedId: aw.id, fromTrainer: false })}
+              />
+            );
+          })}
+          <div className="bottom-safe" />
+        </div>
+      )}
+
+      {tab === 'progress' && (
+        <div style={{ padding: '48px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <div style={{ fontSize: '2rem' }}>📊</div>
+          <div style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--slate-700)' }}>Раздел в разработке</div>
+          <div style={{ fontSize: '0.813rem', color: 'var(--slate-400)', textAlign: 'center', maxWidth: 240 }}>Здесь будет отображаться динамика весов, посещаемость и другие показатели прогресса.</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SCREEN: EXERCISE LIBRARY ────────────────────────────────────
+
+function ExerciseLibraryScreen({ onBack, onConfirm, alreadyPickedIds = [] }) {
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('Все');
+  const [selected, setSelected] = useState([]);
+  const categories = ['Все', 'Грудь', 'Плечи', 'Спина', 'Ноги', 'Руки', 'Пресс'];
+
+  const filtered = EXERCISES_LIB.filter(e => {
+    const matchCat = category === 'Все' || e.category === category;
+    const matchSearch = e.name.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
+  });
+
+  const grouped = categories.slice(1).reduce((acc, cat) => {
+    const items = filtered.filter(e => e.category === cat);
+    if (items.length) acc[cat] = items;
+    return acc;
+  }, {});
+
+  function toggle(ex) {
+    if (alreadyPickedIds.includes(ex.id)) return;
+    setSelected(prev =>
+      prev.includes(ex.id) ? prev.filter(id => id !== ex.id) : [...prev, ex.id]
+    );
+  }
+
+  const newCount = selected.length;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <Header title="База упражнений" onBack={onBack} />
+      <div style={{ padding: '10px 16px 0', background: '#fff', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        <input type="text" placeholder="Поиск упражнения..." value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ marginBottom: 10 }} />
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 10, scrollbarWidth: 'none' }}>
+          {categories.map(c => (
+            <button key={c} className={`pill ${category === c ? 'selected' : ''}`}
+              style={{ flexShrink: 0, padding: '5px 12px', fontSize: '0.75rem' }}
+              onClick={() => setCategory(c)}>{c}</button>
+          ))}
+        </div>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px', paddingBottom: newCount > 0 ? 80 : 16 }}>
+        {Object.entries(grouped).map(([cat, exercises]) => (
+          <div key={cat}>
+            <div className="section-header">{cat}</div>
+            {exercises.map(ex => {
+              const already = alreadyPickedIds.includes(ex.id);
+              const sel = selected.includes(ex.id);
+              return (
+                <div key={ex.id} className="card"
+                  style={{ display: 'flex', alignItems: 'center', cursor: already ? 'default' : 'pointer', opacity: already ? 0.4 : 1 }}
+                  onClick={() => toggle(ex)}>
+                  <div style={{ flex: 1, fontSize: '0.938rem' }}>{ex.name}</div>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+                    border: `2px solid ${already ? 'var(--slate-300)' : sel ? 'var(--blue-600)' : 'var(--slate-300)'}`,
+                    background: already ? 'var(--slate-200)' : sel ? 'var(--blue-600)' : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {(already || sel) && <span style={{ color: '#fff', fontSize: '0.75rem' }}>✓</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      {newCount > 0 && (
+        <div style={{ position: 'fixed', bottom: 0, width: 390, padding: '12px 16px', background: '#fff', borderTop: '1px solid var(--border)', zIndex: 30 }}>
+          <button className="btn btn-primary" onClick={() => onConfirm(selected)}>
+            Добавить {pluralize(newCount, 'упражнение', 'упражнения', 'упражнений')}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SCREEN: NEW TEMPLATE ─────────────────────────────────────────
+
+function NewTemplateScreen({ state, dispatch, navigate, onBack, params }) {
+  const editId = params?.editTemplateId;
+  const editTmpl = editId ? state.templates.find(t => t.id === editId) : null;
+  const [name, setName] = useState(editTmpl?.name || '');
+  const [exercises, setExercises] = useState(editTmpl?.exercises || []);
+  const [showLibrary, setShowLibrary] = useState(false);
+
+  function addExercise(ex) {
+    if (exercises.some(e => e.exId === ex.id)) return;
+    setExercises(prev => [...prev, { exId: ex.id, sets: 3, reps: 10, weight: 0, rest: 60, note: '' }]);
+  }
+
+  function addMultiple(ids) {
+    setExercises(prev => {
+      const newOnes = ids
+        .filter(id => !prev.some(e => e.exId === id))
+        .map(id => ({ exId: id, sets: 3, reps: 10, weight: 0, rest: 60, note: '' }));
+      return [...prev, ...newOnes];
+    });
+    setShowLibrary(false);
+  }
+
+  function removeExercise(exId) {
+    setExercises(prev => prev.filter(e => e.exId !== exId));
+  }
+
+  function updateField(exId, field, val) {
+    setExercises(prev => prev.map(e => e.exId !== exId ? e : { ...e, [field]: val }));
+  }
+
+  function save() {
+    if (!name.trim() || exercises.length === 0) return;
+    if (editTmpl) {
+      dispatch({ type: 'EDIT_TEMPLATE', template: { ...editTmpl, name: name.trim(), exercises } });
+    } else {
+      dispatch({ type: 'ADD_TEMPLATE', template: { id: 'wt_' + Date.now(), name: name.trim(), starred: false, usedCount: 0, exercises } });
+    }
+    navigate('trainerDashboard', { tab: 'templates' });
+  }
+
+  if (showLibrary) {
+    return (
+      <ExerciseLibraryScreen
+        onBack={() => setShowLibrary(false)}
+        onConfirm={addMultiple}
+        alreadyPickedIds={exercises.map(e => e.exId)}
+      />
+    );
+  }
+
+  return (
+    <div>
+      <Header title="Новый шаблон" onBack={onBack} />
+      <div style={{ padding: '14px 16px' }}>
+        <div style={{ marginBottom: 16 }}>
+          <label>Название шаблона</label>
+          <input type="text" placeholder="Например: Push Day A" value={name} onChange={e => setName(e.target.value)} />
+        </div>
+
+        {exercises.length > 0 && (
+          <>
+            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+              Упражнения
+            </div>
+            {exercises.map(ex => (
+              <div key={ex.exId} className="card" style={{ marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <div style={{ fontWeight: 500, fontSize: '1.063rem' }}>{exName(ex.exId)}</div>
+                  <button style={{ background: 'none', border: 'none', color: 'var(--slate-400)', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1 }}
+                    onClick={() => removeExercise(ex.exId)}>✕</button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                  {[['Подходы', 'sets'], ['Повторы', 'reps'], ['Вес, кг', 'weight']].map(([l, f]) => (
+                    <div key={f} style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <label style={{ fontSize: '0.75rem', marginBottom: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{l}</label>
+                      </div>
+                      <input type="number" inputMode="numeric"
+                        onFocus={e => e.target.select()}
+                        onMouseUp={e => e.preventDefault()}
+                        onWheel={e => e.target.blur()}
+                        value={ex[f]}
+                        onChange={e => updateField(ex.exId, f, +e.target.value)}
+                        style={{ width: '100%', height: 40, padding: '0 2px', textAlign: 'center', fontSize: '1.125rem', fontWeight: 600, border: '1px solid var(--border)', borderRadius: 6, background: '#fff', fontFamily: 'inherit', boxSizing: 'border-box', MozAppearance: 'textfield', outline: 'none' }} />
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <label style={{ fontSize: '0.75rem', marginBottom: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Отдых, сек</label>
+                    </div>
+                    <input type="number" inputMode="numeric"
+                      onFocus={e => e.target.select()}
+                      onMouseUp={e => e.preventDefault()}
+                      onWheel={e => e.target.blur()}
+                      value={ex.rest}
+                      onChange={e => updateField(ex.exId, 'rest', +e.target.value)}
+                      style={{ width: '100%', height: 40, padding: '0 2px', textAlign: 'center', fontSize: '1.125rem', fontWeight: 600, border: '1px solid var(--border)', borderRadius: 6, background: '#fff', fontFamily: 'inherit', boxSizing: 'border-box', MozAppearance: 'textfield', outline: 'none' }} />
+                  </div>
+                  <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ height: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <label style={{ fontSize: '0.75rem', marginBottom: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Заметка тренера</label>
+                      <span style={{ fontSize: '0.563rem', color: ex.note.length > 130 ? '#DC2626' : 'var(--slate-400)' }}>{ex.note.length}/150</span>
+                    </div>
+                    <input type="text" placeholder="Необязательно" value={ex.note} maxLength={150}
+                      onChange={e => updateField(ex.exId, 'note', e.target.value)}
+                      style={{ width: '100%', height: 40, padding: '0 8px', fontSize: '0.938rem', border: '1px solid var(--border)', borderRadius: 6, background: '#fff', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' }} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        <button className="btn btn-dashed" style={{ marginBottom: 10 }}
+          onClick={() => setShowLibrary(true)}>
+          + Добавить упражнение
+        </button>
+
+        {exercises.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '16px 0', fontSize: '0.813rem', color: 'var(--slate-400)' }}>
+            Добавьте хотя бы одно упражнение
+          </div>
+        )}
+
+        <div className="separator" />
+        <button className="btn btn-primary" disabled={!name.trim() || exercises.length === 0}
+          style={{ opacity: (!name.trim() || exercises.length === 0) ? 0.4 : 1 }}
+          onClick={save}>
+          Сохранить шаблон
+        </button>
+        <div className="bottom-safe" />
+      </div>
+    </div>
+  );
+}
+
+// ─── SCREEN: PROFILE SETTINGS ────────────────────────────────────
+
+function ProfileSettingsScreen({ role, profile, onUpdate, navigate, onBack }) {
+  const isTrainer = role === 'trainer';
+  const initials = isTrainer ? 'МТ' : 'ГП';
+  const [name, setName] = useState(profile.name);
+  const [email, setEmail] = useState(isTrainer ? 'maxim@fittrainer.app' : 'grigory@example.com');
+  const [saved, setSaved] = useState(false);
+  const fileRef = useRef(null);
+
+  function save() {
+    onUpdate({ name });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  function handlePhoto(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => onUpdate({ photo: ev.target.result });
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    <div>
+      <Header title="Профиль" onBack={onBack} />
+      <div style={{ padding: '16px' }}>
+
+        {/* Avatar */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
+          {profile.photo
+            ? <img src={profile.photo} style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', marginBottom: 8 }} />
+            : <div className="avatar" style={{ width: 72, height: 72, fontSize: '1.125rem', marginBottom: 8 }}>{initials}</div>
+          }
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
+          <span style={{ fontSize: '0.75rem', color: 'var(--blue-600)', cursor: 'pointer' }} onClick={() => fileRef.current.click()}>Изменить фото</span>
+        </div>
+
+        {/* Fields */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+          <div>
+            <label>Имя</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} />
+          </div>
+          <div>
+            <label>Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} />
+          </div>
+        </div>
+
+        <button className="btn btn-primary" style={{ marginBottom: 8 }} onClick={save}>
+          {saved ? '✓ Сохранено' : 'Сохранить изменения'}
+        </button>
+
+        <div className="separator" />
+
+        {/* Password */}
+        <div style={{ fontSize: '0.938rem', fontWeight: 600, marginBottom: 12 }}>Смена пароля</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+          <div>
+            <label>Текущий пароль</label>
+            <input type="password" placeholder="••••••••" />
+          </div>
+          <div>
+            <label>Новый пароль</label>
+            <input type="password" placeholder="••••••••" />
+          </div>
+          <div>
+            <label>Повторите новый пароль</label>
+            <input type="password" placeholder="••••••••" />
+          </div>
+        </div>
+        <button className="btn btn-outline" style={{ marginBottom: 0 }}>Изменить пароль</button>
+
+        <div className="separator" />
+
+        <button className="btn" style={{ width: '100%', background: '#fff', color: '#DC2626', border: '1.5px solid #FCA5A5', borderRadius: 10, padding: 13 }}
+          onClick={() => navigate('login', {})}>
+          Выйти из аккаунта
+        </button>
+
+        <div className="bottom-safe" />
+      </div>
+    </div>
+  );
+}
+
+// ─── STATE ────────────────────────────────────────────────────────
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'ADD_TEMPLATE':
+      return { ...state, templates: [...state.templates, action.template] };
+    case 'EDIT_TEMPLATE':
+      return { ...state, templates: state.templates.map(t => t.id === action.template.id ? action.template : t) };
+    case 'DELETE_TEMPLATE':
+      return { ...state, templates: state.templates.filter(t => t.id !== action.id) };
+    case 'TOGGLE_STAR':
+      return { ...state, templates: state.templates.map(t => t.id === action.id ? { ...t, starred: !t.starred } : t) };
+    case 'ASSIGN_WORKOUT':
+      return { ...state, assigned: [...state.assigned, action.payload] };
+    case 'COMPLETE_WORKOUT':
+      return {
+        ...state,
+        assigned: state.assigned.map(a => a.id !== action.assignedId ? a : {
+          ...a, status: 'completed', executedBy: action.executedBy, clientNote: action.clientNote || null,
+          result: {
+            total: action.exercises.length,
+            done: action.exercises.filter(e => e.state === 'done').length,
+            pct: Math.round(action.exercises.filter(e => e.state === 'done').length / action.exercises.length * 100),
+            exercises: action.exercises.map(e => ({
+              exId: e.exId,
+              sets: e.sets.map(s => ({ p: { r: s.plannedReps, w: s.plannedWeight }, a: { r: s.actualReps, w: s.actualWeight }, skipped: !s.done }))
+            }))
+          }
+        })
+      };
+    case 'UPDATE_WORKOUT_RESULT': {
+      return {
+        ...state,
+        assigned: state.assigned.map(a => a.id !== action.assignedId ? a : {
+          ...a,
+          result: {
+            ...a.result,
+            exercises: action.exercises,
+            done: action.exercises.reduce((acc, ex) => acc + ex.sets.filter(s => !s.skipped).length, 0),
+            pct: (() => {
+              const totalSets = action.exercises.reduce((acc, ex) => acc + ex.sets.length, 0);
+              const doneSets = action.exercises.reduce((acc, ex) => acc + ex.sets.filter(s => !s.skipped).length, 0);
+              return totalSets ? Math.round(doneSets / totalSets * 100) : 0;
+            })()
+          }
+        })
+      };
+    }
+    case 'REACTIVATE_WORKOUT':
+      return {
+        ...state,
+        assigned: state.assigned.map(a => a.id !== action.assignedId ? a : {
+          ...a, status: 'pending', result: null, executedBy: null, clientNote: null
+        })
+      };
+    default: return state;
+  }
+}
+
+// ─── APP ──────────────────────────────────────────────────────────
+
+function App() {
+  const [screen, setScreen] = useState('login');
+  const [params, setParams] = useState({});
+  const [navHistory, setNavHistory] = useState([]);
+  const [appState, dispatch] = useReducer(reducer, { templates: TEMPLATES_INIT, assigned: ASSIGNED_INIT });
+  const [profiles, setProfiles] = useState({
+    trainer: { name: 'Максим', photo: null },
+    client:  { name: 'Григорий', photo: null },
+  });
+
+  function updateProfile(role, patch) {
+    setProfiles(p => ({ ...p, [role]: { ...p[role], ...patch } }));
+  }
+
+  function navigate(s, p = {}) {
+    setNavHistory(h => [...h, { screen, params }]);
+    setScreen(s);
+    setParams(p);
+  }
+
+  function goBack() {
+    if (navHistory.length > 0) {
+      const prev = navHistory[navHistory.length - 1];
+      setNavHistory(h => h.slice(0, -1));
+      setScreen(prev.screen);
+      setParams(prev.params);
+    }
+  }
+
+  function handleLogin(role) {
+    setNavHistory([]);
+    setScreen(role === 'trainer' ? 'trainerDashboard' : 'clientDashboard');
+  }
+
+  const shared = { state: appState, dispatch, navigate };
+
+  return (
+    <div className="app-wrapper">
+      {screen === 'login' && <LoginScreen onLogin={handleLogin} onForgot={() => navigate('forgotPassword', {})} />}
+      {screen === 'forgotPassword' && <ForgotPasswordScreen onBack={goBack} />}
+      {screen === 'trainerDashboard' && <TrainerDashboard {...shared} params={params} profile={profiles.trainer} />}
+      {screen === 'clientCard' && <ClientCardScreen {...shared} clientId={params.clientId} onBack={goBack} />}
+      {screen === 'templateView' && <TemplateViewScreen {...shared} templateId={params.templateId} onBack={goBack} />}
+      {screen === 'assignWizard' && <AssignWizardScreen {...shared} params={params} onBack={goBack} />}
+      {screen === 'exerciseLibrary' && <ExerciseLibraryScreen onBack={goBack} />}
+      {screen === 'newTemplate' && <NewTemplateScreen {...shared} params={params} onBack={goBack} />}
+      {screen === 'assignedWorkoutPreview' && <AssignedWorkoutPreviewScreen {...shared} assignedId={params.assignedId} clientId={params.clientId} asTrainer={params.asTrainer} onBack={goBack} />}
+      {screen === 'profileSettings' && <ProfileSettingsScreen role={params.role} profile={profiles[params.role]} onUpdate={patch => updateProfile(params.role, patch)} navigate={navigate} onBack={goBack} />}
+      {screen === 'workoutExecute' && <WorkoutExecuteScreen {...shared} assignedId={params.assignedId} asTrainer={params.asTrainer} onBack={goBack} />}
+      {screen === 'sessionDetail' && <SessionDetailScreen {...shared} assignedId={params.assignedId} fromTrainer={params.fromTrainer} onBack={goBack} />}
+      {screen === 'clientDashboard' && <ClientDashboardScreen {...shared} profile={profiles.client} navigate={navigate} />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -5,6 +5,12 @@
 --
 -- Idempotent. Run in Supabase SQL Editor on BOTH staging and production.
 
+-- Table-level GRANT first: the initial schema has no GRANTs and
+-- Supabase auto-grants didn't include DELETE (anon DELETE → 42501
+-- "permission denied for table"). Without this even an authenticated
+-- trainer can't delete, regardless of RLS.
+GRANT DELETE ON public.assigned_workouts TO authenticated;
+
 DROP POLICY IF EXISTS "assigned_workouts_delete" ON public.assigned_workouts;
 CREATE POLICY "assigned_workouts_delete" ON public.assigned_workouts FOR DELETE USING (
   workout_id IN (

@@ -51,6 +51,8 @@ export default function DoWorkoutPage() {
   const [loaded, setLoaded] = useState(false)
   const [activeExId, setActiveExId] = useState<string | null>(null)
   const [timerLabel, setTimerLabel] = useState('Отдых')
+  // Превью перед выполнением: список упражнений + кнопка «Начать»
+  const [phase, setPhase] = useState<'preview' | 'doing'>('preview')
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -326,6 +328,154 @@ export default function DoWorkoutPage() {
     </Layout>
   )
 
+  const hasProgress =
+    existingResults.length > 0 ||
+    Object.values(exState).some(st => st.sets.some(s => s.completed) || st.skipped)
+
+  // ── Превью тренировки (до старта) ───────────────────────────
+  if (phase === 'preview') {
+    return (
+      <Layout>
+        <div className="pt-[11px] pb-[24px]">
+          <button
+            onClick={() => navigate(-1)}
+            className="text-[14px] font-semibold text-[var(--blue-600)] mb-[10px]"
+          >
+            ← Назад
+          </button>
+          {asTrainer && (
+            <div className="text-[12px] font-semibold text-[var(--blue-600)] uppercase tracking-[0.05em] mb-[4px]">
+              Совместная тренировка
+            </div>
+          )}
+          <h1 className="text-[20px] font-bold text-[var(--slate-900)] mb-[2px]">{workout?.name}</h1>
+          <p className="text-[13px] text-[var(--slate-400)] mb-[16px]">
+            {exercises.length} упражнений
+            {workout?.default_rest_sec ? ` · отдых ${workout.default_rest_sec} сек` : ''}
+          </p>
+
+          {exercises.map((ex, i) => {
+            const lib = ex.exercise_library
+            return (
+              <div key={ex.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[12px] py-[10px] mb-[5px]">
+                <div className="text-[15px] font-semibold text-[var(--slate-900)] mb-[3px]">
+                  {i + 1}. {lib.name_ru ?? lib.name_en}
+                </div>
+                <div className="text-[13px] text-[var(--slate-500)]">
+                  {ex.sets} × {ex.reps}{ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}
+                  {ex.rest_sec ? ` · отдых ${ex.rest_sec} сек` : ''}
+                </div>
+                {ex.trainer_note && (
+                  <div className="text-[13px] text-[var(--blue-600)] italic mt-[3px]">«{ex.trainer_note}»</div>
+                )}
+              </div>
+            )
+          })}
+
+          <button
+            onClick={() => setPhase('doing')}
+            className="w-full mt-[14px] bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[14px]"
+          >
+            {hasProgress
+              ? 'Продолжить тренировку'
+              : asTrainer ? 'Начать совместную тренировку' : 'Начать тренировку'}
+          </button>
+        </div>
+      </Layout>
+    )
+  }
+
+  // Таймер отдыха — рендерится ИНЛАЙН над активным упражнением
+  const timerBox = timerActive ? (
+    <div style={{
+      padding: '14px 12px',
+      background: timerExpired ? '#FEF2F2' : '#F0FDF4',
+      border: `1px solid ${timerExpired ? '#FCA5A5' : '#BBF7D0'}`,
+      borderRadius: 12,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 6,
+    }}>
+      <div style={{
+        fontSize: 11, fontWeight: 600,
+        color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
+        textTransform: 'uppercase', letterSpacing: '0.08em',
+      }}>
+        {timerExpired ? 'ВРЕМЯ ВЫШЛО' : 'ОТДЫХ'}
+      </div>
+      <div style={{ position: 'relative', width: 96, height: 96 }}>
+        <svg width="96" height="96" viewBox="0 0 110 110" style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx="55" cy="55" r={TIMER_R} fill="none" stroke="#D1FAE5" strokeWidth="6" />
+          <circle
+            cx="55" cy="55" r={TIMER_R} fill="none"
+            stroke={timerExpired ? 'var(--red-500)' : 'var(--green-600)'}
+            strokeWidth="6" strokeLinecap="round"
+            strokeDasharray={`${timerDash} ${timerGap}`}
+            strokeDashoffset="0"
+            style={{ transition: 'stroke-dasharray 1s linear' }}
+          />
+        </svg>
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            fontSize: 28, fontWeight: 700, lineHeight: 1,
+            color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
+          }}>
+            {fmt(timerSec)}
+          </div>
+          <div style={{
+            fontSize: 10, marginTop: 2,
+            color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
+            opacity: 0.6,
+          }}>
+            сек
+          </div>
+        </div>
+      </div>
+      {timerNextEx && !timerExpired && (
+        <div style={{ fontSize: 13, color: 'var(--slate-500)', textAlign: 'center' }}>
+          следующее: {timerNextEx}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          onClick={() => skipTimer()}
+          style={{
+            background: '#fff', border: '1.5px solid var(--slate-200)',
+            color: 'var(--slate-600)', borderRadius: 8,
+            padding: '6px 12px', fontSize: 13, fontWeight: 600,
+            cursor: 'pointer', fontFamily: 'var(--font)',
+          }}
+        >
+          Пропустить
+        </button>
+        <button
+          onClick={() => addTime(30)}
+          style={{
+            background: '#fff', border: '1.5px solid #A7F3D0',
+            color: 'var(--green-600)', borderRadius: 8,
+            padding: '6px 12px', fontSize: 13, fontWeight: 600,
+            cursor: 'pointer', fontFamily: 'var(--font)',
+          }}
+        >
+          +30 сек
+        </button>
+      </div>
+      <span hidden>{timerLabel}</span>
+    </div>
+  ) : null
+
+  // Есть ли сейчас активное упражнение (над которым ляжет таймер)?
+  const hasActiveCard = exercises.some(ex => {
+    const st = exState[ex.id]
+    return st && !st.skipped && !st.sets.every(s => s.completed) && activeExId === ex.id
+  })
+
   return (
     <Layout fullHeight>
 
@@ -364,6 +514,9 @@ export default function DoWorkoutPage() {
 
       {/* ── Exercise List ──────────────────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto" style={{ padding: '11px 13px 0' }}>
+
+        {/* Таймер сверху, если активного упражнения нет (отдых между упражнениями) */}
+        {timerActive && !hasActiveCard && timerBox}
 
         {exercises.map(ex => {
           const st = exState[ex.id]
@@ -434,10 +587,12 @@ export default function DoWorkoutPage() {
             )
           }
 
-          // ── Active card ────────────────────────────────
+          // ── Active card (с таймером сверху) ────────────
           if (isActive) {
             return (
-              <div key={ex.id} style={{
+              <div key={ex.id}>
+              {timerBox}
+              <div style={{
                 background: 'var(--white)', border: '1px solid var(--indigo-300)',
                 borderRadius: 10, padding: '10px 11px', marginBottom: 6,
               }}>
@@ -529,6 +684,7 @@ export default function DoWorkoutPage() {
                   </button>
                 </div>
               </div>
+              </div>
             )
           }
 
@@ -553,116 +709,21 @@ export default function DoWorkoutPage() {
         <div style={{ height: 80 }} />
       </div>
 
-      {/* ── Timer Sheet — прототип ТЗ §4.5.4 ────────────── */}
-      {timerActive && (
-        <div className="shrink-0" style={{
-          margin: '10px 16px 14px',
-          padding: '16px 14px',
-          background: timerExpired ? '#FEF2F2' : '#F0FDF4',
-          border: `1px solid ${timerExpired ? '#FCA5A5' : '#BBF7D0'}`,
-          borderRadius: 14,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 10,
-        }}>
-          {/* Label «ОТДЫХ» */}
-          <div style={{
-            fontSize: 11, fontWeight: 600,
-            color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
-            textTransform: 'uppercase', letterSpacing: '0.08em',
-          }}>
-            {timerExpired ? 'ВРЕМЯ ВЫШЛО' : 'ОТДЫХ'}
-          </div>
-
-          {/* SVG-ring 110×110 */}
-          <div style={{ position: 'relative', width: 110, height: 110 }}>
-            <svg width="110" height="110" style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx="55" cy="55" r={TIMER_R} fill="none" stroke="#D1FAE5" strokeWidth="6" />
-              <circle
-                cx="55" cy="55" r={TIMER_R} fill="none"
-                stroke={timerExpired ? 'var(--red-500)' : 'var(--green-600)'}
-                strokeWidth="6" strokeLinecap="round"
-                strokeDasharray={`${timerDash} ${timerGap}`}
-                strokeDashoffset="0"
-                style={{ transition: 'stroke-dasharray 1s linear' }}
-              />
-            </svg>
-            <div style={{
-              position: 'absolute', inset: 0,
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center',
-            }}>
-              <div style={{
-                fontSize: 32, fontWeight: 700, lineHeight: 1,
-                color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
-              }}>
-                {fmt(timerSec)}
-              </div>
-              <div style={{
-                fontSize: 10, marginTop: 2,
-                color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
-                opacity: 0.6,
-              }}>
-                сек
-              </div>
-            </div>
-          </div>
-
-          {timerNextEx && !timerExpired && (
-            <div style={{ fontSize: 13, color: 'var(--slate-500)', textAlign: 'center' }}>
-              следующее: {timerNextEx}
-            </div>
-          )}
-
-          {/* Buttons */}
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={() => skipTimer()}
-              style={{
-                background: '#fff', border: '1.5px solid var(--slate-200)',
-                color: 'var(--slate-600)', borderRadius: 8,
-                padding: '6px 12px', fontSize: 13, fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'var(--font)',
-              }}
-            >
-              Пропустить
-            </button>
-            <button
-              onClick={() => addTime(30)}
-              style={{
-                background: '#fff', border: '1.5px solid #A7F3D0',
-                color: 'var(--green-600)', borderRadius: 8,
-                padding: '6px 12px', fontSize: 13, fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'var(--font)',
-              }}
-            >
-              +30 сек
-            </button>
-          </div>
-
-          {/* Hidden, but keep timerLabel reachable for future debugging */}
-          <span hidden>{timerLabel}</span>
-        </div>
-      )}
-
-      {/* ── Sticky Finish Button ───────────────────────────── */}
-      {!timerActive && (
-        <div className="shrink-0" style={{ background: 'var(--white)', borderTop: '1px solid var(--border)', padding: '10px 13px 14px' }}>
-          <button
-            onClick={onFinishPress}
-            disabled={saving}
-            style={{
-              width: '100%', background: 'var(--indigo-500)', color: 'var(--white)',
-              border: 'none', borderRadius: 9, padding: 10,
-              fontSize: 17, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
-              opacity: saving ? 0.6 : 1, fontFamily: 'var(--font)', letterSpacing: '0.01em',
-            }}
-          >
-            {saving ? 'Сохранение...' : 'Завершить тренировку'}
-          </button>
-        </div>
-      )}
+      {/* ── Sticky Finish Button (таймер теперь инлайн над упражнением) ── */}
+      <div className="shrink-0" style={{ background: 'var(--white)', borderTop: '1px solid var(--border)', padding: '10px 13px 14px' }}>
+        <button
+          onClick={onFinishPress}
+          disabled={saving}
+          style={{
+            width: '100%', background: 'var(--indigo-500)', color: 'var(--white)',
+            border: 'none', borderRadius: 9, padding: 10,
+            fontSize: 17, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
+            opacity: saving ? 0.6 : 1, fontFamily: 'var(--font)', letterSpacing: '0.01em',
+          }}
+        >
+          {saving ? 'Сохранение...' : 'Завершить тренировку'}
+        </button>
+      </div>
 
       {/* ── Confirm Dialog ─────────────────────────────────── */}
       {showConfirm && (

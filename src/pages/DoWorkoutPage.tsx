@@ -209,14 +209,25 @@ export default function DoWorkoutPage() {
 
   // Кликнули на done-карточку → возвращаем в active, сбрасываем галочки
   function reopenExercise(exId: string) {
-    setExState(prev => ({
-      ...prev,
-      [exId]: {
-        ...prev[exId],
-        sets: prev[exId].sets.map(s => ({ ...s, completed: false })),
-        skipped: false,
-      },
-    }))
+    // Снимаем галочку только с ПОСЛЕДНЕГО подхода — упражнение
+    // снова активно, остальные отметки и значения сохраняются,
+    // клиент сам решает что переотметить/исправить.
+    setExState(prev => {
+      const sets = prev[exId].sets
+      const lastDone = [...sets].map(s => s.completed).lastIndexOf(true)
+      return {
+        ...prev,
+        [exId]: {
+          ...prev[exId],
+          sets: sets.map((s, i) =>
+            i === (lastDone >= 0 ? lastDone : sets.length - 1)
+              ? { ...s, completed: false }
+              : s
+          ),
+          skipped: false,
+        },
+      }
+    })
     setActiveExId(exId)
     skipTimer()
   }
@@ -613,44 +624,46 @@ export default function DoWorkoutPage() {
                     display: 'grid', gridTemplateColumns: '18px 1fr 1fr 34px',
                     gap: 6, alignItems: 'center', padding: '6px 0',
                     borderBottom: i < st.sets.length - 1 ? '1px solid var(--slate-100)' : 'none',
-                    opacity: s.completed ? 0.55 : 1,
                   }}>
                     <span style={{ fontSize: 11, color: 'var(--slate-400)', textAlign: 'center' }}>{i + 1}</span>
                     <input
                       type="text" inputMode="numeric" value={s.reps}
                       onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
                       onFocus={e => e.target.select()}
-                      readOnly={s.completed}
                       style={{
                         width: '100%', padding: '7px 4px', textAlign: 'center',
                         fontSize: 16, fontWeight: 600, borderRadius: 8,
-                        border: '1.5px solid var(--slate-200)', boxSizing: 'border-box',
-                        background: '#fff', color: 'var(--slate-900)', fontFamily: 'var(--font)',
+                        border: `1.5px solid ${s.completed ? 'var(--green-200)' : 'var(--slate-200)'}`,
+                        boxSizing: 'border-box',
+                        background: s.completed ? 'var(--green-50)' : '#fff',
+                        color: 'var(--slate-900)', fontFamily: 'var(--font)',
                       }}
                     />
                     <input
                       type="text" inputMode="decimal" value={s.weight}
                       onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
                       onFocus={e => e.target.select()}
-                      readOnly={s.completed}
                       style={{
                         width: '100%', padding: '7px 4px', textAlign: 'center',
                         fontSize: 16, fontWeight: 600, borderRadius: 8,
-                        border: '1.5px solid var(--slate-200)', boxSizing: 'border-box',
-                        background: '#fff', color: 'var(--slate-900)', fontFamily: 'var(--font)',
+                        border: `1.5px solid ${s.completed ? 'var(--green-200)' : 'var(--slate-200)'}`,
+                        boxSizing: 'border-box',
+                        background: s.completed ? 'var(--green-50)' : '#fff',
+                        color: 'var(--slate-900)', fontFamily: 'var(--font)',
                       }}
                     />
-                    {/* Set-check — прототип ТЗ §4.5.3: круг 34×34, blue-600 при done */}
+                    {/* Set-check: зелёный при done, тап повторно — снять галочку */}
                     <button
-                      onClick={() => !s.completed && markSet(ex.id, i)}
+                      onClick={() => markSet(ex.id, i)}
+                      title={s.completed ? 'Снять отметку' : 'Отметить подход'}
                       style={{
                         width: 34, height: 34, borderRadius: '50%',
-                        border: s.completed ? '2px solid var(--blue-600)' : '2px solid var(--slate-300)',
-                        background: s.completed ? 'var(--blue-600)' : '#fff',
+                        border: s.completed ? '2px solid var(--green-600)' : '2px solid var(--slate-300)',
+                        background: s.completed ? 'var(--green-600)' : '#fff',
                         color: s.completed ? '#fff' : 'var(--slate-300)',
                         fontSize: 15, fontWeight: 600,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: s.completed ? 'default' : 'pointer',
+                        cursor: 'pointer',
                         flexShrink: 0, padding: 0, fontFamily: 'var(--font)',
                         transition: 'background .15s, border-color .15s, color .15s',
                       }}

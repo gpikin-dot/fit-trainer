@@ -58,7 +58,7 @@ function StepDots({ step }: { step: Step }) {
       {[0, 1, 2].map(i => (
         <span
           key={i}
-          className={`w-[6px] h-[6px] rounded-full transition-colors ${i <= idx ? 'bg-[var(--indigo-500)]' : 'bg-[var(--slate-200)]'}`}
+          className={`w-[6px] h-[6px] rounded-full transition-colors ${i <= idx ? 'bg-[var(--blue-600)]' : 'bg-[var(--slate-200)]'}`}
         />
       ))}
     </div>
@@ -68,7 +68,7 @@ function StepDots({ step }: { step: Step }) {
 function Avatar({ name, size = 28 }: { name: string; size?: number }) {
   return (
     <div
-      className="rounded-full bg-[var(--indigo-50)] flex items-center justify-center font-bold text-[var(--indigo-500)] shrink-0"
+      className="rounded-full bg-[var(--blue-50)] flex items-center justify-center font-bold text-[var(--blue-600)] shrink-0"
       style={{ width: size, height: size, fontSize: size <= 24 ? 9 : size <= 28 ? 11 : 13 }}
     >
       {initials(name)}
@@ -80,7 +80,7 @@ function BackButton({ onClick, label = 'Назад' }: { onClick: () => void; la
   return (
     <button
       onClick={onClick}
-      className="text-[16px] font-semibold text-[var(--indigo-500)] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
+      className="text-[14px] font-semibold text-[var(--blue-600)] flex items-center gap-1 mb-[10px]"
     >
       <ArrowLeft className="w-3 h-3" /> {label}
     </button>
@@ -314,8 +314,8 @@ export default function AssignWorkoutFlow() {
   const otherWorkouts = workouts.filter(w => !w.is_favorite)
 
   // Row/input style for customize step
-  const numInput = 'bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[6px] px-[4px] py-[5px] text-[17px] font-bold text-[var(--slate-900)] text-center w-full outline-none focus:border-indigo-400'
-  const noteInput = 'bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[6px] px-[7px] py-[5px] text-[15px] text-[var(--slate-600)] italic w-full outline-none focus:border-indigo-400 text-left'
+  const numInput = 'bg-white border border-[var(--slate-200)] rounded-[6px] px-[4px] py-[6px] text-[15px] font-semibold text-[var(--slate-900)] text-center w-full outline-none focus:border-[var(--blue-500)]'
+  const noteInput = 'bg-white border border-[var(--slate-200)] rounded-[6px] px-[7px] py-[6px] text-[14px] text-[var(--slate-600)] w-full outline-none focus:border-[var(--blue-500)] text-left'
 
   if (loading) {
     return (
@@ -353,12 +353,12 @@ export default function AssignWorkoutFlow() {
                       key={client.id}
                       onClick={() => setSelectedClientId(client.id)}
                       className={`bg-white border-[1.5px] rounded-[10px] px-[10px] py-[8px] mb-[4px] flex items-center gap-[7px] cursor-pointer w-full text-left transition-colors ${
-                        selected ? 'border-[var(--indigo-500)] bg-[var(--indigo-50)]' : 'border-[var(--border)]'
+                        selected ? 'border-[var(--blue-600)] bg-[var(--blue-50)]' : 'border-[var(--border)]'
                       }`}
                     >
                       <Avatar name={client.name} size={28} />
                       <div className="flex-1 min-w-0">
-                        <div className="text-[17px] font-semibold text-[var(--slate-900)]">{client.name}</div>
+                        <div className="text-[15px] font-semibold text-[var(--slate-900)]">{client.name}</div>
                         <div className="text-[15px] text-[var(--slate-400)] mt-[1px]">
                           {count > 0
                             ? `${plural(count, 'раз', 'раза', 'раз')} делал эту тренировку`
@@ -367,7 +367,7 @@ export default function AssignWorkoutFlow() {
                         </div>
                       </div>
                       {selected ? (
-                        <div className="w-[16px] h-[16px] rounded-full bg-[var(--indigo-500)] flex items-center justify-center text-white text-[15px] shrink-0">✓</div>
+                        <div className="w-[16px] h-[16px] rounded-full bg-[var(--blue-600)] flex items-center justify-center text-white text-[15px] shrink-0">✓</div>
                       ) : (
                         <span className="text-[var(--slate-300)] text-[15px]">›</span>
                       )}
@@ -382,7 +382,7 @@ export default function AssignWorkoutFlow() {
             <button
               onClick={handleClientSelected}
               disabled={!selectedClientId}
-              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[16px] font-bold rounded-[9px] py-[10px] disabled:opacity-40"
+              className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[13px] disabled:opacity-40"
             >
               Далее
             </button>
@@ -430,7 +430,7 @@ export default function AssignWorkoutFlow() {
 
             <button
               onClick={() => navigate('/trainer/workout/new')}
-              className="w-full border border-dashed border-[var(--indigo-200)] text-[var(--indigo-500)] text-[16px] font-bold py-[9px] rounded-[9px] mt-[6px]"
+              className="w-full border-[1.5px] border-dashed border-[var(--blue-400)] text-[var(--blue-600)] text-[15px] font-semibold py-[10px] rounded-[10px] mt-[6px]"
             >
               + Создать новый шаблон
             </button>
@@ -448,7 +448,7 @@ export default function AssignWorkoutFlow() {
             {clientName && (
               <div className="flex items-center gap-[6px] bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-[8px] px-[8px] py-[5px] mb-[7px] mt-[6px]">
                 <Avatar name={clientName} size={22} />
-                <span className="text-[17px] font-semibold text-[var(--slate-900)]">{clientName}</span>
+                <span className="text-[15px] font-semibold text-[var(--slate-900)]">{clientName}</span>
               </div>
             )}
 
@@ -469,12 +469,12 @@ export default function AssignWorkoutFlow() {
                   const exType = ex.library.exercise_type ?? 'strength'
 
                   const modNumInput = (modified: boolean) =>
-                    `${numInput} ${modified ? 'bg-[var(--indigo-50)] border-[var(--indigo-200)]' : ''}`
+                    `${numInput} ${modified ? 'bg-[var(--blue-50)] border-[var(--blue-200)]' : ''}`
 
                   return (
                     <div key={idx} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
                       <div className="flex justify-between mb-[8px]">
-                        <span className="text-[17px] font-bold text-[var(--slate-900)]">{idx + 1}. {ex.library.name_ru}</span>
+                        <span className="text-[15px] font-bold text-[var(--slate-900)]">{idx + 1}. {ex.library.name_ru}</span>
                         <button
                           onClick={() => removeExercise(idx)}
                           className="text-[var(--slate-300)] hover:text-[var(--red-500)] text-[17px] bg-transparent border-none p-0 leading-none"
@@ -574,7 +574,7 @@ export default function AssignWorkoutFlow() {
 
             <button
               onClick={() => setStep('date')}
-              className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[16px] font-bold rounded-[9px] py-[10px]"
+              className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[13px]"
             >
               Далее
             </button>
@@ -590,7 +590,7 @@ export default function AssignWorkoutFlow() {
             {/* Summary */}
             <div className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[8px] mt-[10px]">
               <div className="text-[11px] font-bold text-[var(--slate-400)] uppercase tracking-[0.06em] mb-[4px]">ИТОГ</div>
-              <div className="text-[17px] font-bold text-[var(--slate-900)]">
+              <div className="text-[15px] font-bold text-[var(--slate-900)]">
                 {workoutName} → {clientName}
               </div>
               <div className="flex gap-[5px] flex-wrap mt-[5px]">
@@ -598,7 +598,7 @@ export default function AssignWorkoutFlow() {
                   {plural(exercises.length, 'упражнение', 'упражнения', 'упражнений')}
                 </span>
                 {modifiedCount > 0 && (
-                  <span className="text-[15px] font-semibold bg-[var(--indigo-50)] text-[var(--indigo-700)] rounded-[20px] px-[7px] py-[2px] border border-[var(--indigo-200)]">
+                  <span className="text-[15px] font-semibold bg-[var(--blue-50)] text-[var(--blue-700)] rounded-[20px] px-[7px] py-[2px] border border-[var(--blue-200)]">
                     {modifiedCount} изменено
                   </span>
                 )}
@@ -628,16 +628,16 @@ export default function AssignWorkoutFlow() {
                   key={opt.value}
                   onClick={() => setDateChoice(opt.value)}
                   className={`w-full flex items-center gap-[8px] cursor-pointer text-left border-[1.5px] rounded-[9px] px-[10px] py-[8px] mb-[4px] transition-colors ${
-                    active ? 'border-[var(--indigo-500)] bg-[var(--indigo-50)]' : 'border-[var(--border)] bg-white'
+                    active ? 'border-[var(--blue-600)] bg-[var(--blue-50)]' : 'border-[var(--border)] bg-white'
                   }`}
                 >
                   <div className={`w-[14px] h-[14px] rounded-full border-2 shrink-0 flex items-center justify-center ${
-                    active ? 'border-[var(--indigo-500)]' : 'border-[var(--slate-300)]'
+                    active ? 'border-[var(--blue-600)]' : 'border-[var(--slate-300)]'
                   }`}>
-                    {active && <div className="w-[7px] h-[7px] bg-[var(--indigo-500)] rounded-full" />}
+                    {active && <div className="w-[7px] h-[7px] bg-[var(--blue-600)] rounded-full" />}
                   </div>
                   <div className="flex-1">
-                    <div className="text-[17px] font-semibold text-[var(--slate-900)]">{opt.label}</div>
+                    <div className="text-[15px] font-semibold text-[var(--slate-900)]">{opt.label}</div>
                     {opt.sub && (
                       <div className="text-[15px] text-[var(--slate-500)] mt-[1px]">
                         {new Date(opt.sub + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
@@ -651,7 +651,7 @@ export default function AssignWorkoutFlow() {
                       min={localDate(0)}
                       onChange={e => setPickedDate(e.target.value)}
                       onClick={e => e.stopPropagation()}
-                      className="text-[16px] border border-[var(--indigo-200)] rounded-[6px] px-2 py-1 bg-white outline-none"
+                      className="text-[14px] border border-[var(--slate-200)] rounded-[6px] px-2 py-1 bg-white outline-none focus:border-[var(--blue-500)]"
                     />
                   )}
                   {opt.value === 'pick' && !active && (
@@ -666,7 +666,7 @@ export default function AssignWorkoutFlow() {
             <button
               onClick={handleAssign}
               disabled={submitting || (dateChoice === 'pick' && !pickedDate)}
-              className="w-full bg-[var(--indigo-500)] text-white rounded-[10px] py-[11px] text-[16px] font-bold mt-[8px] disabled:opacity-40 hover:bg-[var(--indigo-700)]"
+              className="w-full bg-[var(--blue-600)] text-white rounded-[10px] py-[13px] text-[15px] font-semibold mt-[8px] disabled:opacity-40 hover:bg-[var(--blue-700)]"
             >
               {submitting ? 'Назначаем...' : 'Назначить тренировку'}
             </button>
@@ -697,7 +697,7 @@ function WorkoutSelectRow({
         <Star className="w-3.5 h-3.5 text-[var(--amber-500)] fill-[var(--amber-500)] shrink-0" />
       )}
       <div className="flex-1 min-w-0">
-        <div className="text-[17px] font-semibold text-[var(--slate-900)] truncate">{workout.name}</div>
+        <div className="text-[15px] font-semibold text-[var(--slate-900)] truncate">{workout.name}</div>
       </div>
       {count > 0 && (
         <span className="text-[15px] bg-[var(--slate-100)] text-[var(--slate-500)] rounded-[20px] px-[7px] py-[2px] shrink-0">

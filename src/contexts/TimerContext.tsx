@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, useRef, useCallback, Re
 interface TimerContextValue {
   timerSec: number
   timerTotal: number
+  timerOvertime: number
   timerActive: boolean
   timerPaused: boolean
   timerNextEx: string | null
@@ -21,6 +22,7 @@ const TimerContext = createContext<TimerContextValue | null>(null)
 export function TimerProvider({ children }: { children: ReactNode }) {
   const [timerSec, setTimerSec] = useState(0)
   const [timerTotal, setTimerTotal] = useState(0)
+  const [timerOvertime, setTimerOvertime] = useState(0)
   const [timerActive, setTimerActive] = useState(false)
   const [timerPaused, setTimerPaused] = useState(false)
   const [timerNextEx, setTimerNextEx] = useState<string | null>(null)
@@ -51,13 +53,11 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     if (timerActive && !timerPaused) {
       timerRef.current = setInterval(() => {
         setTimerSec(prev => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current!)
-            setTimerActive(false)
-            playBeep()
-            return 0
-          }
-          return prev - 1
+          if (prev > 1) return prev - 1
+          if (prev === 1) { playBeep(); return 0 }
+          // prev === 0 → отдых окончен, считаем овертайм вверх
+          setTimerOvertime(o => o + 1)
+          return 0
         })
       }, 1000)
     } else {
@@ -69,6 +69,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   function startTimer(secs: number, nextExName: string | null, assignedId: string, exId: string) {
     setTimerSec(secs)
     setTimerTotal(secs)
+    setTimerOvertime(0)
     setTimerActive(true)
     setTimerPaused(false)
     setTimerNextEx(nextExName)
@@ -77,12 +78,16 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   }
 
   function togglePause() { setTimerPaused(p => !p) }
-  function addTime(secs: number) { setTimerSec(s => s + secs) }
-  function skipTimer() { setTimerActive(false) }
+  // Добавляем время: если уже в овертайме — снова уходим в обратный отсчёт
+  function addTime(secs: number) {
+    setTimerSec(s => s + secs)
+    setTimerOvertime(0)
+  }
+  function skipTimer() { setTimerActive(false); setTimerOvertime(0) }
 
   return (
     <TimerContext.Provider value={{
-      timerSec, timerTotal, timerActive, timerPaused, timerNextEx,
+      timerSec, timerTotal, timerOvertime, timerActive, timerPaused, timerNextEx,
       timerExerciseId, assignedWorkoutId, soundEnabled,
       startTimer, togglePause, addTime, skipTimer, setSoundEnabled,
     }}>

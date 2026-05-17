@@ -39,7 +39,7 @@ export default function DoWorkoutPage() {
   // /trainer/workout-session/:assignedId (asTrainer: true в прототипе)
   const asTrainer = location.pathname.startsWith('/trainer/')
   const {
-    timerSec, timerTotal, timerActive, timerNextEx, timerExerciseId,
+    timerSec, timerTotal, timerOvertime, timerActive, timerNextEx, timerExerciseId,
     startTimer, addTime, skipTimer,
   } = useTimer()
 
@@ -304,10 +304,8 @@ export default function DoWorkoutPage() {
   }
 
   function onFinishPress() {
-    const total = exercises.length
-    const done = exercises.filter(ex => exState[ex.id]?.sets.some(s => s.completed)).length
-    if (done < total) setShowConfirm(true)
-    else handleFinish()
+    // Всегда подтверждаем — чтобы не завершить случайно при логировании
+    setShowConfirm(true)
   }
 
   // ─── Derived ───────────────────────────────────────────────────────────────
@@ -317,6 +315,7 @@ export default function DoWorkoutPage() {
   const timerProgress = timerTotal > 0 ? timerSec / timerTotal : 0
   const timerDash = TIMER_CIRC * timerProgress
   const timerGap = TIMER_CIRC - timerDash
+  // Овертайм: отдых вышел, считаем сколько секунд прошло сверх
   const timerExpired = timerActive && timerSec === 0
 
   const completedAtStr = assignment?.completed_at
@@ -399,31 +398,31 @@ export default function DoWorkoutPage() {
   // Таймер отдыха — рендерится ИНЛАЙН над активным упражнением
   const timerBox = timerActive ? (
     <div style={{
-      padding: '14px 12px',
+      padding: '16px 12px',
       background: timerExpired ? '#FEF2F2' : '#F0FDF4',
-      border: `1px solid ${timerExpired ? '#FCA5A5' : '#BBF7D0'}`,
-      borderRadius: 12,
+      border: `2px solid ${timerExpired ? '#FCA5A5' : '#BBF7D0'}`,
+      borderRadius: 14,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       gap: 8,
-      marginBottom: 6,
+      marginBottom: 8,
     }}>
       <div style={{
-        fontSize: 11, fontWeight: 600,
+        fontSize: 13, fontWeight: 700,
         color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
-        textTransform: 'uppercase', letterSpacing: '0.08em',
+        textTransform: 'uppercase', letterSpacing: '0.1em',
       }}>
-        {timerExpired ? 'ВРЕМЯ ВЫШЛО' : 'ОТДЫХ'}
+        {timerExpired ? 'ПОРА ПРОДОЛЖАТЬ' : 'ОТДЫХ'}
       </div>
-      <div style={{ position: 'relative', width: 96, height: 96 }}>
-        <svg width="96" height="96" viewBox="0 0 110 110" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="55" cy="55" r={TIMER_R} fill="none" stroke="#D1FAE5" strokeWidth="6" />
+      <div style={{ position: 'relative', width: 168, height: 168 }}>
+        <svg width="168" height="168" viewBox="0 0 110 110" style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx="55" cy="55" r={TIMER_R} fill="none" stroke={timerExpired ? '#FECACA' : '#D1FAE5'} strokeWidth="7" />
           <circle
             cx="55" cy="55" r={TIMER_R} fill="none"
             stroke={timerExpired ? 'var(--red-500)' : 'var(--green-600)'}
-            strokeWidth="6" strokeLinecap="round"
-            strokeDasharray={`${timerDash} ${timerGap}`}
+            strokeWidth="7" strokeLinecap="round"
+            strokeDasharray={timerExpired ? `${TIMER_CIRC} 0` : `${timerDash} ${timerGap}`}
             strokeDashoffset="0"
             style={{ transition: 'stroke-dasharray 1s linear' }}
           />
@@ -434,23 +433,23 @@ export default function DoWorkoutPage() {
           alignItems: 'center', justifyContent: 'center',
         }}>
           <div style={{
-            fontSize: 28, fontWeight: 700, lineHeight: 1,
+            fontSize: 52, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em',
             color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
           }}>
-            {fmt(timerSec)}
+            {timerExpired ? `+${fmt(timerOvertime)}` : fmt(timerSec)}
           </div>
           <div style={{
-            fontSize: 10, marginTop: 2,
+            fontSize: 12, marginTop: 4,
             color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
-            opacity: 0.6,
+            opacity: 0.65,
           }}>
-            сек
+            {timerExpired ? 'сверх отдыха' : 'мин : сек'}
           </div>
         </div>
       </div>
-      {timerNextEx && !timerExpired && (
-        <div style={{ fontSize: 13, color: 'var(--slate-500)', textAlign: 'center' }}>
-          следующее: {timerNextEx}
+      {timerNextEx && (
+        <div style={{ fontSize: 14, color: 'var(--slate-600)', textAlign: 'center', fontWeight: 600 }}>
+          далее: {timerNextEx}
         </div>
       )}
       <div style={{ display: 'flex', gap: 8 }}>
@@ -480,12 +479,6 @@ export default function DoWorkoutPage() {
       <span hidden>{timerLabel}</span>
     </div>
   ) : null
-
-  // Есть ли сейчас активное упражнение (над которым ляжет таймер)?
-  const hasActiveCard = exercises.some(ex => {
-    const st = exState[ex.id]
-    return st && !st.skipped && !st.sets.every(s => s.completed) && activeExId === ex.id
-  })
 
   return (
     <Layout fullHeight>
@@ -526,8 +519,17 @@ export default function DoWorkoutPage() {
       {/* ── Exercise List ──────────────────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto" style={{ padding: '11px 13px 0' }}>
 
-        {/* Таймер сверху, если активного упражнения нет (отдых между упражнениями) */}
-        {timerActive && !hasActiveCard && timerBox}
+        {/* Таймер — всегда в одной фиксированной позиции сверху списка
+            (sticky), не «прыгает» между упражнениями */}
+        {timerActive && (
+          <div style={{
+            position: 'sticky', top: 0, zIndex: 5,
+            paddingBottom: 2,
+            background: 'var(--bg-page)',
+          }}>
+            {timerBox}
+          </div>
+        )}
 
         {exercises.map(ex => {
           const st = exState[ex.id]
@@ -598,17 +600,25 @@ export default function DoWorkoutPage() {
             )
           }
 
-          // ── Active card (с таймером сверху) ────────────
+          // ── Active card ────────────────────────────────
           if (isActive) {
             return (
-              <div key={ex.id}>
-              {timerBox}
-              <div style={{
-                background: 'var(--white)', border: '1px solid var(--indigo-300)',
+              <div key={ex.id} style={{
+                background: 'var(--white)', border: '2px solid var(--blue-400)',
                 borderRadius: 10, padding: '10px 11px', marginBottom: 6,
               }}>
                 <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)', marginBottom: 4 }}>{name}</div>
-                <div style={{ fontSize: 15, color: 'var(--slate-400)', marginBottom: 8 }}>{plan}</div>
+                <div style={{ fontSize: 15, color: 'var(--slate-400)', marginBottom: ex.trainer_note ? 6 : 8 }}>{plan}</div>
+
+                {ex.trainer_note && (
+                  <div style={{
+                    background: 'var(--blue-50)', border: '1px solid var(--blue-200)',
+                    borderRadius: 8, padding: '7px 10px', marginBottom: 8,
+                    fontSize: 13, color: 'var(--blue-700)', lineHeight: 1.4,
+                  }}>
+                    💬 {ex.trainer_note}
+                  </div>
+                )}
 
                 {/* Sets table header — прототип ТЗ §4.5.3: grid 18px 1fr 1fr 34px */}
                 <div style={{ display: 'grid', gridTemplateColumns: '18px 1fr 1fr 34px', gap: 6, marginBottom: 6, alignItems: 'center' }}>
@@ -697,7 +707,6 @@ export default function DoWorkoutPage() {
                   </button>
                 </div>
               </div>
-              </div>
             )
           }
 
@@ -714,6 +723,15 @@ export default function DoWorkoutPage() {
                 <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--indigo-500)', flexShrink: 0 }}>Начать →</span>
               </div>
               <div style={{ fontSize: 15, color: 'var(--slate-400)' }}>{plan}</div>
+              {ex.trainer_note && (
+                <div style={{
+                  background: 'var(--blue-50)', border: '1px solid var(--blue-200)',
+                  borderRadius: 8, padding: '6px 10px', marginTop: 6,
+                  fontSize: 13, color: 'var(--blue-700)', lineHeight: 1.4,
+                }}>
+                  💬 {ex.trainer_note}
+                </div>
+              )}
             </div>
           )
         })}
@@ -744,7 +762,12 @@ export default function DoWorkoutPage() {
           <div style={{ background: 'var(--white)', borderRadius: '16px 16px 0 0', padding: '18px 16px 22px', width: '100%', maxWidth: 390, margin: '0 auto' }}>
             <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--slate-900)', marginBottom: 4 }}>Завершить тренировку?</div>
             <div style={{ fontSize: 15, color: 'var(--slate-500)', lineHeight: 1.5, marginBottom: 12 }}>
-              Выполнено {exercises.filter(ex => exState[ex.id]?.sets.some(s => s.completed)).length} из {exercises.length} упражнений. Оставшиеся будут отмечены как пропущенные.
+              {(() => {
+                const doneN = exercises.filter(ex => exState[ex.id]?.sets.some(s => s.completed)).length
+                return doneN >= exercises.length
+                  ? `Все ${exercises.length} упражнений выполнены. Сохранить результат и завершить?`
+                  : `Выполнено ${doneN} из ${exercises.length} упражнений. Оставшиеся будут отмечены как пропущенные.`
+              })()}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <button

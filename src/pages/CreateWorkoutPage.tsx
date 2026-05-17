@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -157,12 +157,12 @@ export default function CreateWorkoutPage() {
   return (
     <Layout>
       <div className="pt-[11px] pb-[14px]">
-        <Link
-          to={isEdit ? `/trainer/workout/${id}` : '/trainer'}
+        <button
+          onClick={() => navigate(-1)}
           className="text-[14px] font-semibold text-[var(--blue-600)] flex items-center gap-1 mb-[10px]"
         >
-          <ArrowLeft className="w-3 h-3" /> {isEdit ? 'К шаблону' : 'Шаблоны'}
-        </Link>
+          <ArrowLeft className="w-3.5 h-3.5" /> Назад
+        </button>
 
         {/* Form fields */}
         <div className="mb-[10px]">

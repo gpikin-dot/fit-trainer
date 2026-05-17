@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 export default function RegisterTrainerPage() {
@@ -36,12 +36,12 @@ export default function RegisterTrainerPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-page)] flex items-center justify-center px-[16px] py-[24px]">
       <div className="max-w-[390px] w-full">
-        <Link
-          to="/login"
+        <button
+          onClick={() => navigate(-1)}
           className="text-[14px] font-semibold text-[var(--blue-600)] flex items-center gap-1 mb-[12px]"
         >
           ← Назад
-        </Link>
+        </button>
 
         <div className="bg-white rounded-[10px] px-[20px] py-[22px] border border-[var(--border)]">
           <h1 className="text-[20px] font-bold text-[var(--slate-900)] mb-[2px]">Регистрация тренера</h1>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
@@ -86,12 +86,12 @@ export default function ClientCardPage() {
       {/* Sticky header */}
       <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[13px]">
         <div className="pt-[11px] pb-[10px]">
-          <Link
-            to="/trainer"
-            className="text-[16px] font-semibold text-[var(--indigo-500)] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
+          <button
+            onClick={() => navigate(-1)}
+            className="text-[14px] font-semibold text-[var(--blue-600)] flex items-center gap-1 mb-[10px]"
           >
-            <ArrowLeft className="w-3 h-3" /> Клиенты
-          </Link>
+            <ArrowLeft className="w-3.5 h-3.5" /> Назад
+          </button>
 
           <div className="flex items-center gap-[8px] mb-[10px]">
             <div className="w-[32px] h-[32px] rounded-full bg-[var(--indigo-50)] border-[1.5px] border-[var(--indigo-200)] flex items-center justify-center shrink-0 text-[17px] font-bold text-[var(--indigo-500)]">

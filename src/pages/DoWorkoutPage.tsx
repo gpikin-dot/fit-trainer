@@ -310,11 +310,11 @@ export default function DoWorkoutPage() {
     ? new Date(assignment.completed_at).toLocaleDateString('ru', { day: 'numeric', month: 'long' })
     : null
 
-  // Куда возвращаться: тренер → карточка клиента, клиент → его дашборд
+  // Куда уходить ПОСЛЕ завершения тренировки (кнопка «Готово»):
+  // тренер → карточка клиента, клиент → его дашборд
   const exitTo = asTrainer && assignment?.client_id
     ? `/trainer/client/${assignment.client_id}`
     : '/client'
-  const backLabel = asTrainer ? '← К клиенту' : '← Сегодня'
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
@@ -335,10 +335,10 @@ export default function DoWorkoutPage() {
         style={{ background: 'var(--white)', padding: '11px 13px 10px', borderBottom: '1px solid var(--border-light)' }}
       >
         <button
-          onClick={() => navigate(exitTo)}
+          onClick={() => navigate(-1)}
           style={{ fontSize: 16, fontWeight: 600, color: 'var(--indigo-500)', background: 'none', border: 'none', cursor: 'pointer', marginBottom: 7, display: 'block', fontFamily: 'var(--font)' }}
         >
-          {backLabel}
+          ← Назад
         </button>
         {asTrainer && (
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--blue-600)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>

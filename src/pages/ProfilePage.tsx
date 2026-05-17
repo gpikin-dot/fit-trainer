@@ -19,7 +19,6 @@ export default function ProfilePage() {
   const [pwdErr, setPwdErr] = useState('')
   const [savingPwd, setSavingPwd] = useState(false)
 
-  const back = profile?.role === 'trainer' ? '/trainer' : '/client'
   const initials = (profile?.name ?? '?').slice(0, 2).toUpperCase()
 
   async function saveName() {
@@ -64,7 +63,7 @@ export default function ProfilePage() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[16px] py-[14px] border-b border-[var(--border)] flex items-center gap-[10px]">
         <button
-          onClick={() => navigate(back)}
+          onClick={() => navigate(-1)}
           className="text-[20px] text-[var(--blue-600)] leading-none"
           title="Назад"
         >

@@ -193,10 +193,10 @@ export default function AssignmentEditPage() {
     <Layout>
       <div className="pt-[11px] pb-[24px]">
         <button
-          onClick={() => navigate(clientId ? `/trainer/client/${clientId}` : '/trainer')}
+          onClick={() => navigate(-1)}
           className="text-[15px] font-semibold text-[var(--blue-600)] mb-[10px]"
         >
-          ← К клиенту
+          ← Назад
         </button>
 
         <h1 className="text-[20px] font-bold text-[var(--slate-900)]">{workoutName}</h1>

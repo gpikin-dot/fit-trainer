@@ -165,10 +165,10 @@ export default function ClientSessionPage() {
       <div className="pt-[11px] pb-[24px]">
         {/* Back */}
         <button
-          onClick={() => navigate('/client')}
+          onClick={() => navigate(-1)}
           className="text-[14px] font-semibold text-[var(--blue-600)] flex items-center gap-1 mb-[10px]"
         >
-          ← Мои тренировки
+          ← Назад
         </button>
 
         <h1 className="text-[20px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{workout.name}</h1>

@@ -71,7 +71,6 @@ export default function SessionDetailPage() {
 
   const [assignment, setAssignment] = useState<AssignedWorkout | null>(null)
   const [workout, setWorkout] = useState<Workout | null>(null)
-  const [clientName, setClientName] = useState<string>('')
   const [exercises, setExercises] = useState<ExerciseRow[]>([])
   const [results, setResults] = useState<ExerciseResult[]>([])
 
@@ -102,7 +101,6 @@ export default function SessionDetailPage() {
       sessionExResult,
       oldExResult,
       resultsResult,
-      clientResult,
       workoutResult,
     ] = await Promise.all([
       supabase.from('session_exercises').select('*, exercise_library:exercises_library(*)')
@@ -110,12 +108,10 @@ export default function SessionDetailPage() {
       supabase.from('exercises').select('*, exercise_library:exercises_library(*)')
         .eq('workout_id', aw.workout_id).order('order', { ascending: true }),
       supabase.from('exercise_results').select('*').eq('assigned_workout_id', id),
-      supabase.from('profiles').select('name').eq('id', aw.client_id).single(),
       supabase.from('workouts').select('*').eq('id', aw.workout_id).single(),
     ])
 
     if (workoutResult.data) setWorkout(workoutResult.data as Workout)
-    if (clientResult.data) setClientName((clientResult.data as { name: string }).name)
     if (resultsResult.data) setResults(resultsResult.data as ExerciseResult[])
 
     const sessionExs = (sessionExResult.data ?? []) as (SessionExercise & { exercise_library: ExerciseLibrary })[]
@@ -169,10 +165,10 @@ export default function SessionDetailPage() {
       <div className="pt-[11px] pb-[80px]">
         {/* Back */}
         <button
-          onClick={() => navigate(`/trainer/client/${assignment.client_id}`)}
+          onClick={() => navigate(-1)}
           className="text-[14px] font-semibold text-[var(--blue-600)] flex items-center gap-1 mb-[10px]"
         >
-          ← {clientName || 'Клиент'}
+          ← Назад
         </button>
 
         <h1 className="text-[20px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{workout.name}</h1>

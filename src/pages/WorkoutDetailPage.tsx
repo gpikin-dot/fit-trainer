@@ -54,7 +54,23 @@ export default function WorkoutDetailPage() {
   }
 
   async function handleDelete() {
-    if (!confirm('Удалить тренировку? Это действие нельзя отменить.')) return
+    // ЗАЩИТА ОТ КАСКАДНОГО УДАЛЕНИЯ:
+    // assigned_workouts.workout_id имеет ON DELETE CASCADE — удаление
+    // шаблона стёрло бы ВСЕ назначения этого шаблона всем клиентам
+    // вместе с историей. Блокируем, если шаблон где-то назначен.
+    if (assignments.length > 0) {
+      const clientCount = new Set(assignments.map(a => a.client_id)).size
+      setError(
+        `Нельзя удалить: шаблон назначен ${assignments.length} ` +
+        `${assignments.length === 1 ? 'раз' : 'раз(а)'} ` +
+        `(${clientCount} ${clientCount === 1 ? 'клиенту' : 'клиентам'}). ` +
+        `Удаление стёрло бы все эти тренировки и историю. ` +
+        `Сначала отмените назначения или используйте «Копировать» для новой версии.`
+      )
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    if (!confirm('Удалить шаблон тренировки? Это действие нельзя отменить.')) return
     const { error: err } = await supabase.from('workouts').delete().eq('id', id)
     if (err) { setError(err.message); return }
     navigate('/trainer')

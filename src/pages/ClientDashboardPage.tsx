@@ -96,10 +96,16 @@ export default function ClientDashboardPage() {
         <div className="flex items-center justify-between">
           <div className="text-[20px] font-extrabold text-[var(--blue-600)]">FitTrainer</div>
           <div className="flex items-center gap-[8px]">
-            <div className="text-[20px] font-extrabold text-[var(--slate-700)]">{profile?.name}</div>
-            <div className="w-[34px] h-[34px] rounded-full bg-[var(--blue-50)] text-[var(--blue-600)] flex items-center justify-center text-[11px] font-bold border-[1.5px] border-[var(--blue-200)]">
-              {initials}
-            </div>
+            <button
+              onClick={() => navigate('/profile')}
+              className="flex items-center gap-[8px]"
+              title="Личный кабинет"
+            >
+              <div className="text-[20px] font-extrabold text-[var(--slate-700)]">{profile?.name}</div>
+              <div className="w-[34px] h-[34px] rounded-full bg-[var(--blue-50)] text-[var(--blue-600)] flex items-center justify-center text-[11px] font-bold border-[1.5px] border-[var(--blue-200)]">
+                {initials}
+              </div>
+            </button>
             <button
               onClick={() => signOut()}
               className="ml-[4px] w-[28px] h-[28px] flex items-center justify-center text-[var(--slate-400)] hover:text-[var(--slate-600)] rounded-full hover:bg-[var(--slate-100)] transition-colors"

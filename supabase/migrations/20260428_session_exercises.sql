@@ -41,3 +41,8 @@ CREATE POLICY "client_read_own_session_exercises" ON session_exercises
 -- Индекс для быстрого поиска по assigned_workout_id
 CREATE INDEX IF NOT EXISTS session_exercises_assigned_workout_id_idx
   ON session_exercises(assigned_workout_id);
+
+-- Table-level grants. Raw-SQL migrations don't get Supabase auto-grants,
+-- so without these PostgREST returns "permission denied for table".
+GRANT SELECT, INSERT, UPDATE, DELETE ON session_exercises TO authenticated;
+GRANT SELECT ON session_exercises TO anon;

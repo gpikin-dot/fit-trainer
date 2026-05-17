@@ -165,13 +165,13 @@ export default function ClientSessionPage() {
       <div className="pt-[11px] pb-[24px]">
         {/* Back */}
         <button
-          onClick={() => navigate('/client')}
-          className="text-[16px] font-semibold text-[var(--slate-500)] flex items-center gap-1 mb-[9px]"
+          onClick={() => navigate(-1)}
+          className="text-[14px] font-semibold text-[var(--blue-600)] flex items-center gap-1 mb-[10px]"
         >
-          ← Мои тренировки
+          ← Назад
         </button>
 
-        <h1 className="text-[26px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{workout.name}</h1>
+        <h1 className="text-[20px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{workout.name}</h1>
         <p className="text-[15px] text-[var(--slate-400)] mb-[11px]">{fmtDate(completedAt)}</p>
 
         {/* Status card */}
@@ -179,10 +179,10 @@ export default function ClientSessionPage() {
           <div className="flex justify-between mb-[9px]">
             <div className="flex gap-[5px] items-center">
               <span className="text-[0.875rem] text-[var(--green-600)]">✓</span>
-              <span className="text-[17px] font-bold text-[var(--green-600)]">Выполнена</span>
+              <span className="text-[15px] font-bold text-[var(--green-600)]">Выполнена</span>
             </div>
             <div className="text-right">
-              <div className="text-[24px] font-bold text-[var(--slate-900)] leading-none">{completedCount} / {totalExercises}</div>
+              <div className="text-[22px] font-bold text-[var(--slate-900)] leading-none">{completedCount} / {totalExercises}</div>
               <div className="text-[15px] text-[var(--slate-400)] mt-[2px]">упражнений</div>
             </div>
           </div>
@@ -205,7 +205,7 @@ export default function ClientSessionPage() {
 
           return (
             <div key={ex.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
-              <p className="text-[17px] font-bold text-[var(--slate-900)] mb-[4px]">{ex.name}</p>
+              <p className="text-[15px] font-bold text-[var(--slate-900)] mb-[4px]">{ex.name}</p>
 
               {hasResult ? (
                 <>

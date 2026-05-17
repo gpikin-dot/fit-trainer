@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
@@ -86,12 +86,12 @@ export default function ClientCardPage() {
       {/* Sticky header */}
       <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[13px]">
         <div className="pt-[11px] pb-[10px]">
-          <Link
-            to="/trainer"
-            className="text-[16px] font-semibold text-[var(--indigo-500)] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
+          <button
+            onClick={() => navigate(-1)}
+            className="text-[14px] font-semibold text-[var(--blue-600)] flex items-center gap-1 mb-[10px]"
           >
-            <ArrowLeft className="w-3 h-3" /> Клиенты
-          </Link>
+            <ArrowLeft className="w-3.5 h-3.5" /> Назад
+          </button>
 
           <div className="flex items-center gap-[8px] mb-[10px]">
             <div className="w-[32px] h-[32px] rounded-full bg-[var(--indigo-50)] border-[1.5px] border-[var(--indigo-200)] flex items-center justify-center shrink-0 text-[17px] font-bold text-[var(--indigo-500)]">
@@ -146,7 +146,10 @@ export default function ClientCardPage() {
                 const pct = totalEx > 0 ? Math.round((done / totalEx) * 100) : 0
 
                 return (
-                  <div key={a.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
+                  <div
+                    key={a.id}
+                    className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]"
+                  >
                     <div className="flex items-center justify-between gap-[6px]">
                       <div className="flex-1 min-w-0">
                         <div className="text-[17px] font-semibold text-[var(--slate-900)]">{a.workout?.name ?? '—'}</div>
@@ -163,6 +166,26 @@ export default function ClientCardPage() {
                         className={`h-full rounded-full ${pct > 0 ? 'bg-[var(--amber-300)]' : 'bg-[var(--slate-300)]'}`}
                         style={{ width: `${pct}%` }}
                       />
+                    </div>
+                    <button
+                      onClick={() => navigate(`/trainer/workout-session/${a.id}`)}
+                      className="w-full mt-[8px] bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[14px] font-semibold rounded-[8px] py-[8px]"
+                    >
+                      {started ? 'Продолжить совместную тренировку' : 'Начать совместную тренировку'}
+                    </button>
+                    <div className="flex gap-[6px] mt-[6px]">
+                      <button
+                        onClick={() => navigate(`/trainer/assignment/${a.id}/edit`)}
+                        className="flex-1 bg-white border border-[var(--slate-200)] text-[var(--slate-700)] text-[13px] font-semibold rounded-[8px] py-[7px]"
+                      >
+                        Изменить
+                      </button>
+                      <button
+                        onClick={() => navigate(`/trainer/assignment/${a.id}/edit`)}
+                        className="flex-1 bg-white border border-[var(--red-200)] text-[var(--red-500)] text-[13px] font-semibold rounded-[8px] py-[7px]"
+                      >
+                        Отменить
+                      </button>
                     </div>
                   </div>
                 )

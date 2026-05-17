@@ -26,3 +26,5 @@ dist-ssr
 
 # Supabase
 supabase/.temp
+.gstack/
+.design-audit/

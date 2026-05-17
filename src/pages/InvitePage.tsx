@@ -71,7 +71,7 @@ export default function InvitePage() {
           </div>
           <button
             onClick={() => navigate('/login')}
-            className="text-[16px] font-semibold text-[var(--indigo-500)] cursor-pointer"
+            className="text-[14px] font-semibold text-[var(--blue-600)] cursor-pointer"
           >
             ← На главную
           </button>

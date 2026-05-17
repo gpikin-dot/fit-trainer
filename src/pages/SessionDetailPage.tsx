@@ -71,7 +71,6 @@ export default function SessionDetailPage() {
 
   const [assignment, setAssignment] = useState<AssignedWorkout | null>(null)
   const [workout, setWorkout] = useState<Workout | null>(null)
-  const [clientName, setClientName] = useState<string>('')
   const [exercises, setExercises] = useState<ExerciseRow[]>([])
   const [results, setResults] = useState<ExerciseResult[]>([])
 
@@ -102,7 +101,6 @@ export default function SessionDetailPage() {
       sessionExResult,
       oldExResult,
       resultsResult,
-      clientResult,
       workoutResult,
     ] = await Promise.all([
       supabase.from('session_exercises').select('*, exercise_library:exercises_library(*)')
@@ -110,12 +108,10 @@ export default function SessionDetailPage() {
       supabase.from('exercises').select('*, exercise_library:exercises_library(*)')
         .eq('workout_id', aw.workout_id).order('order', { ascending: true }),
       supabase.from('exercise_results').select('*').eq('assigned_workout_id', id),
-      supabase.from('profiles').select('name').eq('id', aw.client_id).single(),
       supabase.from('workouts').select('*').eq('id', aw.workout_id).single(),
     ])
 
     if (workoutResult.data) setWorkout(workoutResult.data as Workout)
-    if (clientResult.data) setClientName((clientResult.data as { name: string }).name)
     if (resultsResult.data) setResults(resultsResult.data as ExerciseResult[])
 
     const sessionExs = (sessionExResult.data ?? []) as (SessionExercise & { exercise_library: ExerciseLibrary })[]
@@ -169,13 +165,13 @@ export default function SessionDetailPage() {
       <div className="pt-[11px] pb-[80px]">
         {/* Back */}
         <button
-          onClick={() => navigate(`/trainer/client/${assignment.client_id}`)}
-          className="text-[16px] font-semibold text-[var(--slate-500)] flex items-center gap-1 mb-[9px]"
+          onClick={() => navigate(-1)}
+          className="text-[14px] font-semibold text-[var(--blue-600)] flex items-center gap-1 mb-[10px]"
         >
-          ← {clientName || 'Клиент'}
+          ← Назад
         </button>
 
-        <h1 className="text-[26px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{workout.name}</h1>
+        <h1 className="text-[20px] font-bold text-[var(--slate-900)] tracking-[-0.01em]">{workout.name}</h1>
         <p className="text-[15px] text-[var(--slate-400)] mb-[11px]">{fmtDate(completedAt)}</p>
 
         {/* Status card */}
@@ -183,10 +179,10 @@ export default function SessionDetailPage() {
           <div className="flex justify-between mb-[9px]">
             <div className="flex gap-[5px] items-center">
               <span className="text-[0.875rem] text-[var(--green-600)]">✓</span>
-              <span className="text-[17px] font-bold text-[var(--green-600)]">Выполнена</span>
+              <span className="text-[15px] font-bold text-[var(--green-600)]">Выполнена</span>
             </div>
             <div className="text-right">
-              <div className="text-[24px] font-bold text-[var(--slate-900)] leading-none">{completedCount} / {totalExercises}</div>
+              <div className="text-[22px] font-bold text-[var(--slate-900)] leading-none">{completedCount} / {totalExercises}</div>
               <div className="text-[15px] text-[var(--slate-400)] mt-[2px]">упражнений</div>
             </div>
           </div>
@@ -209,7 +205,7 @@ export default function SessionDetailPage() {
 
           return (
             <div key={ex.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
-              <p className="text-[17px] font-bold text-[var(--slate-900)] mb-[4px]">{ex.name}</p>
+              <p className="text-[15px] font-bold text-[var(--slate-900)] mb-[4px]">{ex.name}</p>
 
               {hasResult ? (
                 <>
@@ -239,13 +235,13 @@ export default function SessionDetailPage() {
           onClick={() =>
             navigate(`/trainer/assign?workoutId=${workout.id}&clientId=${assignment.client_id}&repeatFrom=${assignment.id}`)
           }
-          className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white rounded-[9px] py-[10px] text-[16px] font-bold mb-[6px]"
+          className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white rounded-[10px] py-[13px] text-[15px] font-semibold mb-[6px]"
         >
           Повторить тренировку
         </button>
         <button
           onClick={() => navigate(`/trainer/workout/${workout.id}/edit`)}
-          className="w-full bg-white border border-[var(--slate-200)] text-[var(--slate-700)] rounded-[9px] py-[9px] text-[16px] font-semibold"
+          className="w-full bg-white border border-[var(--slate-200)] text-[var(--slate-700)] rounded-[10px] py-[12px] text-[15px] font-semibold"
         >
           Изменить тренировку
         </button>

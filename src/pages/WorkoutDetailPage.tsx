@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -54,7 +54,23 @@ export default function WorkoutDetailPage() {
   }
 
   async function handleDelete() {
-    if (!confirm('Удалить тренировку? Это действие нельзя отменить.')) return
+    // ЗАЩИТА ОТ КАСКАДНОГО УДАЛЕНИЯ:
+    // assigned_workouts.workout_id имеет ON DELETE CASCADE — удаление
+    // шаблона стёрло бы ВСЕ назначения этого шаблона всем клиентам
+    // вместе с историей. Блокируем, если шаблон где-то назначен.
+    if (assignments.length > 0) {
+      const clientCount = new Set(assignments.map(a => a.client_id)).size
+      setError(
+        `Нельзя удалить: шаблон назначен ${assignments.length} ` +
+        `${assignments.length === 1 ? 'раз' : 'раз(а)'} ` +
+        `(${clientCount} ${clientCount === 1 ? 'клиенту' : 'клиентам'}). ` +
+        `Удаление стёрло бы все эти тренировки и историю. ` +
+        `Сначала отмените назначения или используйте «Копировать» для новой версии.`
+      )
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    if (!confirm('Удалить шаблон тренировки? Это действие нельзя отменить.')) return
     const { error: err } = await supabase.from('workouts').delete().eq('id', id)
     if (err) { setError(err.message); return }
     navigate('/trainer')
@@ -76,37 +92,37 @@ export default function WorkoutDetailPage() {
   return (
     <Layout>
       <div className="pt-[11px] pb-[14px]">
-        <Link
-          to="/trainer"
-          className="text-[16px] font-semibold text-[var(--indigo-500)] hover:text-indigo-800 flex items-center gap-1 mb-[9px]"
+        <button
+          onClick={() => navigate(-1)}
+          className="text-[14px] font-semibold text-[var(--blue-600)] flex items-center gap-1 mb-[10px]"
         >
-          <ArrowLeft className="w-3 h-3" /> Шаблоны
-        </Link>
+          <ArrowLeft className="w-3.5 h-3.5" /> Назад
+        </button>
 
         {/* Action buttons */}
-        <div className="grid grid-cols-3 gap-[5px] mb-[13px]">
+        <div className="grid grid-cols-3 gap-[6px] mb-[14px]">
           <button
             onClick={() => navigate(`/trainer/workout/${id}/edit`)}
-            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[8px] text-[15px] font-bold text-[var(--slate-600)] flex items-center justify-center"
+            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[9px] text-[13px] font-semibold text-[var(--slate-700)]"
           >
             Изменить
           </button>
           <button
             onClick={handleCopy}
-            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[8px] text-[15px] font-bold text-[var(--slate-600)] flex items-center justify-center"
+            className="bg-white border border-[var(--slate-200)] rounded-[8px] py-[9px] text-[13px] font-semibold text-[var(--slate-700)]"
           >
             Копировать
           </button>
           <button
             onClick={handleDelete}
-            className="border border-[var(--red-200)] bg-[var(--red-50)] rounded-[8px] py-[8px] text-[15px] font-bold text-[var(--red-500)] flex items-center justify-center"
+            className="bg-white border border-[var(--red-200)] rounded-[8px] py-[9px] text-[13px] font-semibold text-[var(--red-500)]"
           >
             Удалить
           </button>
         </div>
 
-        <h1 className="text-[26px] font-bold text-[var(--slate-900)] mb-[1px]">{workout.name}</h1>
-        <p className="text-[15px] text-[var(--slate-400)] mb-[13px]">
+        <h1 className="text-[20px] font-bold text-[var(--slate-900)] mb-[2px]">{workout.name}</h1>
+        <p className="text-[13px] text-[var(--slate-400)] mb-[14px]">
           {exercises.length} упражнений · отдых {workout.default_rest_sec} сек
         </p>
 
@@ -115,30 +131,30 @@ export default function WorkoutDetailPage() {
         {/* Assign button */}
         <button
           onClick={() => navigate(`/trainer/assign?workoutId=${id}`)}
-          className="w-full bg-[var(--indigo-500)] hover:bg-[var(--indigo-700)] text-white text-[16px] font-bold rounded-[9px] py-[10px] mb-[15px]"
+          className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[13px] mb-[16px]"
         >
           Назначить клиенту
         </button>
 
         {/* Exercises */}
-        <div className="text-[15px] font-bold text-[var(--slate-400)] uppercase tracking-[0.07em] mb-[6px]">
+        <div className="text-[11px] font-semibold text-[var(--slate-400)] uppercase tracking-[0.05em] mb-[6px]">
           Упражнения
         </div>
 
         {exercises.length === 0 ? (
-          <p className="text-[15px] text-[var(--slate-400)]">Нет упражнений</p>
+          <p className="text-[14px] text-[var(--slate-400)]">Нет упражнений</p>
         ) : (
           exercises.map((ex, i) => (
-            <div key={ex.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
-              <div className="text-[17px] font-bold text-[var(--slate-900)] mb-[3px]">
+            <div key={ex.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[12px] py-[10px] mb-[5px]">
+              <div className="text-[15px] font-semibold text-[var(--slate-900)] mb-[3px]">
                 {i + 1}. {ex.exercise_library.name_ru}
               </div>
-              <div className="text-[15px] text-[var(--slate-500)]">
+              <div className="text-[13px] text-[var(--slate-500)]">
                 {ex.sets} × {ex.reps}{ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}
                 {ex.rest_sec ? ` · отдых ${ex.rest_sec} сек` : ''}
               </div>
               {ex.trainer_note && (
-                <div className="text-[15px] text-[var(--indigo-500)] italic mt-[3px]">«{ex.trainer_note}»</div>
+                <div className="text-[13px] text-[var(--blue-600)] italic mt-[3px]">«{ex.trainer_note}»</div>
               )}
             </div>
           ))
@@ -147,7 +163,7 @@ export default function WorkoutDetailPage() {
         {/* Who used */}
         {clientUsage.size > 0 && (
           <div className="mt-[13px]">
-            <div className="text-[15px] font-bold text-[var(--slate-400)] uppercase tracking-[0.07em] mb-[6px]">
+            <div className="text-[11px] font-semibold text-[var(--slate-400)] uppercase tracking-[0.05em] mb-[6px]">
               Кто использовал
             </div>
             <div className="bg-white border border-[var(--border)] rounded-[10px] overflow-hidden">
@@ -155,13 +171,13 @@ export default function WorkoutDetailPage() {
                 <div
                   key={clientId}
                   onClick={() => navigate(`/trainer/client/${clientId}`)}
-                  className={`flex gap-[8px] px-[11px] py-[8px] cursor-pointer ${idx < arr.length - 1 ? 'border-b border-[var(--slate-50)]' : ''}`}
+                  className={`flex items-center gap-[8px] px-[12px] py-[9px] cursor-pointer ${idx < arr.length - 1 ? 'border-b border-[var(--slate-50)]' : ''}`}
                 >
-                  <div className="w-[24px] h-[24px] rounded-full bg-[var(--indigo-50)] flex items-center justify-center shrink-0 text-[16px] font-bold text-[var(--indigo-500)]">
+                  <div className="w-[28px] h-[28px] rounded-full bg-[var(--blue-50)] flex items-center justify-center shrink-0 text-[12px] font-bold text-[var(--blue-600)]">
                     {name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-[17px] font-semibold text-[var(--slate-900)] flex-1">{name}</span>
-                  <span className="text-[15px] text-[var(--slate-400)]">
+                  <span className="text-[15px] font-semibold text-[var(--slate-900)] flex-1">{name}</span>
+                  <span className="text-[13px] text-[var(--slate-400)]">
                     {count} {count === 1 ? 'раз' : 'раза'}
                   </span>
                 </div>

@@ -178,6 +178,10 @@ create policy "assigned_workouts_update" on public.assigned_workouts for update 
   client_id = auth.uid()  -- client marks as completed
   or workout_id in (select id from public.workouts where trainer_id = auth.uid())
 );
+create policy "assigned_workouts_delete" on public.assigned_workouts for delete using (
+  workout_id in (select id from public.workouts where trainer_id = auth.uid())
+);
+grant delete on public.assigned_workouts to authenticated;
 
 -- exercise_results: client owns; trainer can read
 create policy "exercise_results_select" on public.exercise_results for select using (
@@ -190,9 +194,19 @@ create policy "exercise_results_select" on public.exercise_results for select us
 );
 create policy "exercise_results_insert" on public.exercise_results for insert with check (
   assigned_workout_id in (select id from public.assigned_workouts where client_id = auth.uid())
+  or assigned_workout_id in (
+    select aw.id from public.assigned_workouts aw
+    join public.workouts w on w.id = aw.workout_id
+    where w.trainer_id = auth.uid()
+  )
 );
 create policy "exercise_results_update" on public.exercise_results for update using (
   assigned_workout_id in (select id from public.assigned_workouts where client_id = auth.uid())
+  or assigned_workout_id in (
+    select aw.id from public.assigned_workouts aw
+    join public.workouts w on w.id = aw.workout_id
+    where w.trainer_id = auth.uid()
+  )
 );
 
 -- plan_limits: public read

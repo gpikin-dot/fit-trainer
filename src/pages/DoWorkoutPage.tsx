@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useTimer } from '../contexts/TimerContext'
@@ -32,7 +32,12 @@ const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '
 export default function DoWorkoutPage() {
   const { assignedId } = useParams<{ assignedId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { profile } = useAuth()
+
+  // Совместная тренировка: тренер открыл выполнение через
+  // /trainer/workout-session/:assignedId (asTrainer: true в прототипе)
+  const asTrainer = location.pathname.startsWith('/trainer/')
   const {
     timerSec, timerTotal, timerActive, timerNextEx, timerExerciseId,
     startTimer, addTime, skipTimer,
@@ -305,6 +310,12 @@ export default function DoWorkoutPage() {
     ? new Date(assignment.completed_at).toLocaleDateString('ru', { day: 'numeric', month: 'long' })
     : null
 
+  // Куда возвращаться: тренер → карточка клиента, клиент → его дашборд
+  const exitTo = asTrainer && assignment?.client_id
+    ? `/trainer/client/${assignment.client_id}`
+    : '/client'
+  const backLabel = asTrainer ? '← К клиенту' : '← Сегодня'
+
   // ─── Render ────────────────────────────────────────────────────────────────
 
   if (!loaded) return (
@@ -324,11 +335,16 @@ export default function DoWorkoutPage() {
         style={{ background: 'var(--white)', padding: '11px 13px 10px', borderBottom: '1px solid var(--border-light)' }}
       >
         <button
-          onClick={() => navigate('/client')}
+          onClick={() => navigate(exitTo)}
           style={{ fontSize: 16, fontWeight: 600, color: 'var(--indigo-500)', background: 'none', border: 'none', cursor: 'pointer', marginBottom: 7, display: 'block', fontFamily: 'var(--font)' }}
         >
-          ← Сегодня
+          {backLabel}
         </button>
+        {asTrainer && (
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--blue-600)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+            Совместная тренировка
+          </div>
+        )}
         <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--slate-900)', letterSpacing: '-0.01em', marginBottom: 7 }}>
           {workout?.name}
         </div>
@@ -700,7 +716,7 @@ export default function DoWorkoutPage() {
               )}
             </div>
             <button
-              onClick={() => navigate('/client')}
+              onClick={() => navigate(exitTo)}
               style={{ width: '100%', background: 'var(--indigo-500)', color: 'var(--white)', border: 'none', borderRadius: 9, padding: 10, fontSize: 17, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', letterSpacing: '0.01em' }}
             >
               Готово

@@ -171,6 +171,12 @@ export default function ClientCardPage() {
                         style={{ width: `${pct}%` }}
                       />
                     </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); navigate(`/trainer/workout-session/${a.id}`) }}
+                      className="w-full mt-[8px] bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[14px] font-semibold rounded-[8px] py-[8px]"
+                    >
+                      {started ? 'Продолжить совместную тренировку' : 'Начать совместную тренировку'}
+                    </button>
                   </div>
                 )
               })

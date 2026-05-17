@@ -71,6 +71,9 @@ export default function App() {
         <Route path="/trainer/session/:assignedWorkoutId" element={
           <RequireAuth role="trainer"><SessionDetailPage /></RequireAuth>
         } />
+        <Route path="/trainer/workout-session/:assignedId" element={
+          <RequireAuth role="trainer"><DoWorkoutPage /></RequireAuth>
+        } />
 
         <Route path="/client" element={
           <RequireAuth role="client"><ClientDashboardPage /></RequireAuth>

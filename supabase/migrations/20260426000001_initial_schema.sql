@@ -178,6 +178,9 @@ create policy "assigned_workouts_update" on public.assigned_workouts for update 
   client_id = auth.uid()  -- client marks as completed
   or workout_id in (select id from public.workouts where trainer_id = auth.uid())
 );
+create policy "assigned_workouts_delete" on public.assigned_workouts for delete using (
+  workout_id in (select id from public.workouts where trainer_id = auth.uid())
+);
 
 -- exercise_results: client owns; trainer can read
 create policy "exercise_results_select" on public.exercise_results for select using (

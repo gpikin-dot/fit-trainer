@@ -148,22 +148,18 @@ export default function ClientCardPage() {
                 return (
                   <div
                     key={a.id}
-                    onClick={!started ? () => navigate(`/trainer/workout/${a.workout_id}`) : undefined}
-                    className={`bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px] ${!started ? 'cursor-pointer' : ''}`}
+                    className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]"
                   >
                     <div className="flex items-center justify-between gap-[6px]">
                       <div className="flex-1 min-w-0">
                         <div className="text-[17px] font-semibold text-[var(--slate-900)]">{a.workout?.name ?? '—'}</div>
                         <div className="text-[15px] text-[var(--slate-400)] mt-[2px]">{dateLabel}</div>
                       </div>
-                      <div className="flex items-center gap-[5px] shrink-0">
-                        <span className={`inline-flex items-center text-[13px] font-bold px-[9px] py-[4px] rounded-full ${
-                          started ? 'bg-[var(--amber-100)] text-[var(--amber-800)]' : 'bg-[var(--slate-100)] text-[var(--slate-500)]'
-                        }`}>
-                          {done}/{totalEx}
-                        </span>
-                        {!started && <span className="text-[var(--slate-300)] text-[16px]">›</span>}
-                      </div>
+                      <span className={`inline-flex items-center text-[13px] font-bold px-[9px] py-[4px] rounded-full shrink-0 ${
+                        started ? 'bg-[var(--amber-100)] text-[var(--amber-800)]' : 'bg-[var(--slate-100)] text-[var(--slate-500)]'
+                      }`}>
+                        {done}/{totalEx}
+                      </span>
                     </div>
                     <div className="mt-[7px] h-[3px] bg-[var(--slate-100)] rounded-full overflow-hidden">
                       <div
@@ -172,11 +168,25 @@ export default function ClientCardPage() {
                       />
                     </div>
                     <button
-                      onClick={(e) => { e.stopPropagation(); navigate(`/trainer/workout-session/${a.id}`) }}
+                      onClick={() => navigate(`/trainer/workout-session/${a.id}`)}
                       className="w-full mt-[8px] bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[14px] font-semibold rounded-[8px] py-[8px]"
                     >
                       {started ? 'Продолжить совместную тренировку' : 'Начать совместную тренировку'}
                     </button>
+                    <div className="flex gap-[6px] mt-[6px]">
+                      <button
+                        onClick={() => navigate(`/trainer/assignment/${a.id}/edit`)}
+                        className="flex-1 bg-white border border-[var(--slate-200)] text-[var(--slate-700)] text-[13px] font-semibold rounded-[8px] py-[7px]"
+                      >
+                        Изменить
+                      </button>
+                      <button
+                        onClick={() => navigate(`/trainer/assignment/${a.id}/edit`)}
+                        className="flex-1 bg-white border border-[var(--red-200)] text-[var(--red-500)] text-[13px] font-semibold rounded-[8px] py-[7px]"
+                      >
+                        Отменить
+                      </button>
+                    </div>
                   </div>
                 )
               })

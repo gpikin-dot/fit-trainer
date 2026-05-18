@@ -106,7 +106,7 @@ export default function AssignWorkoutFlow() {
   const qRepeatFrom = searchParams.get('repeatFrom')
 
   function initStep(): Step {
-    if (qRepeatFrom && qWorkoutId && qClientId) return 'date'
+    if (qRepeatFrom && qWorkoutId && qClientId) return 'customize'
     if (qWorkoutId && qClientId) return 'customize'
     if (qWorkoutId) return 'selectClient'
     return 'selectTemplate'
@@ -268,7 +268,6 @@ export default function AssignWorkoutFlow() {
       setStep('selectTemplate'); return
     }
     if (step === 'date') {
-      if (qRepeatFrom) { navigate(-1); return }
       setStep('customize')
     }
   }

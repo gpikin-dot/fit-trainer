@@ -82,8 +82,15 @@ export interface ExerciseResult {
   actual_reps: number | null
   actual_weight_kg: number | null
   actual_heart_rate_bpm: number | null
+  actual_sets: ActualSet[] | null
   completed: boolean
   client_note: string | null
+}
+
+export interface ActualSet {
+  reps: number | null
+  weight: number | null
+  completed: boolean
 }
 
 export interface PlanLimits {

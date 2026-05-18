@@ -201,39 +201,11 @@ export default function DoWorkoutPage() {
   function skipExercise(exId: string) {
     setExState(prev => ({ ...prev, [exId]: { ...prev[exId], skipped: true } }))
     const idx = exercises.findIndex(e => e.id === exId)
-    const next = exercises.slice(idx + 1).find(e => {
-      const st = exState[e.id]
-      return !st?.skipped && !st?.sets.every(s => s.completed)
-    })
-    setActiveExId(next?.id ?? null)
+    const nextIdx = Math.min(idx + 1, exercises.length - 1)
+    setActiveExId(exercises[nextIdx]?.id ?? null)
   }
 
-  // Кликнули на done-карточку → возвращаем в active, сбрасываем галочки
-  function reopenExercise(exId: string) {
-    // Снимаем галочку только с ПОСЛЕДНЕГО подхода — упражнение
-    // снова активно, остальные отметки и значения сохраняются,
-    // клиент сам решает что переотметить/исправить.
-    setExState(prev => {
-      const sets = prev[exId].sets
-      const lastDone = [...sets].map(s => s.completed).lastIndexOf(true)
-      return {
-        ...prev,
-        [exId]: {
-          ...prev[exId],
-          sets: sets.map((s, i) =>
-            i === (lastDone >= 0 ? lastDone : sets.length - 1)
-              ? { ...s, completed: false }
-              : s
-          ),
-          skipped: false,
-        },
-      }
-    })
-    setActiveExId(exId)
-    skipTimer()
-  }
-
-  // Кликнули на skipped-карточку → возвращаем в idle
+  // Вернуть пропущенное упражнение в работу
   function unskipExercise(exId: string) {
     setExState(prev => ({ ...prev, [exId]: { ...prev[exId], skipped: false } }))
     setActiveExId(exId)
@@ -273,12 +245,19 @@ export default function DoWorkoutPage() {
       if (actualReps && actualReps > ex.reps) abovePlan++
       else if (actualWeight && ex.weight_kg > 0 && actualWeight > ex.weight_kg) abovePlan++
 
+      const actualSets = st.sets.map(s => ({
+        reps: parseInt(s.reps) || null,
+        weight: parseFloat(s.weight) || null,
+        completed: s.completed,
+      }))
+
       const existing = existingResults.find(r => r.exercise_id === ex.id)
       const payload = {
         assigned_workout_id: assignment.id,
         exercise_id: ex.id,
         actual_reps: actualReps,
         actual_weight_kg: actualWeight,
+        actual_sets: actualSets,
         completed,
         client_note: st.note || null,
       }
@@ -441,12 +420,21 @@ export default function DoWorkoutPage() {
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
         }}>
-          <div style={{
-            fontSize: 52, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em',
-            color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
-          }}>
-            {timerExpired ? `+${fmt(timerOvertime)}` : fmt(timerSec)}
-          </div>
+          {(() => {
+            const str = timerExpired ? `+${fmt(timerOvertime)}` : fmt(timerSec)
+            // Шрифт подстраивается под длину строки, чтобы цифры
+            // никогда не вылезали за пределы кольца (напр. «+12:05»).
+            const fs = str.length <= 4 ? 48 : str.length === 5 ? 40 : 32
+            return (
+              <div style={{
+                fontSize: fs, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em',
+                maxWidth: 124, whiteSpace: 'nowrap', textAlign: 'center',
+                color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
+              }}>
+                {str}
+              </div>
+            )
+          })()}
           <div style={{
             fontSize: 12, marginTop: 4,
             color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
@@ -488,6 +476,14 @@ export default function DoWorkoutPage() {
       <span hidden>{timerLabel}</span>
     </div>
   ) : null
+
+  // Текущее упражнение в пошаговом режиме (одно на экран, без прыжков)
+  const stepIdx = (() => {
+    const i = exercises.findIndex(e => e.id === activeExId)
+    return i >= 0 ? i : 0
+  })()
+  const stepEx = exercises[stepIdx]
+  const stepSt = stepEx ? exState[stepEx.id] : undefined
 
   return (
     <Layout fullHeight>
@@ -540,224 +536,212 @@ export default function DoWorkoutPage() {
           </div>
         )}
 
-        {exercises.map(ex => {
-          const st = exState[ex.id]
-          if (!st) return null
-          const allDone = st.sets.length > 0 && st.sets.every(s => s.completed)
-          const isActive = !allDone && !st.skipped && activeExId === ex.id
-          const isDone = allDone && !st.skipped
-          const isSkipped = st.skipped
+        {/* Степпер: чипы упражнений — обзор + быстрый переход без длинного скролла */}
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8 }}>
+          {exercises.map((ex, i) => {
+            const s = exState[ex.id]
+            const done = !!s && s.sets.length > 0 && s.sets.every(x => x.completed) && !s.skipped
+            const skip = s?.skipped
+            const cur = i === stepIdx
+            return (
+              <button
+                key={ex.id}
+                onClick={() => setActiveExId(ex.id)}
+                title={ex.exercise_library.name_ru ?? ex.exercise_library.name_en ?? ''}
+                style={{
+                  width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                  fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)',
+                  border: cur ? '2px solid var(--blue-600)' : '1.5px solid var(--slate-200)',
+                  background: done ? 'var(--green-600)' : skip ? 'var(--slate-200)' : '#fff',
+                  color: done ? '#fff' : cur ? 'var(--blue-600)' : 'var(--slate-500)',
+                }}
+              >
+                {done ? '✓' : i + 1}
+              </button>
+            )
+          })}
+        </div>
 
+        {stepEx && stepSt && (() => {
+          const ex = stepEx
+          const st = stepSt
           const name = ex.exercise_library.name_ru ?? ex.exercise_library.name_en ?? '—'
           const plan = ex.mode === 'time'
             ? `план: ${ex.sets} × ${ex.reps} сек`
             : ex.mode === 'reps'
               ? `план: ${ex.sets} × ${ex.reps}`
               : `план: ${ex.sets} × ${ex.reps}${ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}`
+          const allDone = st.sets.length > 0 && st.sets.every(s => s.completed)
+          const m = ex.mode ?? 'weight'
+          const cols = m === 'weight' ? '18px 1fr 1fr 34px' : '18px 1fr 34px'
+          const lblCol2 = m === 'time' ? 'Секунды' : 'Повторы'
+          const borderColor = st.skipped ? 'var(--slate-200)' : allDone ? 'var(--green-300)' : 'var(--blue-400)'
 
-          // ── Done card (clickable → reopen) ─────────────
-          if (isDone) {
-            const summary = st.sets
-              .map((s, i) => `п.${i + 1}: ${s.reps}×${s.weight}кг`)
-              .join('  ')
-            return (
-              <div
-                key={ex.id}
-                onClick={() => reopenExercise(ex.id)}
-                style={{
-                  background: 'var(--green-50)',
-                  border: '1px solid var(--green-200)',
-                  borderRadius: 10,
-                  padding: '10px 11px',
-                  marginBottom: 6,
-                  cursor: 'pointer',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)' }}>{name}</span>
-                  <span style={{ fontSize: 13, color: 'var(--slate-400)', whiteSpace: 'nowrap' }}>
-                    Изменить ›
-                  </span>
-                </div>
-                <div style={{ fontSize: 13, color: 'var(--green-700)', fontWeight: 600, marginBottom: 4 }}>
-                  ✓ {st.sets.filter(s => s.completed).length} подходов выполнено
-                </div>
-                <div style={{ fontSize: 14, color: 'var(--slate-700)', lineHeight: 1.6 }}>{summary}</div>
-              </div>
-            )
-          }
+          const checkBtn = (s: SetState, i: number) => (
+            <button
+              onClick={() => markSet(ex.id, i)}
+              title={s.completed ? 'Снять отметку' : 'Отметить подход'}
+              style={{
+                width: 34, height: 34, borderRadius: '50%',
+                border: s.completed ? '2px solid var(--green-600)' : '2px solid var(--slate-300)',
+                background: s.completed ? 'var(--green-600)' : '#fff',
+                color: s.completed ? '#fff' : 'var(--slate-300)',
+                fontSize: 15, fontWeight: 600,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', flexShrink: 0, padding: 0, fontFamily: 'var(--font)',
+                transition: 'background .15s, border-color .15s, color .15s',
+              }}
+            >✓</button>
+          )
+          const numCell = (val: string, field: 'reps' | 'weight', s: SetState, i: number) => (
+            <input
+              type="text" inputMode={field === 'weight' ? 'decimal' : 'numeric'} value={val}
+              onChange={e => updateSet(ex.id, i, field, e.target.value)}
+              onFocus={e => e.target.select()}
+              style={{
+                width: '100%', padding: '7px 4px', textAlign: 'center',
+                fontSize: 16, fontWeight: 600, borderRadius: 8,
+                border: `1.5px solid ${s.completed ? 'var(--green-200)' : 'var(--slate-200)'}`,
+                boxSizing: 'border-box',
+                background: s.completed ? 'var(--green-50)' : '#fff',
+                color: 'var(--slate-900)', fontFamily: 'var(--font)',
+              }}
+            />
+          )
 
-          // ── Skipped card (clickable → unskip) ─────────
-          if (isSkipped) {
-            return (
-              <div
-                key={ex.id}
-                onClick={() => unskipExercise(ex.id)}
-                style={{
-                  background: 'var(--slate-100)',
-                  border: '1px solid var(--slate-200)',
-                  borderRadius: 10, padding: '10px 11px', marginBottom: 6, opacity: 0.7,
-                  cursor: 'pointer',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontSize: 17, fontWeight: 500, color: 'var(--slate-400)' }}>{name}</div>
-                    <div style={{ fontSize: 13, color: 'var(--slate-400)', marginTop: 2 }}>Пропущено</div>
-                  </div>
-                  <span style={{ fontSize: 13, color: 'var(--slate-500)', whiteSpace: 'nowrap' }}>
-                    Вернуть ›
-                  </span>
-                </div>
-              </div>
-            )
-          }
-
-          // ── Active card ────────────────────────────────
-          if (isActive) {
-            return (
-              <div key={ex.id} style={{
-                background: 'var(--white)', border: '2px solid var(--blue-400)',
-                borderRadius: 10, padding: '10px 11px', marginBottom: 6,
-              }}>
-                <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)', marginBottom: 4 }}>{name}</div>
-                <div style={{ fontSize: 15, color: 'var(--slate-400)', marginBottom: ex.trainer_note ? 6 : 8 }}>{plan}</div>
-
-                {ex.trainer_note && (
-                  <div style={{
-                    background: 'var(--blue-50)', border: '1px solid var(--blue-200)',
-                    borderRadius: 8, padding: '7px 10px', marginBottom: 8,
-                    fontSize: 13, color: 'var(--blue-700)', lineHeight: 1.4,
-                  }}>
-                    💬 {ex.trainer_note}
-                  </div>
-                )}
-
-                {(() => {
-                  const m = ex.mode ?? 'weight'
-                  const cols = m === 'weight' ? '18px 1fr 1fr 34px' : '18px 1fr 34px'
-                  const lblCol2 = m === 'time' ? 'Секунды' : 'Повторы'
-                  const checkBtn = (s: SetState, i: number) => (
-                    <button
-                      onClick={() => markSet(ex.id, i)}
-                      title={s.completed ? 'Снять отметку' : 'Отметить подход'}
-                      style={{
-                        width: 34, height: 34, borderRadius: '50%',
-                        border: s.completed ? '2px solid var(--green-600)' : '2px solid var(--slate-300)',
-                        background: s.completed ? 'var(--green-600)' : '#fff',
-                        color: s.completed ? '#fff' : 'var(--slate-300)',
-                        fontSize: 15, fontWeight: 600,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', flexShrink: 0, padding: 0, fontFamily: 'var(--font)',
-                        transition: 'background .15s, border-color .15s, color .15s',
-                      }}
-                    >✓</button>
-                  )
-                  const numCell = (val: string, field: 'reps' | 'weight', s: SetState, i: number) => (
-                    <input
-                      type="text" inputMode={field === 'weight' ? 'decimal' : 'numeric'} value={val}
-                      onChange={e => updateSet(ex.id, i, field, e.target.value)}
-                      onFocus={e => e.target.select()}
-                      style={{
-                        width: '100%', padding: '7px 4px', textAlign: 'center',
-                        fontSize: 16, fontWeight: 600, borderRadius: 8,
-                        border: `1.5px solid ${s.completed ? 'var(--green-200)' : 'var(--slate-200)'}`,
-                        boxSizing: 'border-box',
-                        background: s.completed ? 'var(--green-50)' : '#fff',
-                        color: 'var(--slate-900)', fontFamily: 'var(--font)',
-                      }}
-                    />
-                  )
-                  return (
-                    <>
-                      <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 6, marginBottom: 6, alignItems: 'center' }}>
-                        <span />
-                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{lblCol2}</span>
-                        {m === 'weight' && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Вес, кг</span>}
-                        <span />
-                      </div>
-                      {st.sets.map((s, i) => (
-                        <div key={i} style={{
-                          display: 'grid', gridTemplateColumns: cols,
-                          gap: 6, alignItems: 'center', padding: '6px 0',
-                          borderBottom: i < st.sets.length - 1 ? '1px solid var(--slate-100)' : 'none',
-                        }}>
-                          <span style={{ fontSize: 11, color: 'var(--slate-400)', textAlign: 'center' }}>{i + 1}</span>
-                          {m === 'time' ? (
-                            <button
-                              onClick={() => !s.completed && startTimer(parseInt(s.reps) || ex.reps, '', assignedId!, ex.id)}
-                              style={{
-                                width: '100%', padding: '7px 4px',
-                                fontSize: 14, fontWeight: 600, borderRadius: 8,
-                                border: `1.5px solid ${s.completed ? 'var(--green-200)' : 'var(--blue-200)'}`,
-                                background: s.completed ? 'var(--green-50)' : 'var(--blue-50)',
-                                color: s.completed ? 'var(--green-700)' : 'var(--blue-700)',
-                                cursor: s.completed ? 'default' : 'pointer', fontFamily: 'var(--font)',
-                              }}
-                            >
-                              {s.completed ? `${s.reps}с ✓` : `▶ ${s.reps || ex.reps}с`}
-                            </button>
-                          ) : numCell(s.reps, 'reps', s, i)}
-                          {m === 'weight' && numCell(s.weight, 'weight', s, i)}
-                          {checkBtn(s, i)}
-                        </div>
-                      ))}
-                    </>
-                  )
-                })()}
-
-                {/* Note */}
-                <input
-                  type="text"
-                  value={st.note}
-                  onChange={e => updateNote(ex.id, e.target.value)}
-                  placeholder="Заметка (необязательно)..."
-                  style={{
-                    width: '100%', border: '1px solid var(--slate-200)', borderRadius: 6,
-                    padding: '5px 8px', fontSize: 15, color: 'var(--slate-600)',
-                    background: 'var(--slate-50)', marginTop: 7, fontStyle: 'italic',
-                    fontFamily: 'var(--font)',
-                  }}
-                />
-
-                {/* Footer */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-                  <button onClick={() => addSet(ex.id)} style={{ fontSize: 15, fontWeight: 700, color: 'var(--indigo-500)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)' }}>
-                    + подход
-                  </button>
-                  <button onClick={() => skipExercise(ex.id)} style={{ fontSize: 15, color: 'var(--slate-400)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)' }}>
-                    Пропустить упражнение
-                  </button>
-                </div>
-              </div>
-            )
-          }
-
-          // ── Pending card ───────────────────────────────
           return (
-            <div key={ex.id} style={{
-              background: 'var(--white)', border: '1px solid var(--border)',
-              borderRadius: 10, padding: '10px 11px', marginBottom: 6, cursor: 'pointer',
-            }}
-              onClick={() => setActiveExId(ex.id)}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <div style={{
+              background: 'var(--white)', border: `2px solid ${borderColor}`,
+              borderRadius: 10, padding: '10px 11px', marginBottom: 6,
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4, gap: 8 }}>
                 <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)' }}>{name}</span>
-                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--indigo-500)', flexShrink: 0 }}>Начать →</span>
+                <span style={{ fontSize: 13, color: 'var(--slate-400)', flexShrink: 0 }}>{stepIdx + 1} / {exercises.length}</span>
               </div>
-              <div style={{ fontSize: 15, color: 'var(--slate-400)' }}>{plan}</div>
+              <div style={{ fontSize: 15, color: 'var(--slate-400)', marginBottom: 8 }}>{plan}</div>
+
+              {allDone && !st.skipped && (
+                <div style={{
+                  background: 'var(--green-50)', border: '1px solid var(--green-200)',
+                  borderRadius: 8, padding: '6px 10px', marginBottom: 8,
+                  fontSize: 13, color: 'var(--green-700)', fontWeight: 600,
+                }}>
+                  ✓ Выполнено — можно изменить отметки или значения ниже
+                </div>
+              )}
+              {st.skipped && (
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  background: 'var(--slate-100)', border: '1px solid var(--slate-200)',
+                  borderRadius: 8, padding: '6px 10px', marginBottom: 8,
+                }}>
+                  <span style={{ fontSize: 13, color: 'var(--slate-500)', fontWeight: 600 }}>Упражнение пропущено</span>
+                  <button
+                    onClick={() => unskipExercise(ex.id)}
+                    style={{ fontSize: 13, fontWeight: 700, color: 'var(--blue-600)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)' }}
+                  >
+                    Вернуть
+                  </button>
+                </div>
+              )}
+
               {ex.trainer_note && (
                 <div style={{
                   background: 'var(--blue-50)', border: '1px solid var(--blue-200)',
-                  borderRadius: 8, padding: '6px 10px', marginTop: 6,
+                  borderRadius: 8, padding: '7px 10px', marginBottom: 8,
                   fontSize: 13, color: 'var(--blue-700)', lineHeight: 1.4,
                 }}>
                   💬 {ex.trainer_note}
                 </div>
               )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 6, marginBottom: 6, alignItems: 'center' }}>
+                <span />
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{lblCol2}</span>
+                {m === 'weight' && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Вес, кг</span>}
+                <span />
+              </div>
+              {st.sets.map((s, i) => (
+                <div key={i} style={{
+                  display: 'grid', gridTemplateColumns: cols,
+                  gap: 6, alignItems: 'center', padding: '6px 0',
+                  borderBottom: i < st.sets.length - 1 ? '1px solid var(--slate-100)' : 'none',
+                }}>
+                  <span style={{ fontSize: 11, color: 'var(--slate-400)', textAlign: 'center' }}>{i + 1}</span>
+                  {m === 'time' ? (
+                    <button
+                      onClick={() => !s.completed && startTimer(parseInt(s.reps) || ex.reps, '', assignedId!, ex.id)}
+                      style={{
+                        width: '100%', padding: '7px 4px',
+                        fontSize: 14, fontWeight: 600, borderRadius: 8,
+                        border: `1.5px solid ${s.completed ? 'var(--green-200)' : 'var(--blue-200)'}`,
+                        background: s.completed ? 'var(--green-50)' : 'var(--blue-50)',
+                        color: s.completed ? 'var(--green-700)' : 'var(--blue-700)',
+                        cursor: s.completed ? 'default' : 'pointer', fontFamily: 'var(--font)',
+                      }}
+                    >
+                      {s.completed ? `${s.reps}с ✓` : `▶ ${s.reps || ex.reps}с`}
+                    </button>
+                  ) : numCell(s.reps, 'reps', s, i)}
+                  {m === 'weight' && numCell(s.weight, 'weight', s, i)}
+                  {checkBtn(s, i)}
+                </div>
+              ))}
+
+              <input
+                type="text"
+                value={st.note}
+                onChange={e => updateNote(ex.id, e.target.value)}
+                placeholder="Заметка (необязательно)..."
+                style={{
+                  width: '100%', border: '1px solid var(--slate-200)', borderRadius: 6,
+                  padding: '5px 8px', fontSize: 15, color: 'var(--slate-600)',
+                  background: 'var(--slate-50)', marginTop: 7, fontStyle: 'italic',
+                  fontFamily: 'var(--font)',
+                }}
+              />
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+                <button onClick={() => addSet(ex.id)} style={{ fontSize: 15, fontWeight: 700, color: 'var(--indigo-500)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)' }}>
+                  + подход
+                </button>
+                {!st.skipped && (
+                  <button onClick={() => skipExercise(ex.id)} style={{ fontSize: 15, color: 'var(--slate-400)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)' }}>
+                    Пропустить упражнение
+                  </button>
+                )}
+              </div>
             </div>
           )
-        })}
+        })()}
+
+        {/* Навигация между упражнениями — без прыжков, одно за раз */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+          <button
+            disabled={stepIdx === 0}
+            onClick={() => setActiveExId(exercises[stepIdx - 1].id)}
+            style={{
+              flex: 1, padding: '11px 0', borderRadius: 9, fontSize: 15, fontWeight: 600,
+              border: '1.5px solid var(--slate-200)', background: '#fff',
+              color: stepIdx === 0 ? 'var(--slate-300)' : 'var(--slate-600)',
+              cursor: stepIdx === 0 ? 'default' : 'pointer', fontFamily: 'var(--font)',
+            }}
+          >
+            ← Предыдущее
+          </button>
+          <button
+            disabled={stepIdx >= exercises.length - 1}
+            onClick={() => setActiveExId(exercises[stepIdx + 1].id)}
+            style={{
+              flex: 1, padding: '11px 0', borderRadius: 9, fontSize: 15, fontWeight: 700,
+              border: 'none', color: '#fff',
+              background: stepIdx >= exercises.length - 1 ? 'var(--slate-200)' : 'var(--blue-600)',
+              cursor: stepIdx >= exercises.length - 1 ? 'default' : 'pointer', fontFamily: 'var(--font)',
+            }}
+          >
+            Следующее →
+          </button>
+        </div>
 
         {/* Bottom padding so last card not hidden behind sticky button */}
         <div style={{ height: 80 }} />

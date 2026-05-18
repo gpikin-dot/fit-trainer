@@ -1,6 +1,7 @@
 import { Volume2, VolumeX, Plus, Pause, Play, SkipForward } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTimer } from '../contexts/TimerContext'
+import { useAuth } from '../hooks/useAuth'
 
 const RING_C = 220
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
@@ -11,6 +12,7 @@ export default function Layout({ children, fullHeight = false }: {
 }) {
   const navigate = useNavigate()
   const location = useLocation()
+  const { profile } = useAuth()
   const {
     timerSec, timerTotal, timerActive, timerPaused, timerNextEx,
     assignedWorkoutId, soundEnabled,
@@ -24,6 +26,18 @@ export default function Layout({ children, fullHeight = false }: {
 
   return (
     <div className={`${fullHeight ? 'h-dvh flex flex-col' : 'min-h-screen'} bg-[var(--bg)] text-[var(--slate-900)]`}>
+      {profile && !fullHeight && (
+        <div className="sticky top-0 z-40 bg-[var(--white)] border-b border-[var(--border-light)]">
+          <div className="max-w-[390px] mx-auto px-[13px] h-[44px] flex items-center">
+            <button
+              onClick={() => navigate(profile.role === 'trainer' ? '/trainer' : '/client')}
+              className="text-[16px] font-bold text-[var(--blue-600)] tracking-[-0.01em]"
+            >
+              ФитТренер
+            </button>
+          </div>
+        </div>
+      )}
       <main className={
         fullHeight
           ? 'flex-1 min-h-0 flex flex-col max-w-[390px] mx-auto w-full'

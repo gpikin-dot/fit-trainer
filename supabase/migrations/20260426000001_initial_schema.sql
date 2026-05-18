@@ -71,7 +71,9 @@ create table public.assigned_workouts (
 create table public.exercise_results (
   id uuid default gen_random_uuid() primary key,
   assigned_workout_id uuid references public.assigned_workouts(id) on delete cascade not null,
-  exercise_id uuid references public.exercises(id) on delete cascade not null,
+  -- holds session_exercises.id (wizard flow) or exercises.id (legacy);
+  -- no FK so both work. Cleanup via assigned_workout_id cascade.
+  exercise_id uuid not null,
   actual_reps integer,
   actual_weight_kg numeric(6,2),
   completed boolean not null default false,

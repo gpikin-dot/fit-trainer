@@ -280,12 +280,16 @@ export default function DoWorkoutPage() {
         actual_weight_kg: actualWeight,
         completed,
         client_note: st.note || null,
-        actual_heart_rate_bpm: null,
       }
-      if (existing) {
-        await supabase.from('exercise_results').update(payload).eq('id', existing.id)
-      } else {
-        await supabase.from('exercise_results').insert(payload)
+      const { error: resErr } = existing
+        ? await supabase.from('exercise_results').update(payload).eq('id', existing.id)
+        : await supabase.from('exercise_results').insert(payload)
+      // НЕ помечаем тренировку завершённой, если результаты не сохранились —
+      // иначе потеря данных (раньше ошибка глоталась молча).
+      if (resErr) {
+        setError('Не удалось сохранить результаты: ' + resErr.message)
+        setSaving(false)
+        return
       }
     }
 

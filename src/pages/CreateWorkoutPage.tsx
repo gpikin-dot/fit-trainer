@@ -44,6 +44,8 @@ export default function CreateWorkoutPage() {
   const [librarySearch, setLibrarySearch] = useState('')
   const [libraryCategory, setLibraryCategory] = useState('Все')
   const [selectedLibraryIds, setSelectedLibraryIds] = useState<Set<string>>(new Set())
+  const [customName, setCustomName] = useState('')
+  const [customSaving, setCustomSaving] = useState(false)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -107,6 +109,57 @@ export default function CreateWorkoutPage() {
       }),
     ])
     setSelectedLibraryIds(new Set())
+    setShowLibraryModal(false)
+  }
+
+  async function createCustomExercise() {
+    const trimmed = customName.trim()
+    if (!trimmed || !profile) return
+    setCustomSaving(true)
+    setError('')
+
+    const { data: lib, error: insErr } = await supabase
+      .from('exercises_library')
+      .insert({
+        external_id: `custom-${crypto.randomUUID()}`,
+        name_ru: trimmed,
+        name_en: trimmed,
+        category: 'Своё',
+        equipment: null,
+        image_urls: [],
+        source: 'custom',
+        exercise_type: 'strength',
+        trainer_id: profile.id,
+      })
+      .select()
+      .single()
+
+    if (insErr || !lib) {
+      setError(insErr?.message ?? 'Не удалось создать упражнение')
+      setCustomSaving(false)
+      return
+    }
+
+    const newLib = lib as ExerciseLibrary
+    setLibrary(prev => [...prev, newLib])
+    setExercises(prev => [
+      ...prev,
+      {
+        tempId: `tmp-${Date.now()}`,
+        library_exercise_id: newLib.id,
+        library: newLib,
+        sets: 3,
+        reps: 10,
+        weight_kg: '0',
+        rest_sec: null,
+        trainer_note: '',
+        target_heart_rate_bpm: null,
+        mode: defaultMode(newLib.exercise_type),
+        order: prev.length,
+      },
+    ])
+    setCustomName('')
+    setCustomSaving(false)
     setShowLibraryModal(false)
   }
 
@@ -344,6 +397,25 @@ export default function CreateWorkoutPage() {
         <Modal onClose={() => { setShowLibraryModal(false); setSelectedLibraryIds(new Set()) }}>
           <p className="text-[16px] font-bold text-[var(--slate-900)] mb-[4px]">Выберите упражнения</p>
           <p className="text-[13px] text-[var(--slate-500)] mb-[10px]">Выбрано: {selectedLibraryIds.size}</p>
+
+          <div className="flex gap-[6px] mb-[10px]">
+            <input
+              value={customName}
+              onChange={e => { setCustomName(e.target.value); setError('') }}
+              onKeyDown={e => { if (e.key === 'Enter') createCustomExercise() }}
+              placeholder="Своё упражнение — введите название"
+              className="flex-1 border border-[var(--slate-200)] rounded-[8px] px-[9px] py-[7px] text-[15px] bg-white outline-none focus:border-[var(--blue-500)]"
+            />
+            <button
+              onClick={createCustomExercise}
+              disabled={!customName.trim() || customSaving}
+              className="shrink-0 bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-40 text-white text-[14px] font-semibold px-[12px] rounded-[8px]"
+            >
+              {customSaving ? '...' : 'Создать'}
+            </button>
+          </div>
+          {error && <ErrorMessage text={error} />}
+
           <input
             value={librarySearch}
             onChange={e => setLibrarySearch(e.target.value)}

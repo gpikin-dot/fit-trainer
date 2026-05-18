@@ -212,7 +212,38 @@ export default function ClientSessionPage() {
               <p className="text-[15px] font-bold text-[var(--slate-900)] mb-[4px]">{ex.name}</p>
 
               {hasResult ? (
-                ex.mode === 'time' ? (
+                result.actual_sets && result.actual_sets.length > 0 ? (
+                  <div className="mt-[2px]">
+                    <div className="grid grid-cols-[26px_1fr_1fr] gap-x-[6px] text-[12px] font-semibold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[2px]">
+                      <span>#</span><span>план</span><span>факт</span>
+                    </div>
+                    {result.actual_sets.map((s, i) => {
+                      const rc = compare(s.reps, ex.reps)
+                      const wc = compare(s.weight, ex.weight_kg)
+                      const planTxt = ex.mode === 'time'
+                        ? `${ex.reps} сек`
+                        : ex.mode === 'reps'
+                          ? `${ex.reps}`
+                          : `${ex.reps} × ${ex.weight_kg} кг`
+                      return (
+                        <div key={i} className="grid grid-cols-[26px_1fr_1fr] gap-x-[6px] text-[15px] py-[3px] border-b border-[var(--slate-100)] last:border-0">
+                          <span className="text-[var(--slate-400)]">{i + 1}</span>
+                          <span className="text-[var(--slate-400)]">{planTxt}</span>
+                          <span className="text-[var(--slate-700)]">
+                            {ex.mode === 'time' ? (
+                              <><span className={valueClass(rc)}>{s.reps ?? '—'}</span> сек</>
+                            ) : ex.mode === 'reps' ? (
+                              <span className={valueClass(rc)}>{s.reps ?? '—'}</span>
+                            ) : (
+                              <><span className={valueClass(rc)}>{s.reps ?? '—'}</span> × <span className={valueClass(wc)}>{s.weight ?? '—'}</span> кг</>
+                            )}
+                            {!s.completed && <span className="text-[var(--slate-300)]"> · не отмечен</span>}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : ex.mode === 'time' ? (
                   <>
                     <p className="text-[15px] text-[var(--slate-400)] mb-[2px]">
                       план: {ex.sets} × {ex.reps} сек

@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS session_exercises (
   weight_kg           numeric NOT NULL DEFAULT 0,
   rest_sec            integer,
   trainer_note        text,
+  mode                text NOT NULL DEFAULT 'weight',
   created_at          timestamptz DEFAULT now()
 );
 

@@ -3,7 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import { Modal, ErrorMessage } from '../components/UI'
-import type { ExerciseLibrary, SessionExercise } from '../types/database'
+import type { ExerciseLibrary, SessionExercise, WorkoutMode } from '../types/database'
+
+function modeOf(m: string | null | undefined, lib?: ExerciseLibrary): WorkoutMode {
+  if (m === 'reps' || m === 'time' || m === 'weight') return m
+  const t = lib?.exercise_type
+  return t === 'cardio_time' ? 'time' : t === 'cardio_reps' ? 'reps' : 'weight'
+}
 
 const CATEGORIES = ['Все', 'Ноги', 'Грудь', 'Спина', 'Плечи', 'Руки', 'Кор', 'Кардио']
 
@@ -22,6 +28,7 @@ interface Row {
   weight_kg: string
   rest_sec: number | null
   trainer_note: string
+  mode: WorkoutMode
   order: number
 }
 
@@ -91,6 +98,7 @@ export default function AssignmentEditPage() {
         weight_kg: String(s.weight_kg),
         rest_sec: s.rest_sec,
         trainer_note: s.trainer_note ?? '',
+        mode: modeOf((s as SessionExercise & { mode?: string }).mode, s.exercise_library),
         order: s.order,
       })))
       setLoading(false)
@@ -118,8 +126,11 @@ export default function AssignmentEditPage() {
         tempId: `tmp-${Date.now()}-${i}`,
         library_exercise_id: lib.id,
         library: lib,
-        sets: 3, reps: 10, weight_kg: '0',
+        sets: 3,
+        reps: modeOf(null, lib) === 'time' ? 30 : 10,
+        weight_kg: '0',
         rest_sec: null, trainer_note: '',
+        mode: modeOf(null, lib),
         order: prev.length + i,
       })),
     ])
@@ -160,6 +171,7 @@ export default function AssignmentEditPage() {
           weight_kg: parseFloat(r.weight_kg.replace(',', '.')) || 0,
           rest_sec: r.rest_sec,
           trainer_note: r.trainer_note || null,
+          mode: r.mode,
         }))
       )
       if (insErr) { setError(insErr.message); setSaving(false); return }
@@ -264,7 +276,31 @@ export default function AssignmentEditPage() {
                 ✕
               </button>
             </div>
-            <div className="grid grid-cols-3 gap-[4px] mb-[4px]">
+            <div className="flex gap-[4px] mb-[8px]">
+              {([
+                { m: 'weight', label: 'Вес' },
+                { m: 'reps', label: 'Повторы' },
+                { m: 'time', label: 'На время' },
+              ] as const).map(({ m, label }) => (
+                <button
+                  key={m}
+                  onClick={() => patch(ex.tempId, {
+                    mode: m,
+                    reps: m === 'time' && ex.mode !== 'time' ? 30
+                        : m !== 'time' && ex.mode === 'time' ? 10
+                        : ex.reps,
+                  })}
+                  className={`flex-1 text-[12px] font-semibold py-[6px] rounded-[7px] border ${
+                    ex.mode === m
+                      ? 'bg-[var(--blue-600)] text-white border-[var(--blue-600)]'
+                      : 'bg-white text-[var(--slate-500)] border-[var(--slate-200)]'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className={`grid ${ex.mode === 'weight' ? 'grid-cols-3' : 'grid-cols-2'} gap-[4px] mb-[4px]`}>
               <div>
                 <label className="block text-[11px] font-semibold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Подходы</label>
                 <input type="text" inputMode="numeric" value={isNaN(ex.sets) ? '' : ex.sets}
@@ -273,18 +309,22 @@ export default function AssignmentEditPage() {
                   onFocus={e => e.target.select()} className={numInput} />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Повторы</label>
+                <label className="block text-[11px] font-semibold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">
+                  {ex.mode === 'time' ? 'Секунды' : 'Повторы'}
+                </label>
                 <input type="text" inputMode="numeric" value={isNaN(ex.reps) ? '' : ex.reps}
                   onChange={e => patch(ex.tempId, { reps: parseInt(e.target.value) })}
-                  onBlur={() => { if (!ex.reps || ex.reps < 1) patch(ex.tempId, { reps: 1 }) }}
+                  onBlur={() => { if (!ex.reps || ex.reps < 1) patch(ex.tempId, { reps: ex.mode === 'time' ? 30 : 1 }) }}
                   onFocus={e => e.target.select()} className={numInput} />
               </div>
-              <div>
-                <label className="block text-[11px] font-semibold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Вес, кг</label>
-                <input type="text" inputMode="decimal" value={ex.weight_kg}
-                  onChange={e => patch(ex.tempId, { weight_kg: e.target.value })}
-                  onFocus={e => e.target.select()} className={numInput} />
-              </div>
+              {ex.mode === 'weight' && (
+                <div>
+                  <label className="block text-[11px] font-semibold text-[var(--slate-400)] uppercase tracking-[0.04em] mb-[3px]">Вес, кг</label>
+                  <input type="text" inputMode="decimal" value={ex.weight_kg}
+                    onChange={e => patch(ex.tempId, { weight_kg: e.target.value })}
+                    onFocus={e => e.target.select()} className={numInput} />
+                </div>
+              )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4px' }}>
               <div>

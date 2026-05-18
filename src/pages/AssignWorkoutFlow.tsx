@@ -5,7 +5,13 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
 import { ErrorMessage } from '../components/UI'
-import type { ExerciseLibrary, Workout, Profile } from '../types/database'
+import type { ExerciseLibrary, Workout, Profile, WorkoutMode } from '../types/database'
+
+function modeOf(row: { mode?: string | null }, lib?: ExerciseLibrary): WorkoutMode {
+  if (row.mode === 'reps' || row.mode === 'time' || row.mode === 'weight') return row.mode
+  const t = lib?.exercise_type
+  return t === 'cardio_time' ? 'time' : t === 'cardio_reps' ? 'reps' : 'weight'
+}
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -20,6 +26,7 @@ interface ExerciseConfig {
   weight_kg: number
   rest_sec: number | null
   trainer_note: string
+  mode: WorkoutMode
   origSets: number
   origReps: number
   origWeight: number
@@ -193,6 +200,8 @@ export default function AssignWorkoutFlow() {
           order: se.order,
           sets: se.sets, reps: se.reps, weight_kg: se.weight_kg,
           rest_sec: se.rest_sec, trainer_note: se.trainer_note ?? '',
+
+          mode: modeOf(se, se.exercise_library),
           origSets: se.sets, origReps: se.reps, origWeight: se.weight_kg,
         })))
       }
@@ -207,6 +216,8 @@ export default function AssignWorkoutFlow() {
           order: e.order,
           sets: e.sets, reps: e.reps, weight_kg: e.weight_kg,
           rest_sec: e.rest_sec, trainer_note: e.trainer_note ?? '',
+
+          mode: modeOf(e, e.exercise_library),
           origSets: e.sets, origReps: e.reps, origWeight: e.weight_kg,
         })))
       }
@@ -237,6 +248,8 @@ export default function AssignWorkoutFlow() {
       order: e.order,
       sets: e.sets, reps: e.reps, weight_kg: e.weight_kg,
       rest_sec: e.rest_sec, trainer_note: e.trainer_note ?? '',
+
+      mode: modeOf(e, e.exercise_library),
       origSets: e.sets, origReps: e.reps, origWeight: e.weight_kg,
     })))
     setLoading(false)
@@ -293,7 +306,7 @@ export default function AssignWorkoutFlow() {
             assigned_workout_id: aw.id,
             library_exercise_id: ex.library_exercise_id,
             order: ex.order, sets: ex.sets, reps: ex.reps, weight_kg: ex.weight_kg,
-            rest_sec: ex.rest_sec, trainer_note: ex.trainer_note || null,
+            rest_sec: ex.rest_sec, trainer_note: ex.trainer_note || null, mode: ex.mode,
           }))
         )
         if (seErr) throw new Error(seErr.message)

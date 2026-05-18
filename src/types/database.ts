@@ -33,6 +33,12 @@ export interface Workout {
 
 export type ExerciseType = 'strength' | 'cardio_reps' | 'cardio_time'
 
+// Режим логирования, выбирается тренером в шаблоне:
+//  'weight' — подходы × повторы × вес
+//  'reps'   — подходы × повторы (без веса; вес тела)
+//  'time'   — подходы × секунды (на время; в поле reps = секунды)
+export type WorkoutMode = 'weight' | 'reps' | 'time'
+
 export interface ExerciseLibrary {
   id: string
   external_id: string
@@ -55,6 +61,7 @@ export interface Exercise {
   rest_sec: number | null
   trainer_note: string | null
   target_heart_rate_bpm: number | null
+  mode: WorkoutMode
   order: number
 }
 
@@ -109,6 +116,7 @@ export interface SessionExercise {
   weight_kg: number
   rest_sec: number | null
   trainer_note: string | null
+  mode: WorkoutMode
   created_at: string
 }
 

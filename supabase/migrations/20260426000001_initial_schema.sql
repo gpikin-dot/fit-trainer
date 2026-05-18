@@ -54,6 +54,8 @@ create table public.exercises (
   weight_kg numeric(6,2) not null default 0,
   rest_sec integer,
   trainer_note text,
+  -- 'weight' | 'reps' | 'time' (для 'time' reps = секунды на подход)
+  mode text not null default 'weight',
   "order" integer not null
 );
 

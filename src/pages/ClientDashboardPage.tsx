@@ -91,10 +91,9 @@ export default function ClientDashboardPage() {
 
   return (
     <Layout>
-      {/* Header — FitTrainer wordmark + name + avatar */}
+      {/* Header — аккаунт (бренд — в глобальной шапке Layout) */}
       <div className="sticky top-0 z-10 bg-white -mx-[13px] px-[16px] py-[14px] border-b border-[var(--border)]">
-        <div className="flex items-center justify-between">
-          <div className="text-[20px] font-extrabold text-[var(--blue-600)]">FitTrainer</div>
+        <div className="flex items-center justify-end">
           <div className="flex items-center gap-[8px]">
             <button
               onClick={() => navigate('/profile')}

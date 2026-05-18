@@ -33,7 +33,7 @@ export default function Layout({ children, fullHeight = false }: {
               onClick={() => navigate(profile.role === 'trainer' ? '/trainer' : '/client')}
               className="text-[16px] font-bold text-[var(--blue-600)] tracking-[-0.01em]"
             >
-              ФитТренер
+              FitTrainer
             </button>
           </div>
         </div>

@@ -22,11 +22,11 @@ html {
 
 /* ── ШРИФТ ─────────────────────────────────────────────────── */
 /*
-  Системный стек — НЕ подключать Google Fonts.
-  iOS → San Francisco, Android → Roboto, macOS/Win → системный.
+  Дизайн-система «бумага и тушь» (см. DESIGN.md): шрифт Onest,
+  подключён в index.html. Контраст строится на ВЕСЕ шрифта.
 */
 :root {
-  --font-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-base: 'Onest', system-ui, -apple-system, sans-serif;
 }
 body {
   font-family: var(--font-base);
@@ -52,67 +52,71 @@ body {
 }
 
 /* ── ЦВЕТА ─────────────────────────────────────────────────── */
+/* ============================================================
+   Дизайн-система «бумага и тушь» (DESIGN.md).
+   Имена токенов СОХРАНЕНЫ — значения переотображены на
+   монохром-палитру, поэтому весь app перекрашивается разом.
+   Акцент = тушь (--ink). Единственный цвет — зелёный «выполнено».
+   ============================================================ */
 :root {
-  /* Фон страницы (slate-50 как в прототипе) */
-  --bg-page: #F8FAFC;
+  /* Фон страницы — тёплая бумага */
+  --bg-page: #FBFAF7;
 
-  /* Primary (blue, по прототипу/ТЗ v2 §2.1) */
-  /* Имена `--indigo-*` сохранены как алиасы для обратной совместимости */
-  --indigo-50:  #EFF6FF;
-  --indigo-100: #DBEAFE;
-  --indigo-200: #BFDBFE;
-  --indigo-300: #93C5FD;
-  --indigo-500: #2563EB;  /* ← основной акцент (blue-600 в ТЗ) */
-  --indigo-700: #1D4ED8;
+  /* Акцент (бывш. blue/indigo) → тушь (монохром) */
+  --indigo-50:  #F2F1EC;
+  --indigo-100: #EBE9E1;
+  --indigo-200: #D8D5CC;
+  --indigo-300: #B8B4A8;
+  --indigo-500: #1C1B18;  /* ← основной акцент = тушь */
+  --indigo-700: #000000;
 
-  /* Прямые blue-токены для нового кода */
-  --blue-50:  #EFF6FF;
-  --blue-100: #DBEAFE;
-  --blue-200: #BFDBFE;
-  --blue-300: #93C5FD;
-  --blue-400: #60A5FA;
-  --blue-500: #3B82F6;
-  --blue-600: #2563EB;
-  --blue-700: #1D4ED8;
+  --blue-50:  #F2F1EC;
+  --blue-100: #EBE9E1;
+  --blue-200: #D8D5CC;
+  --blue-300: #B8B4A8;
+  --blue-400: #1C1B18;   /* активный бордер = тушь */
+  --blue-500: #1C1B18;
+  --blue-600: #1C1B18;
+  --blue-700: #000000;
 
-  /* Нейтральные (slate) */
-  --slate-50:  #F8FAFC;
-  --slate-100: #F1F5F9;
-  --slate-200: #E2E8F0;
-  --slate-300: #CBD5E1;
-  --slate-400: #94A3B8;
-  --slate-500: #64748B;
-  --slate-600: #475569;
-  --slate-700: #374151;
-  --slate-900: #0F172A;   /* ← основной текст */
+  /* Нейтральные (slate) → тёплая чёрно-бумажная шкала */
+  --slate-50:  #F6F5F1;
+  --slate-100: #F0EFE9;
+  --slate-200: #E7E4DC;
+  --slate-300: #CDCABF;
+  --slate-400: #A7A499;  /* лейблы / faint */
+  --slate-500: #76736A;  /* вторичный текст / dim */
+  --slate-600: #5E5B52;
+  --slate-700: #3A382F;
+  --slate-900: #1C1B18;  /* ← основной текст = тушь */
 
-  /* Бордеры */
-  --border-default: #E8EDF3;
-  --border-light:   #F1F5F9;
-  --border-card:    #DDE3ED;
+  /* Бордеры — волосяные */
+  --border-default: #E7E4DC;
+  --border-light:   #ECE9E0;
+  --border-card:    #E0DDD3;
 
-  /* Зелёный (успех, выполнено) */
-  --green-50:  #F0FDF4;
-  --green-100: #DCFCE7;
-  --green-200: #BBF7D0;
-  --green-300: #4ADE80;
-  --green-600: #16A34A;
-  --green-700: #15803D;
-  --green-800: #166534;
+  /* Зелёный — единственный цвет, «выполнено» */
+  --green-50:  #EEF3EC;
+  --green-100: #DFEADC;
+  --green-200: #B9D2B3;
+  --green-300: #6FAE78;
+  --green-600: #3F7D4F;
+  --green-700: #356A43;
+  --green-800: #2C5838;
 
-  /* Янтарный (в процессе, предупреждение) */
-  --amber-100: #FEF3C7;
-  --amber-300: #FCD34D;
-  --amber-800: #92400E;
+  /* Янтарный (в процессе) — приглушённый тёплый */
+  --amber-100: #F3ECD9;
+  --amber-300: #D8C48A;
+  --amber-800: #7A6533;
 
-  /* Красный (ошибка, пропуск, опасность) */
-  --red-50:  #FFF8F8;
-  --red-100: #FEE2E2;
-  --red-200: #FECACA;
-  --red-400: #F87171;
-  --red-500: #EF4444;
-  --red-600: #DC2626;
-  --red-800: #991B1B;
+  /* Красный (ошибка/опасность) — приглушённая глина */
+  --red-50:  #FBF3F1;
+  --red-100: #F5E3DF;
+  --red-200: #E8C9C2;
+  --red-400: #CF7A6A;
+  --red-500: #B5503C;
+  --red-600: #A0442F;
+  --red-800: #6E3022;
 }
 
 /* ── BORDER-RADIUS ─────────────────────────────────────────── */
@@ -506,6 +510,27 @@ body {
   --font:   var(--font-base);         /* backward compat */
   --bg:     var(--bg-page);           /* backward compat */
   --border: var(--border-default);    /* backward compat */
-  --white:  #FFFFFF;
-  --amber-500: #F59E0B;               /* звёзды избранного */
+  --white:  #FFFDF8;                  /* тёплый «бумажный» белый для карточек */
+  --amber-500: #B9923F;               /* звёзды избранного (приглушённый) */
+
+  /* «Убегающая» полоса таймера отдыха (бегущий блик) */
+}
+.rest-bar { position: relative; }
+.rest-bar::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+  transform: translateX(-100%);
+  animation: rest-run 1.4s linear infinite;
+}
+@keyframes rest-run { to { transform: translateX(220%); } }
+:root {
+  /* Семантические токены дизайн-системы (см. DESIGN.md) */
+  --paper:      #FBFAF7;
+  --paper-2:    #F2F1EC;
+  --ink:        #1C1B18;
+  --ink-dim:    #76736A;
+  --ink-faint:  #A7A499;
+  --hair:       #D8D5CC;
+  --pos:        #3F7D4F;
+  --pos-soft:   #EEF3EC;
 }

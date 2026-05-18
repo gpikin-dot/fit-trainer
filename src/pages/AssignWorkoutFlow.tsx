@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
 import { ErrorMessage } from '../components/UI'
 import type { ExerciseLibrary, Workout, Profile, WorkoutMode } from '../types/database'
+import { clampSets, clampReps, clampWeight, clampRest } from '../lib/numeric'
 
 function modeOf(row: { mode?: string | null }, lib?: ExerciseLibrary): WorkoutMode {
   if (row.mode === 'reps' || row.mode === 'time' || row.mode === 'weight') return row.mode
@@ -282,6 +283,25 @@ export default function AssignWorkoutFlow() {
     setExercises(prev => prev.filter((_, i) => i !== idx).map((ex, i) => ({ ...ex, order: i })))
   }
 
+  // Быстрое назначение: тап по шаблону из карточки клиента →
+  // назначаем шаблон как есть на сегодня, без шагов настройки/даты.
+  // session_exercises не создаём — выполнение берёт упражнения
+  // шаблона напрямую (фолбэк по workout_id).
+  async function quickAssign(workoutId: string) {
+    if (!selectedClientId || submitting) return
+    setSubmitting(true)
+    setError('')
+    const { error: awErr } = await supabase
+      .from('assigned_workouts')
+      .insert({ workout_id: workoutId, client_id: selectedClientId, planned_date: localDate(0), status: 'pending' })
+    if (awErr) {
+      setError(awErr.message)
+      setSubmitting(false)
+      return
+    }
+    navigate(`/trainer/client/${selectedClientId}`)
+  }
+
   async function handleAssign() {
     if (!selectedClientId || !selectedWorkoutId) return
     setSubmitting(true)
@@ -306,11 +326,19 @@ export default function AssignWorkoutFlow() {
           exercises.map(ex => ({
             assigned_workout_id: aw.id,
             library_exercise_id: ex.library_exercise_id,
-            order: ex.order, sets: ex.sets, reps: ex.reps, weight_kg: ex.weight_kg,
-            rest_sec: ex.rest_sec, trainer_note: ex.trainer_note || null, mode: ex.mode,
+            order: ex.order,
+            sets: clampSets(ex.sets), reps: clampReps(ex.reps),
+            weight_kg: clampWeight(ex.weight_kg), rest_sec: clampRest(ex.rest_sec),
+            trainer_note: ex.trainer_note || null, mode: ex.mode,
           }))
         )
-        if (seErr) throw new Error(seErr.message)
+        // Не атомарно (нет RPC-транзакции): при сбое вставки
+        // упражнений откатываем родителя, иначе клиент увидит
+        // пустую тренировку (UX-004).
+        if (seErr) {
+          await supabase.from('assigned_workouts').delete().eq('id', aw.id)
+          throw new Error(seErr.message)
+        }
       }
 
       navigate(`/trainer/client/${selectedClientId}`)
@@ -409,7 +437,12 @@ export default function AssignWorkoutFlow() {
             <BackButton onClick={handleBack} label={clientName || 'Назад'} />
             <h1 className="text-[24px] font-bold text-[var(--slate-900)]">Назначить тренировку</h1>
             {clientName && (
-              <p className="text-[15px] text-[var(--slate-400)] mb-5">{clientName}</p>
+              <p className="text-[15px] text-[var(--slate-400)] mb-[6px]">{clientName}</p>
+            )}
+            {!!qClientId && (
+              <p className="text-[13px] text-[var(--slate-400)] mb-5">
+                Нажмите шаблон — назначу на сегодня. «Настроить» — изменить упражнения или дату.
+              </p>
             )}
 
             {favoriteWorkouts.length > 0 && (
@@ -418,7 +451,11 @@ export default function AssignWorkoutFlow() {
                 {favoriteWorkouts.map(w => {
                   const count = selectedClientId ? (workoutTimeCounts[`${selectedClientId}:${w.id}`] ?? 0) : 0
                   return (
-                    <WorkoutSelectRow key={w.id} workout={w} count={count} onSelect={() => handleTemplateSelected(w.id)} />
+                    <WorkoutSelectRow
+                      key={w.id} workout={w} count={count}
+                      onSelect={() => qClientId ? quickAssign(w.id) : handleTemplateSelected(w.id)}
+                      onCustomize={qClientId ? () => handleTemplateSelected(w.id) : undefined}
+                    />
                   )
                 })}
               </div>
@@ -434,7 +471,11 @@ export default function AssignWorkoutFlow() {
               {otherWorkouts.map(w => {
                 const count = selectedClientId ? (workoutTimeCounts[`${selectedClientId}:${w.id}`] ?? 0) : 0
                 return (
-                  <WorkoutSelectRow key={w.id} workout={w} count={count} onSelect={() => handleTemplateSelected(w.id)} />
+                  <WorkoutSelectRow
+                    key={w.id} workout={w} count={count}
+                    onSelect={() => qClientId ? quickAssign(w.id) : handleTemplateSelected(w.id)}
+                    onCustomize={qClientId ? () => handleTemplateSelected(w.id) : undefined}
+                  />
                 )
               })}
               {workouts.length === 0 && (
@@ -697,28 +738,40 @@ function WorkoutSelectRow({
   workout,
   count,
   onSelect,
+  onCustomize,
 }: {
   workout: Workout
   count: number
   onSelect: () => void
+  onCustomize?: () => void
 }) {
   return (
-    <button
-      onClick={onSelect}
-      className="bg-white border-[1.5px] border-[var(--border)] rounded-[10px] px-[10px] py-[8px] mb-[4px] flex items-center gap-[7px] cursor-pointer w-full text-left"
-    >
-      {workout.is_favorite && (
-        <Star className="w-3.5 h-3.5 text-[var(--amber-500)] fill-[var(--amber-500)] shrink-0" />
+    <div className="bg-white border-[1.5px] border-[var(--border)] rounded-[10px] mb-[4px] flex items-center">
+      <button
+        onClick={onSelect}
+        className="flex-1 min-w-0 flex items-center gap-[7px] cursor-pointer text-left px-[10px] py-[8px]"
+      >
+        {workout.is_favorite && (
+          <Star className="w-3.5 h-3.5 text-[var(--amber-500)] fill-[var(--amber-500)] shrink-0" />
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="text-[15px] font-semibold text-[var(--slate-900)] truncate">{workout.name}</div>
+        </div>
+        {count > 0 && (
+          <span className="text-[15px] bg-[var(--slate-100)] text-[var(--slate-500)] rounded-[20px] px-[7px] py-[2px] shrink-0">
+            {count} раз
+          </span>
+        )}
+        {!onCustomize && <span className="text-[var(--slate-300)] text-[15px]">›</span>}
+      </button>
+      {onCustomize && (
+        <button
+          onClick={onCustomize}
+          className="shrink-0 self-stretch px-[12px] border-l border-[var(--border)] text-[13px] font-semibold text-[var(--slate-500)]"
+        >
+          Настроить
+        </button>
       )}
-      <div className="flex-1 min-w-0">
-        <div className="text-[15px] font-semibold text-[var(--slate-900)] truncate">{workout.name}</div>
-      </div>
-      {count > 0 && (
-        <span className="text-[15px] bg-[var(--slate-100)] text-[var(--slate-500)] rounded-[20px] px-[7px] py-[2px] shrink-0">
-          {count} раз
-        </span>
-      )}
-      <span className="text-[var(--slate-300)] text-[15px]">›</span>
-    </button>
+    </div>
   )
 }

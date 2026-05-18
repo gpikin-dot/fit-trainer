@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
 import { Modal, ErrorMessage } from '../components/UI'
 import { canAddExercise } from '../lib/planLimits'
+import { clampSets, clampReps, clampWeight, clampRest } from '../lib/numeric'
 import type { ExerciseLibrary, Exercise, WorkoutMode } from '../types/database'
 
 function defaultMode(t: ExerciseLibrary['exercise_type']): WorkoutMode {
@@ -177,15 +178,17 @@ export default function CreateWorkoutPage() {
     setError('')
     setSaving(true)
 
+    const restClamped = clampRest(parseInt(defaultRest) || 90) ?? 90
+
     if (isEdit) {
-      await supabase.from('workouts').update({ name: name.trim(), default_rest_sec: parseInt(defaultRest) || 90 }).eq('id', id)
+      await supabase.from('workouts').update({ name: name.trim(), default_rest_sec: restClamped }).eq('id', id)
       await supabase.from('exercises').delete().eq('workout_id', id)
     }
 
     const workoutId = isEdit ? id! : (await supabase.from('workouts').insert({
       trainer_id: profile.id,
       name: name.trim(),
-      default_rest_sec: parseInt(defaultRest) || 90,
+      default_rest_sec: restClamped,
     }).select().single()).data?.id
 
     if (!workoutId) { setError('Ошибка сохранения'); setSaving(false); return }
@@ -194,10 +197,10 @@ export default function CreateWorkoutPage() {
       await supabase.from('exercises').insert(exercises.map(e => ({
         workout_id: workoutId,
         library_exercise_id: e.library_exercise_id,
-        sets: e.sets,
-        reps: e.reps,
-        weight_kg: parseFloat(e.weight_kg.replace(',', '.')) || 0,
-        rest_sec: e.rest_sec,
+        sets: clampSets(e.sets),
+        reps: clampReps(e.reps),
+        weight_kg: clampWeight(parseFloat(e.weight_kg.replace(',', '.')) || 0),
+        rest_sec: clampRest(e.rest_sec),
         trainer_note: e.trainer_note || null,
         target_heart_rate_bpm: e.target_heart_rate_bpm ?? null,
         mode: e.mode,

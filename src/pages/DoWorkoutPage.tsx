@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useTimer } from '../contexts/TimerContext'
 import Layout from '../components/Layout'
 import type { AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult, SessionExercise } from '../types/database'
+import { clampActualReps, clampActualWeight } from '../lib/numeric'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -22,9 +23,6 @@ interface ExState {
 
 function storageKey(id: string) { return `workout_progress_${id}` }
 
-// Прототип ТЗ §4.5.4: SVG-таймер 110×110, r=44, strokeWidth=6
-const TIMER_R = 44
-const TIMER_CIRC = 2 * Math.PI * TIMER_R   // ≈ 276.46
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -240,14 +238,14 @@ export default function DoWorkoutPage() {
       const completed = st.sets.some(s => s.completed)
       if (completed) doneCnt++
 
-      const actualReps = lastDone ? (parseInt(lastDone.reps) || null) : null
-      const actualWeight = lastDone ? (parseFloat(lastDone.weight) || null) : null
+      const actualReps = lastDone ? clampActualReps(parseInt(lastDone.reps) || null) : null
+      const actualWeight = lastDone ? clampActualWeight(parseFloat(lastDone.weight) || null) : null
       if (actualReps && actualReps > ex.reps) abovePlan++
       else if (actualWeight && ex.weight_kg > 0 && actualWeight > ex.weight_kg) abovePlan++
 
       const actualSets = st.sets.map(s => ({
-        reps: parseInt(s.reps) || null,
-        weight: parseFloat(s.weight) || null,
+        reps: clampActualReps(parseInt(s.reps) || null),
+        weight: clampActualWeight(parseFloat(s.weight) || null),
         completed: s.completed,
       }))
 
@@ -297,8 +295,6 @@ export default function DoWorkoutPage() {
   const completedExCount = exercises.filter(ex => exState[ex.id]?.sets.every(s => s.completed)).length
   const progressPct = exercises.length > 0 ? Math.round(completedExCount / exercises.length * 100) : 0
   const timerProgress = timerTotal > 0 ? timerSec / timerTotal : 0
-  const timerDash = TIMER_CIRC * timerProgress
-  const timerGap = TIMER_CIRC - timerDash
   // Овертайм: отдых вышел, считаем сколько секунд прошло сверх
   const timerExpired = timerActive && timerSec === 0
 
@@ -383,99 +379,11 @@ export default function DoWorkoutPage() {
     )
   }
 
-  // Таймер отдыха — рендерится ИНЛАЙН над активным упражнением
-  const timerBox = timerActive ? (
-    <div style={{
-      padding: '16px 12px',
-      background: timerExpired ? '#FEF2F2' : '#F0FDF4',
-      border: `2px solid ${timerExpired ? '#FCA5A5' : '#BBF7D0'}`,
-      borderRadius: 14,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: 8,
-      marginBottom: 8,
-    }}>
-      <div style={{
-        fontSize: 13, fontWeight: 700,
-        color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
-        textTransform: 'uppercase', letterSpacing: '0.1em',
-      }}>
-        {timerExpired ? 'ПОРА ПРОДОЛЖАТЬ' : 'ОТДЫХ'}
-      </div>
-      <div style={{ position: 'relative', width: 168, height: 168 }}>
-        <svg width="168" height="168" viewBox="0 0 110 110" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="55" cy="55" r={TIMER_R} fill="none" stroke={timerExpired ? '#FECACA' : '#D1FAE5'} strokeWidth="7" />
-          <circle
-            cx="55" cy="55" r={TIMER_R} fill="none"
-            stroke={timerExpired ? 'var(--red-500)' : 'var(--green-600)'}
-            strokeWidth="7" strokeLinecap="round"
-            strokeDasharray={timerExpired ? `${TIMER_CIRC} 0` : `${timerDash} ${timerGap}`}
-            strokeDashoffset="0"
-            style={{ transition: 'stroke-dasharray 1s linear' }}
-          />
-        </svg>
-        <div style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-        }}>
-          {(() => {
-            const str = timerExpired ? `+${fmt(timerOvertime)}` : fmt(timerSec)
-            // Шрифт подстраивается под длину строки, чтобы цифры
-            // никогда не вылезали за пределы кольца (напр. «+12:05»).
-            const fs = str.length <= 4 ? 48 : str.length === 5 ? 40 : 32
-            return (
-              <div style={{
-                fontSize: fs, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em',
-                maxWidth: 124, whiteSpace: 'nowrap', textAlign: 'center',
-                color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
-              }}>
-                {str}
-              </div>
-            )
-          })()}
-          <div style={{
-            fontSize: 12, marginTop: 4,
-            color: timerExpired ? 'var(--red-500)' : 'var(--green-600)',
-            opacity: 0.65,
-          }}>
-            {timerExpired ? 'сверх отдыха' : 'мин : сек'}
-          </div>
-        </div>
-      </div>
-      {timerNextEx && (
-        <div style={{ fontSize: 14, color: 'var(--slate-600)', textAlign: 'center', fontWeight: 600 }}>
-          далее: {timerNextEx}
-        </div>
-      )}
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button
-          onClick={() => skipTimer()}
-          style={{
-            background: '#fff', border: '1.5px solid var(--slate-200)',
-            color: 'var(--slate-600)', borderRadius: 8,
-            padding: '6px 12px', fontSize: 13, fontWeight: 600,
-            cursor: 'pointer', fontFamily: 'var(--font)',
-          }}
-        >
-          Пропустить
-        </button>
-        <button
-          onClick={() => addTime(30)}
-          style={{
-            background: '#fff', border: '1.5px solid #A7F3D0',
-            color: 'var(--green-600)', borderRadius: 8,
-            padding: '6px 12px', fontSize: 13, fontWeight: 600,
-            cursor: 'pointer', fontFamily: 'var(--font)',
-          }}
-        >
-          +30 сек
-        </button>
-      </div>
-      <span hidden>{timerLabel}</span>
-    </div>
-  ) : null
+  // Таймер отдыха — отдельный полноэкранный режим (см. DESIGN.md):
+  // во время отдыха экран = только таймер, без карточки и скролла.
+  const timerStr = timerExpired ? `+${fmt(timerOvertime)}` : fmt(timerSec)
+  const restPct = timerExpired ? 100 : Math.max(2, Math.round(timerProgress * 100))
+  const restFs = timerStr.length <= 4 ? 104 : timerStr.length === 5 ? 84 : 64
 
   // Текущее упражнение в пошаговом режиме (одно на экран, без прыжков)
   const stepIdx = (() => {
@@ -484,6 +392,81 @@ export default function DoWorkoutPage() {
   })()
   const stepEx = exercises[stepIdx]
   const stepSt = stepEx ? exState[stepEx.id] : undefined
+
+  // ── РЕЖИМ «ОТДЫХ»: весь экран — таймер, без карточки и скролла ──
+  if (timerActive) {
+    return (
+      <Layout fullHeight>
+        <div
+          className="shrink-0"
+          style={{ background: 'var(--white)', padding: '11px 13px 10px', borderBottom: '1px solid var(--border-light)' }}
+        >
+          <button
+            onClick={() => navigate(-1)}
+            style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)', background: 'none', border: 0, cursor: 'pointer', marginBottom: 6, display: 'block', fontFamily: 'var(--font)' }}
+          >
+            ← Назад
+          </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.01em' }}>
+              {workout?.name}
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink-dim)' }}>
+              {completedExCount} / {exercises.length}
+            </span>
+          </div>
+        </div>
+
+        <div
+          className="flex-1 min-h-0"
+          style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '24px 22px' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 14, marginBottom: 20 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.3em' }}>
+              {timerExpired ? 'Пора продолжать' : 'Отдых'}
+            </span>
+            <div style={{ display: 'flex', gap: 24, flexShrink: 0 }}>
+              <button
+                onClick={() => skipTimer()}
+                style={{ background: 'none', border: 0, borderBottom: '1px solid var(--ink)', color: 'var(--ink-dim)', padding: '5px 1px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)' }}
+              >
+                Пропустить
+              </button>
+              <button
+                onClick={() => addTime(30)}
+                style={{ background: 'none', border: 0, borderBottom: '1px solid var(--ink)', color: 'var(--ink)', padding: '5px 1px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)' }}
+              >
+                +30 сек
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginBottom: 24 }}>
+            <span style={{ fontSize: restFs, fontWeight: 300, lineHeight: 1, letterSpacing: '-0.04em', color: 'var(--ink)', fontFeatureSettings: '"tnum"' }}>
+              {timerStr}
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+              {timerExpired ? 'сверх отдыха' : 'осталось'}
+            </span>
+          </div>
+
+          <div
+            className={timerExpired ? undefined : 'rest-bar'}
+            style={{ height: 10, background: 'var(--hair)', borderRadius: 99, overflow: 'hidden' }}
+          >
+            <div style={{ height: '100%', width: `${restPct}%`, borderRadius: 99, background: 'var(--ink)', transition: 'width 1s linear' }} />
+          </div>
+
+          {timerNextEx && (
+            <div style={{ fontSize: 14, color: 'var(--ink-dim)', fontWeight: 600, marginTop: 18 }}>
+              далее: {timerNextEx}
+            </div>
+          )}
+          <span hidden>{timerLabel}</span>
+        </div>
+      </Layout>
+    )
+  }
 
   return (
     <Layout fullHeight>
@@ -523,18 +506,6 @@ export default function DoWorkoutPage() {
 
       {/* ── Exercise List ──────────────────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto" style={{ padding: '11px 13px 0' }}>
-
-        {/* Таймер — всегда в одной фиксированной позиции сверху списка
-            (sticky), не «прыгает» между упражнениями */}
-        {timerActive && (
-          <div style={{
-            position: 'sticky', top: 0, zIndex: 5,
-            paddingBottom: 2,
-            background: 'var(--bg-page)',
-          }}>
-            {timerBox}
-          </div>
-        )}
 
         {/* Степпер: чипы упражнений — обзор + быстрый переход без длинного скролла */}
         <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8 }}>
@@ -599,12 +570,13 @@ export default function DoWorkoutPage() {
               onChange={e => updateSet(ex.id, i, field, e.target.value)}
               onFocus={e => e.target.select()}
               style={{
-                width: '100%', padding: '7px 4px', textAlign: 'center',
-                fontSize: 16, fontWeight: 600, borderRadius: 8,
-                border: `1.5px solid ${s.completed ? 'var(--green-200)' : 'var(--slate-200)'}`,
+                width: '100%', padding: '9px 4px', textAlign: 'center',
+                fontSize: 26, fontWeight: 400, borderRadius: 8,
+                letterSpacing: '-0.02em', fontFeatureSettings: '"tnum"',
+                border: `1px solid ${s.completed ? 'var(--green-200)' : 'var(--hair)'}`,
                 boxSizing: 'border-box',
-                background: s.completed ? 'var(--green-50)' : '#fff',
-                color: 'var(--slate-900)', fontFamily: 'var(--font)',
+                background: s.completed ? 'var(--pos-soft)' : 'var(--white)',
+                color: s.completed ? 'var(--pos)' : 'var(--ink)', fontFamily: 'var(--font)',
               }}
             />
           )

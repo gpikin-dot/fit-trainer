@@ -1,48 +1,43 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import type { Invite } from '../types/database'
 
 export default function InvitePage() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
-  const [invite, setInvite] = useState<Invite | null>(null)
+  const [ready, setReady] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function checkInvite() {
-      if (!token) { setError('Неверная ссылка'); setLoading(false); return }
+      if (!token) { setError('not_found'); setLoading(false); return }
 
-      const { data: inv } = await supabase
-        .from('invites')
-        .select('*')
-        .eq('token', token)
-        .single()
+      // Безопасная валидация: токен не раскрывает таблицу invites,
+      // RPC возвращает только статус + имя тренера.
+      const { data, error: rpcErr } = await supabase
+        .rpc('validate_invite', { p_token: token })
+      const row = Array.isArray(data) ? data[0] : data
 
-      if (!inv) { setError('not_found'); setLoading(false); return }
-      if (inv.used_by) { setError('used'); setLoading(false); return }
-      if (new Date(inv.expires_at) < new Date()) { setError('expired'); setLoading(false); return }
+      if (rpcErr || !row || !row.valid) {
+        setError(row?.reason ?? 'not_found')
+        setLoading(false)
+        return
+      }
 
-      const { data: trainerData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', inv.trainer_id)
-        .single()
-
-      setInvite(inv)
       sessionStorage.setItem('invite_token', token)
-      sessionStorage.setItem('invite_trainer_name', trainerData?.name ?? '')
+      sessionStorage.setItem('invite_trainer_name', row.trainer_name ?? '')
+      setReady(true)
       setLoading(false)
     }
     checkInvite()
   }, [token])
 
   useEffect(() => {
-    if (!loading && invite) {
+    if (!loading && ready) {
       navigate('/register/client', { replace: true })
     }
-  }, [loading, invite])
+  }, [loading, ready])
 
   if (loading) return (
     <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center px-4">

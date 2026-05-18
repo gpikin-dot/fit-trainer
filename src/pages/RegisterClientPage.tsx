@@ -26,23 +26,20 @@ export default function RegisterClientPage() {
     setError('')
     setLoading(true)
 
-    // Re-validate invite
-    const { data: invite } = await supabase
-      .from('invites')
-      .select('*')
-      .eq('token', token)
-      .single()
-
-    if (!invite || invite.used_by || new Date(invite.expires_at) < new Date()) {
+    // Re-validate invite (безопасно, через RPC)
+    const { data: vData } = await supabase.rpc('validate_invite', { p_token: token })
+    const vRow = Array.isArray(vData) ? vData[0] : vData
+    if (!vRow || !vRow.valid) {
       setError('Приглашение недействительно. Попросите тренера прислать новое.')
       setLoading(false)
       return
     }
 
+    // trainer_id НЕ передаём в метаданные — привязка только через accept_invite
     const { data, error: authError } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
-      options: { data: { name: name.trim(), role: 'client', trainer_id: invite.trainer_id } },
+      options: { data: { name: name.trim(), role: 'client' } },
     })
 
     if (authError || !data.user) {
@@ -53,7 +50,15 @@ export default function RegisterClientPage() {
       return
     }
 
-    await supabase.from('invites').update({ used_by: data.user.id }).eq('token', token)
+    // Атомарно: привязка к тренеру + пометка инвайта использованным.
+    // Ошибку НЕ глотаем — иначе аккаунт без тренера / инвайт цел.
+    const { error: acceptErr } = await supabase.rpc('accept_invite', { p_token: token })
+    if (acceptErr) {
+      await supabase.auth.signOut()
+      setError('Не удалось активировать приглашение. Попросите тренера прислать новую ссылку.')
+      setLoading(false)
+      return
+    }
 
     sessionStorage.removeItem('invite_token')
     sessionStorage.removeItem('invite_trainer_name')

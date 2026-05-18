@@ -57,12 +57,14 @@ function plural(n: number, one: string, few: string, many: string) {
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function StepDots({ step }: { step: Step }) {
-  const steps: Step[] = ['selectClient', 'selectTemplate', 'customize', 'date']
+function StepDots({ step, clientLocked }: { step: Step; clientLocked: boolean }) {
+  const steps: Step[] = clientLocked
+    ? ['selectTemplate', 'customize', 'date']
+    : ['selectClient', 'selectTemplate', 'customize', 'date']
   const idx = steps.indexOf(step)
   return (
     <div className="flex items-center justify-center gap-[5px] py-[8px] mb-2">
-      {[0, 1, 2].map(i => (
+      {steps.map((_, i) => (
         <span
           key={i}
           className={`w-[6px] h-[6px] rounded-full transition-colors ${i <= idx ? 'bg-[var(--blue-600)]' : 'bg-[var(--slate-200)]'}`}
@@ -340,7 +342,7 @@ export default function AssignWorkoutFlow() {
   return (
     <Layout>
       <div className="pt-[11px] pb-[14px]">
-        <StepDots step={step} />
+        <StepDots step={step} clientLocked={!!qClientId} />
 
         {/* ── Step: selectClient ──────────────────────────────────────────── */}
         {step === 'selectClient' && (
@@ -588,7 +590,7 @@ export default function AssignWorkoutFlow() {
               onClick={() => setStep('date')}
               className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[13px]"
             >
-              Далее
+              {clientName ? `Назначить ${clientName.split(' ')[0]} →` : 'Назначить клиенту →'}
             </button>
           </>
         )}

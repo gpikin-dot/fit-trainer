@@ -49,6 +49,7 @@ export interface ExerciseLibrary {
   image_urls: string[]
   source: string
   exercise_type: ExerciseType
+  trainer_id: string | null
 }
 
 export interface Exercise {

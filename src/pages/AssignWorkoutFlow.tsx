@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
 import { ErrorMessage } from '../components/UI'
 import type { ExerciseLibrary, Workout, Profile, WorkoutMode } from '../types/database'
+import { clampSets, clampReps, clampWeight, clampRest } from '../lib/numeric'
 
 function modeOf(row: { mode?: string | null }, lib?: ExerciseLibrary): WorkoutMode {
   if (row.mode === 'reps' || row.mode === 'time' || row.mode === 'weight') return row.mode
@@ -325,11 +326,19 @@ export default function AssignWorkoutFlow() {
           exercises.map(ex => ({
             assigned_workout_id: aw.id,
             library_exercise_id: ex.library_exercise_id,
-            order: ex.order, sets: ex.sets, reps: ex.reps, weight_kg: ex.weight_kg,
-            rest_sec: ex.rest_sec, trainer_note: ex.trainer_note || null, mode: ex.mode,
+            order: ex.order,
+            sets: clampSets(ex.sets), reps: clampReps(ex.reps),
+            weight_kg: clampWeight(ex.weight_kg), rest_sec: clampRest(ex.rest_sec),
+            trainer_note: ex.trainer_note || null, mode: ex.mode,
           }))
         )
-        if (seErr) throw new Error(seErr.message)
+        // Не атомарно (нет RPC-транзакции): при сбое вставки
+        // упражнений откатываем родителя, иначе клиент увидит
+        // пустую тренировку (UX-004).
+        if (seErr) {
+          await supabase.from('assigned_workouts').delete().eq('id', aw.id)
+          throw new Error(seErr.message)
+        }
       }
 
       navigate(`/trainer/client/${selectedClientId}`)

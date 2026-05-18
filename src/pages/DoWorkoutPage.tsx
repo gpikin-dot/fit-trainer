@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useTimer } from '../contexts/TimerContext'
 import Layout from '../components/Layout'
 import type { AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult, SessionExercise } from '../types/database'
+import { clampActualReps, clampActualWeight } from '../lib/numeric'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -237,14 +238,14 @@ export default function DoWorkoutPage() {
       const completed = st.sets.some(s => s.completed)
       if (completed) doneCnt++
 
-      const actualReps = lastDone ? (parseInt(lastDone.reps) || null) : null
-      const actualWeight = lastDone ? (parseFloat(lastDone.weight) || null) : null
+      const actualReps = lastDone ? clampActualReps(parseInt(lastDone.reps) || null) : null
+      const actualWeight = lastDone ? clampActualWeight(parseFloat(lastDone.weight) || null) : null
       if (actualReps && actualReps > ex.reps) abovePlan++
       else if (actualWeight && ex.weight_kg > 0 && actualWeight > ex.weight_kg) abovePlan++
 
       const actualSets = st.sets.map(s => ({
-        reps: parseInt(s.reps) || null,
-        weight: parseFloat(s.weight) || null,
+        reps: clampActualReps(parseInt(s.reps) || null),
+        weight: clampActualWeight(parseFloat(s.weight) || null),
         completed: s.completed,
       }))
 

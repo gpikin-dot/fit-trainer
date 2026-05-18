@@ -9,6 +9,7 @@ import type {
   ExerciseLibrary,
   ExerciseResult,
   Exercise,
+  WorkoutMode,
 } from '../types/database'
 
 // ---------------------------------------------------------------------------
@@ -56,6 +57,7 @@ interface ExerciseRow {
   reps: number
   weight_kg: number
   trainer_note: string | null
+  mode: WorkoutMode
 }
 
 // ---------------------------------------------------------------------------
@@ -121,6 +123,7 @@ export default function ClientSessionPage() {
         id: se.id,
         name: se.exercise_library?.name_ru ?? se.exercise_library?.name_en ?? '—',
         sets: se.sets, reps: se.reps, weight_kg: se.weight_kg, trainer_note: se.trainer_note,
+        mode: ((se as SessionExercise & { mode?: string }).mode as WorkoutMode) ?? 'weight',
       })))
     } else {
       const oldExs = (oldExResult.data ?? []) as (Exercise & { exercise_library: ExerciseLibrary })[]
@@ -128,6 +131,7 @@ export default function ClientSessionPage() {
         id: ex.id,
         name: ex.exercise_library?.name_ru ?? ex.exercise_library?.name_en ?? '—',
         sets: ex.sets, reps: ex.reps, weight_kg: ex.weight_kg, trainer_note: ex.trainer_note,
+        mode: ex.mode ?? 'weight',
       })))
     }
 
@@ -208,6 +212,25 @@ export default function ClientSessionPage() {
               <p className="text-[15px] font-bold text-[var(--slate-900)] mb-[4px]">{ex.name}</p>
 
               {hasResult ? (
+                ex.mode === 'time' ? (
+                  <>
+                    <p className="text-[15px] text-[var(--slate-400)] mb-[2px]">
+                      план: {ex.sets} × {ex.reps} сек
+                    </p>
+                    <p className="text-[15px] text-[var(--slate-700)]">
+                      факт: {ex.sets} × <span className={valueClass(repsCompare)}>{result.actual_reps ?? ex.reps}</span> сек
+                    </p>
+                  </>
+                ) : ex.mode === 'reps' ? (
+                  <>
+                    <p className="text-[15px] text-[var(--slate-400)] mb-[2px]">
+                      план: {ex.sets} × {ex.reps}
+                    </p>
+                    <p className="text-[15px] text-[var(--slate-700)]">
+                      факт: {ex.sets} × <span className={valueClass(repsCompare)}>{result.actual_reps ?? ex.reps}</span>
+                    </p>
+                  </>
+                ) : (
                 <>
                   <p className="text-[15px] text-[var(--slate-400)] mb-[2px]">
                     план: {ex.sets}×{ex.reps} · {ex.weight_kg} кг
@@ -217,6 +240,7 @@ export default function ClientSessionPage() {
                     · <span className={valueClass(weightCompare)}>{result.actual_weight_kg ?? ex.weight_kg}</span> кг
                   </p>
                 </>
+                )
               ) : (
                 <p className="text-[15px] text-[var(--slate-300)] italic">Пропущено</p>
               )}

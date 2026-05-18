@@ -111,6 +111,7 @@ export default function DoWorkoutPage() {
           sets: se.sets, reps: se.reps, weight_kg: se.weight_kg,
           rest_sec: se.rest_sec, trainer_note: se.trainer_note,
           target_heart_rate_bpm: null, order: se.order,
+          mode: se.mode ?? 'weight',
           exercise_library: se.exercise_library,
         })) as (Exercise & { exercise_library: ExerciseLibrary })[]
       } else {
@@ -376,7 +377,11 @@ export default function DoWorkoutPage() {
                   {i + 1}. {lib.name_ru ?? lib.name_en}
                 </div>
                 <div className="text-[13px] text-[var(--slate-500)]">
-                  {ex.sets} × {ex.reps}{ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}
+                  {ex.mode === 'time'
+                    ? `${ex.sets} × ${ex.reps} сек`
+                    : ex.mode === 'reps'
+                      ? `${ex.sets} × ${ex.reps}`
+                      : `${ex.sets} × ${ex.reps}${ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}`}
                   {ex.rest_sec ? ` · отдых ${ex.rest_sec} сек` : ''}
                 </div>
                 {ex.trainer_note && (
@@ -544,7 +549,11 @@ export default function DoWorkoutPage() {
           const isSkipped = st.skipped
 
           const name = ex.exercise_library.name_ru ?? ex.exercise_library.name_en ?? '—'
-          const plan = `план: ${ex.sets} × ${ex.reps}${ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}`
+          const plan = ex.mode === 'time'
+            ? `план: ${ex.sets} × ${ex.reps} сек`
+            : ex.mode === 'reps'
+              ? `план: ${ex.sets} × ${ex.reps}`
+              : `план: ${ex.sets} × ${ex.reps}${ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}`
 
           // ── Done card (clickable → reopen) ─────────────
           if (isDone) {
@@ -624,49 +633,11 @@ export default function DoWorkoutPage() {
                   </div>
                 )}
 
-                {/* Sets table header — прототип ТЗ §4.5.3: grid 18px 1fr 1fr 34px */}
-                <div style={{ display: 'grid', gridTemplateColumns: '18px 1fr 1fr 34px', gap: 6, marginBottom: 6, alignItems: 'center' }}>
-                  <span />
-                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Повторы</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Вес, кг</span>
-                  <span />
-                </div>
-
-                {/* Set rows */}
-                {st.sets.map((s, i) => (
-                  <div key={i} style={{
-                    display: 'grid', gridTemplateColumns: '18px 1fr 1fr 34px',
-                    gap: 6, alignItems: 'center', padding: '6px 0',
-                    borderBottom: i < st.sets.length - 1 ? '1px solid var(--slate-100)' : 'none',
-                  }}>
-                    <span style={{ fontSize: 11, color: 'var(--slate-400)', textAlign: 'center' }}>{i + 1}</span>
-                    <input
-                      type="text" inputMode="numeric" value={s.reps}
-                      onChange={e => updateSet(ex.id, i, 'reps', e.target.value)}
-                      onFocus={e => e.target.select()}
-                      style={{
-                        width: '100%', padding: '7px 4px', textAlign: 'center',
-                        fontSize: 16, fontWeight: 600, borderRadius: 8,
-                        border: `1.5px solid ${s.completed ? 'var(--green-200)' : 'var(--slate-200)'}`,
-                        boxSizing: 'border-box',
-                        background: s.completed ? 'var(--green-50)' : '#fff',
-                        color: 'var(--slate-900)', fontFamily: 'var(--font)',
-                      }}
-                    />
-                    <input
-                      type="text" inputMode="decimal" value={s.weight}
-                      onChange={e => updateSet(ex.id, i, 'weight', e.target.value)}
-                      onFocus={e => e.target.select()}
-                      style={{
-                        width: '100%', padding: '7px 4px', textAlign: 'center',
-                        fontSize: 16, fontWeight: 600, borderRadius: 8,
-                        border: `1.5px solid ${s.completed ? 'var(--green-200)' : 'var(--slate-200)'}`,
-                        boxSizing: 'border-box',
-                        background: s.completed ? 'var(--green-50)' : '#fff',
-                        color: 'var(--slate-900)', fontFamily: 'var(--font)',
-                      }}
-                    />
-                    {/* Set-check: зелёный при done, тап повторно — снять галочку */}
+                {(() => {
+                  const m = ex.mode ?? 'weight'
+                  const cols = m === 'weight' ? '18px 1fr 1fr 34px' : '18px 1fr 34px'
+                  const lblCol2 = m === 'time' ? 'Секунды' : 'Повторы'
+                  const checkBtn = (s: SetState, i: number) => (
                     <button
                       onClick={() => markSet(ex.id, i)}
                       title={s.completed ? 'Снять отметку' : 'Отметить подход'}
@@ -677,15 +648,63 @@ export default function DoWorkoutPage() {
                         color: s.completed ? '#fff' : 'var(--slate-300)',
                         fontSize: 15, fontWeight: 600,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer',
-                        flexShrink: 0, padding: 0, fontFamily: 'var(--font)',
+                        cursor: 'pointer', flexShrink: 0, padding: 0, fontFamily: 'var(--font)',
                         transition: 'background .15s, border-color .15s, color .15s',
                       }}
-                    >
-                      ✓
-                    </button>
-                  </div>
-                ))}
+                    >✓</button>
+                  )
+                  const numCell = (val: string, field: 'reps' | 'weight', s: SetState, i: number) => (
+                    <input
+                      type="text" inputMode={field === 'weight' ? 'decimal' : 'numeric'} value={val}
+                      onChange={e => updateSet(ex.id, i, field, e.target.value)}
+                      onFocus={e => e.target.select()}
+                      style={{
+                        width: '100%', padding: '7px 4px', textAlign: 'center',
+                        fontSize: 16, fontWeight: 600, borderRadius: 8,
+                        border: `1.5px solid ${s.completed ? 'var(--green-200)' : 'var(--slate-200)'}`,
+                        boxSizing: 'border-box',
+                        background: s.completed ? 'var(--green-50)' : '#fff',
+                        color: 'var(--slate-900)', fontFamily: 'var(--font)',
+                      }}
+                    />
+                  )
+                  return (
+                    <>
+                      <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 6, marginBottom: 6, alignItems: 'center' }}>
+                        <span />
+                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{lblCol2}</span>
+                        {m === 'weight' && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--slate-400)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Вес, кг</span>}
+                        <span />
+                      </div>
+                      {st.sets.map((s, i) => (
+                        <div key={i} style={{
+                          display: 'grid', gridTemplateColumns: cols,
+                          gap: 6, alignItems: 'center', padding: '6px 0',
+                          borderBottom: i < st.sets.length - 1 ? '1px solid var(--slate-100)' : 'none',
+                        }}>
+                          <span style={{ fontSize: 11, color: 'var(--slate-400)', textAlign: 'center' }}>{i + 1}</span>
+                          {m === 'time' ? (
+                            <button
+                              onClick={() => !s.completed && startTimer(parseInt(s.reps) || ex.reps, '', assignedId!, ex.id)}
+                              style={{
+                                width: '100%', padding: '7px 4px',
+                                fontSize: 14, fontWeight: 600, borderRadius: 8,
+                                border: `1.5px solid ${s.completed ? 'var(--green-200)' : 'var(--blue-200)'}`,
+                                background: s.completed ? 'var(--green-50)' : 'var(--blue-50)',
+                                color: s.completed ? 'var(--green-700)' : 'var(--blue-700)',
+                                cursor: s.completed ? 'default' : 'pointer', fontFamily: 'var(--font)',
+                              }}
+                            >
+                              {s.completed ? `${s.reps}с ✓` : `▶ ${s.reps || ex.reps}с`}
+                            </button>
+                          ) : numCell(s.reps, 'reps', s, i)}
+                          {m === 'weight' && numCell(s.weight, 'weight', s, i)}
+                          {checkBtn(s, i)}
+                        </div>
+                      ))}
+                    </>
+                  )
+                })()}
 
                 {/* Note */}
                 <input

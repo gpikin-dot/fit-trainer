@@ -437,7 +437,7 @@ export default function CreateWorkoutPage() {
               </button>
             ))}
           </div>
-          <div className="max-h-[45vh] overflow-y-auto overscroll-contain mb-[9px]">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain mb-[9px]">
             {filteredLibrary.map(lib => {
               const selected = selectedLibraryIds.has(lib.id)
               return (
@@ -458,7 +458,7 @@ export default function CreateWorkoutPage() {
           <button
             onClick={addSelectedExercises}
             disabled={selectedLibraryIds.size === 0}
-            className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-40 text-white text-[15px] font-semibold py-[10px] rounded-[8px] transition-colors"
+            className="shrink-0 w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-40 text-white text-[15px] font-semibold py-[10px] rounded-[8px] transition-colors"
           >
             {selectedLibraryIds.size === 0 ? 'Выберите упражнения' : `Добавить (${selectedLibraryIds.size})`}
           </button>

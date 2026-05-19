@@ -382,32 +382,80 @@ export default function DoWorkoutPage() {
             </div>
           )}
           <h1 className="text-[20px] font-bold text-[var(--slate-900)] mb-[2px]">{workout?.name}</h1>
-          <p className="text-[13px] text-[var(--slate-400)] mb-[16px]">
+          <p className="text-[13px] text-[var(--slate-400)] mb-[12px]">
             {exercises.length} упражнений
             {workout?.default_rest_sec ? ` · отдых ${workout.default_rest_sec} сек` : ''}
           </p>
 
-          {exercises.map((ex, i) => {
-            const lib = ex.exercise_library
-            return (
-              <div key={ex.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[12px] py-[10px] mb-[5px]">
-                <div className="text-[15px] font-semibold text-[var(--slate-900)] mb-[3px]">
-                  {i + 1}. {lib.name_ru ?? lib.name_en}
-                </div>
-                <div className="text-[13px] text-[var(--slate-500)]">
-                  {ex.mode === 'time'
-                    ? `${ex.sets} × ${ex.reps} сек`
-                    : ex.mode === 'reps'
-                      ? `${ex.sets} × ${ex.reps}`
-                      : `${ex.sets} × ${ex.reps}${ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}`}
-                  {ex.rest_sec ? ` · отдых ${ex.rest_sec} сек` : ''}
-                </div>
-                {ex.trainer_note && (
-                  <div className="text-[13px] text-[var(--blue-600)] italic mt-[3px]">«{ex.trainer_note}»</div>
-                )}
+          {/* Прогресс при возврате в прерванную тренировку (фидбэк п.7) */}
+          {hasProgress && (
+            <div className="bg-white border border-[var(--border)] rounded-[10px] px-[12px] py-[10px] mb-[12px]">
+              <div className="flex items-baseline justify-between mb-[6px]">
+                <span className="text-[13px] font-semibold text-[var(--slate-500)] uppercase tracking-[0.06em]">
+                  Прогресс
+                </span>
+                <span className="text-[15px] font-bold text-[var(--slate-900)]">
+                  {completedExCount} / {exercises.length}
+                </span>
               </div>
-            )
-          })}
+              <div className="h-[5px] bg-[var(--slate-100)] rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[var(--green-300)]"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {(() => {
+            // Где тренировка прервана — первое незавершённое/непропущенное
+            const resumeIdx = exercises.findIndex(ex => {
+              const st = exState[ex.id]
+              return !st?.skipped && !(st && st.sets.length > 0 && st.sets.every(s => s.completed))
+            })
+            return exercises.map((ex, i) => {
+              const lib = ex.exercise_library
+              const st = exState[ex.id]
+              const totalSets = st?.sets.length ?? ex.sets
+              const doneSets = st?.sets.filter(s => s.completed).length ?? 0
+              const isDone = !!st && !st.skipped && st.sets.length > 0 && st.sets.every(s => s.completed)
+              const isSkipped = !!st?.skipped
+              const isPartial = !isDone && !isSkipped && doneSets > 0
+              const isResume = hasProgress && i === resumeIdx
+              return (
+                <div
+                  key={ex.id}
+                  className={`bg-white rounded-[10px] px-[12px] py-[10px] mb-[5px] border ${
+                    isResume ? 'border-[var(--blue-600)] border-[1.5px]' : 'border-[var(--border)]'
+                  }`}
+                  style={isDone ? { opacity: 0.55 } : undefined}
+                >
+                  <div className="flex items-start justify-between gap-[8px]">
+                    <div className="text-[15px] font-semibold text-[var(--slate-900)] mb-[3px]">
+                      {i + 1}. {lib.name_ru ?? lib.name_en}
+                    </div>
+                    {isDone && <span className="text-[13px] font-bold text-[var(--green-600)] shrink-0">✓ выполнено</span>}
+                    {isSkipped && <span className="text-[13px] font-semibold text-[var(--slate-400)] shrink-0">пропущено</span>}
+                    {isPartial && <span className="text-[13px] font-semibold text-[var(--amber-800)] shrink-0">{doneSets}/{totalSets} подх.</span>}
+                    {isResume && !isDone && !isPartial && !isSkipped && (
+                      <span className="text-[13px] font-bold text-[var(--blue-600)] shrink-0">продолжить →</span>
+                    )}
+                  </div>
+                  <div className="text-[13px] text-[var(--slate-500)]">
+                    {ex.mode === 'time'
+                      ? `${ex.sets} × ${ex.reps} сек`
+                      : ex.mode === 'reps'
+                        ? `${ex.sets} × ${ex.reps}`
+                        : `${ex.sets} × ${ex.reps}${ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}`}
+                    {ex.rest_sec ? ` · отдых ${ex.rest_sec} сек` : ''}
+                  </div>
+                  {ex.trainer_note && (
+                    <div className="text-[13px] text-[var(--blue-600)] italic mt-[3px]">«{ex.trainer_note}»</div>
+                  )}
+                </div>
+              )
+            })
+          })()}
 
           <button
             onClick={() => setPhase('doing')}
@@ -605,8 +653,8 @@ export default function DoWorkoutPage() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4, gap: 8 }}>
-                <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--slate-900)' }}>{name}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5, gap: 8 }}>
+                <span style={{ fontSize: 25, fontWeight: 700, color: 'var(--slate-900)', lineHeight: 1.1, letterSpacing: '-0.01em' }}>{name}</span>
                 <span style={{ fontSize: 13, color: 'var(--slate-400)', flexShrink: 0 }}>{stepIdx + 1} / {exercises.length}</span>
               </div>
               <div style={{ fontSize: 15, color: 'var(--slate-400)', marginBottom: 8 }}>{plan}</div>

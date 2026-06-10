@@ -15,6 +15,9 @@ create table if not exists public.client_errors (
 
 alter table public.client_errors enable row level security;
 
+-- Табличные привилегии: только INSERT (читать таблицу клиентам нельзя)
+grant insert on table public.client_errors to anon, authenticated;
+
 create policy client_errors_insert_any
   on public.client_errors
   for insert

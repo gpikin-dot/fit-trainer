@@ -79,7 +79,8 @@ export default function CreateWorkoutPage() {
   function toggleLibrarySelect(id: string) {
     setSelectedLibraryIds(prev => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
       return next
     })
   }
@@ -111,6 +112,7 @@ export default function CreateWorkoutPage() {
     ])
     setSelectedLibraryIds(new Set())
     setShowLibraryModal(false)
+    setError('')
   }
 
   async function createCustomExercise() {
@@ -174,6 +176,7 @@ export default function CreateWorkoutPage() {
 
   async function handleSave() {
     if (!name.trim()) { setError('Введите название тренировки'); return }
+    if (exercises.length === 0) { setError('Добавьте хотя бы одно упражнение'); return }
     if (!profile) return
     setError('')
     setSaving(true)
@@ -258,8 +261,6 @@ export default function CreateWorkoutPage() {
             className="w-full border border-[var(--slate-200)] rounded-[7px] px-[12px] py-[10px] text-[15px] text-[var(--slate-900)] bg-white outline-none focus:border-[var(--blue-500)]"
           />
         </div>
-
-        {error && <ErrorMessage text={error} />}
 
         {/* Exercises */}
         {exercises.map((ex, idx) => {
@@ -381,11 +382,13 @@ export default function CreateWorkoutPage() {
         })}
 
         <button
-          onClick={() => setShowLibraryModal(true)}
+          onClick={() => { setError(''); setShowLibraryModal(true) }}
           className="border-[1.5px] border-dashed border-[var(--blue-400)] bg-white rounded-[8px] py-[10px] text-[15px] font-semibold text-[var(--blue-600)] w-full flex items-center justify-center gap-1 mt-[6px] mb-[10px]"
         >
           <Plus className="w-3.5 h-3.5" /> Добавить упражнение
         </button>
+
+        {!showLibraryModal && error && <ErrorMessage text={error} />}
 
         <button
           onClick={handleSave}

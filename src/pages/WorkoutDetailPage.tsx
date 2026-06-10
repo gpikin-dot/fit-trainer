@@ -130,7 +130,13 @@ export default function WorkoutDetailPage() {
 
         {/* Assign button */}
         <button
-          onClick={() => navigate(`/trainer/assign?workoutId=${id}`)}
+          onClick={() => {
+            if (exercises.length === 0) {
+              setError('В шаблоне нет упражнений — добавьте хотя бы одно, чтобы назначить клиенту.')
+              return
+            }
+            navigate(`/trainer/assign?workoutId=${id}`)
+          }}
           className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[13px] mb-[16px]"
         >
           Назначить клиенту

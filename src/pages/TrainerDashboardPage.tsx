@@ -155,6 +155,13 @@ export default function TrainerDashboardPage() {
   const todayClients = clients.filter(c => c.hasWorkoutToday)
   const otherClients = clients.filter(c => !c.hasWorkoutToday)
 
+  // First-run checklist: статус шагов выводится из данных, ничего не храним.
+  // compliance !== null означает, что у клиента есть хотя бы одно назначение.
+  const hasTemplate = workouts.length > 0
+  const hasClient = clients.length > 0
+  const hasAssignment = clients.some(c => c.pendingCount > 0 || c.compliance !== null)
+  const showChecklist = !(hasTemplate && hasClient && hasAssignment)
+
   return (
     <Layout>
       {/* Header — аккаунт (бренд — в глобальной шапке Layout) */}
@@ -204,6 +211,34 @@ export default function TrainerDashboardPage() {
       <div className="pt-[8px] pb-[32px]">
         {error && (
           <div className="text-[14px] text-[var(--red-500)] mb-2 px-[3px]">{error}</div>
+        )}
+
+        {showChecklist && (
+          <div className="bg-[var(--blue-50)] border border-[var(--blue-100)] rounded-[10px] px-[14px] py-[12px] mb-[10px] mt-[4px]">
+            <div className="text-[13px] font-bold text-[var(--slate-900)] mb-[8px]">
+              Быстрый старт — {[hasTemplate, hasClient, hasAssignment].filter(Boolean).length} из 3
+            </div>
+            <ChecklistStep
+              idx={1}
+              done={hasTemplate}
+              label="Создайте шаблон тренировки"
+              onClick={handleCreateWorkout}
+            />
+            <ChecklistStep
+              idx={2}
+              done={hasClient}
+              label="Пригласите клиента"
+              onClick={handleCreateInvite}
+            />
+            <ChecklistStep
+              idx={3}
+              done={hasAssignment}
+              label="Назначьте тренировку"
+              disabled={!hasTemplate || !hasClient}
+              hint={!hasTemplate || !hasClient ? 'Сначала шаги 1 и 2' : undefined}
+              onClick={() => navigate('/trainer/assign')}
+            />
+          </div>
         )}
 
         {/* CLIENTS TAB */}
@@ -288,6 +323,41 @@ export default function TrainerDashboardPage() {
         <InviteModal invite={latestInvite} onClose={() => setShowInviteModal(false)} />
       )}
     </Layout>
+  )
+}
+
+function ChecklistStep({
+  idx, done, label, hint, disabled = false, onClick,
+}: {
+  idx: number; done: boolean; label: string; hint?: string; disabled?: boolean; onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={done || disabled}
+      className="w-full flex items-center gap-[10px] py-[7px] text-left disabled:cursor-default"
+    >
+      <span className={`w-[22px] h-[22px] rounded-full flex items-center justify-center shrink-0 text-[12px] font-bold ${
+        done
+          ? 'bg-[var(--green-100)] text-[var(--green-600)]'
+          : disabled
+            ? 'bg-[var(--slate-100)] text-[var(--slate-400)]'
+            : 'bg-[var(--blue-600)] text-white'
+      }`}>
+        {done ? '✓' : idx}
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className={`text-[14px] font-medium block ${
+          done ? 'text-[var(--slate-400)] line-through' : disabled ? 'text-[var(--slate-400)]' : 'text-[var(--slate-900)]'
+        }`}>
+          {label}
+        </span>
+        {hint && !done && (
+          <span className="text-[12px] text-[var(--slate-400)] block">{hint}</span>
+        )}
+      </span>
+      {!done && !disabled && <span className="text-[var(--slate-300)] text-[15px] shrink-0">›</span>}
+    </button>
   )
 }
 

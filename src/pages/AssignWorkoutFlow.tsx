@@ -112,7 +112,9 @@ export default function AssignWorkoutFlow() {
     if (qRepeatFrom && qWorkoutId && qClientId) return 'customize'
     if (qWorkoutId && qClientId) return 'customize'
     if (qWorkoutId) return 'selectClient'
-    return 'selectTemplate'
+    // Без параметров начинаем с выбора клиента — иначе selectedClientId
+    // останется пустым и финальное назначение молча не сработает
+    return qClientId ? 'selectTemplate' : 'selectClient'
   }
 
   const [step, setStep] = useState<Step>(initStep)

@@ -15,9 +15,12 @@ import SessionDetailPage from './pages/SessionDetailPage'
 import ClientSessionPage from './pages/ClientSessionPage'
 import ProfilePage from './pages/ProfilePage'
 import AssignmentEditPage from './pages/AssignmentEditPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import ProfileRecoveryScreen from './pages/ProfileRecoveryScreen'
 
 function RequireAuth({ children, role }: { children: React.ReactNode; role?: 'trainer' | 'client' }) {
-  const { user, profile, loading } = useAuth()
+  const { user, profile, profileError, loading, signOut, refetchProfile } = useAuth()
 
   if (loading) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -25,7 +28,14 @@ function RequireAuth({ children, role }: { children: React.ReactNode; role?: 'tr
     </div>
   )
 
-  if (!user || !profile) return <Navigate to="/login" replace />
+  if (!user) return <Navigate to="/login" replace />
+  if (!profile) {
+    // Сессия есть, профиля нет — объясняем, а не выбрасываем на /login
+    if (profileError) {
+      return <ProfileRecoveryScreen kind={profileError} onRetry={() => refetchProfile()} onSignOut={signOut} />
+    }
+    return <Navigate to="/login" replace />
+  }
   if (role && profile.role !== role) {
     return <Navigate to={profile.role === 'trainer' ? '/trainer' : '/client'} replace />
   }
@@ -33,7 +43,7 @@ function RequireAuth({ children, role }: { children: React.ReactNode; role?: 'tr
 }
 
 export default function App() {
-  const { profile, loading } = useAuth()
+  const { user, profile, profileError, loading, signOut, refetchProfile } = useAuth()
 
   if (loading) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -50,6 +60,8 @@ export default function App() {
         } />
         <Route path="/register/trainer" element={<RegisterTrainerPage />} />
         <Route path="/register/client" element={<RegisterClientPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route path="/trainer" element={
           <RequireAuth role="trainer"><TrainerDashboardPage /></RequireAuth>
@@ -96,7 +108,9 @@ export default function App() {
         <Route path="/" element={
           profile
             ? <Navigate to={profile.role === 'trainer' ? '/trainer' : '/client'} replace />
-            : <Navigate to="/login" replace />
+            : user && profileError
+              ? <ProfileRecoveryScreen kind={profileError} onRetry={() => refetchProfile()} onSignOut={signOut} />
+              : <Navigate to="/login" replace />
         } />
       </Routes>
     </BrowserRouter>

@@ -382,7 +382,7 @@ export default function CreateWorkoutPage() {
         })}
 
         <button
-          onClick={() => setShowLibraryModal(true)}
+          onClick={() => { setError(''); setShowLibraryModal(true) }}
           className="border-[1.5px] border-dashed border-[var(--blue-400)] bg-white rounded-[8px] py-[10px] text-[15px] font-semibold text-[var(--blue-600)] w-full flex items-center justify-center gap-1 mt-[6px] mb-[10px]"
         >
           <Plus className="w-3.5 h-3.5" /> Добавить упражнение

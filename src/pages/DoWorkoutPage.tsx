@@ -6,6 +6,7 @@ import { useTimer } from '../contexts/TimerContext'
 import Layout from '../components/Layout'
 import type { AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult, SessionExercise } from '../types/database'
 import { clampActualReps, clampActualWeight } from '../lib/numeric'
+import { fetchExerciseHistory, fmtExecution, fmtHistDate, type PastExecution } from '../lib/exerciseHistory'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -46,6 +47,7 @@ export default function DoWorkoutPage() {
   const [exercises, setExercises] = useState<(Exercise & { exercise_library: ExerciseLibrary })[]>([])
   const [existingResults, setExistingResults] = useState<ExerciseResult[]>([])
   const [exState, setExState] = useState<Record<string, ExState>>({})
+  const [pastHistory, setPastHistory] = useState<Record<string, PastExecution[]>>({})
   const [loaded, setLoaded] = useState(false)
   const [activeExId, setActiveExId] = useState<string | null>(null)
   const [timerLabel, setTimerLabel] = useState('Отдых')
@@ -131,6 +133,11 @@ export default function DoWorkoutPage() {
         list = (exs ?? []) as (Exercise & { exercise_library: ExerciseLibrary })[]
       }
       setExercises(list)
+
+      // Прошлые выполнения этих упражнений — не блокируем загрузку экрана
+      fetchExerciseHistory(a.client_id, list.map(ex => ex.library_exercise_id), { excludeAssignedId: assignedId })
+        .then(setPastHistory)
+        .catch(() => {})
 
       // Restore from localStorage
       const saved = localStorage.getItem(storageKey(assignedId))
@@ -276,6 +283,7 @@ export default function DoWorkoutPage() {
       const payload = {
         assigned_workout_id: assignment.id,
         exercise_id: ex.id,
+        library_exercise_id: ex.library_exercise_id,
         actual_reps: actualReps,
         actual_weight_kg: actualWeight,
         actual_sets: actualSets,
@@ -691,6 +699,23 @@ export default function DoWorkoutPage() {
                   fontSize: 13, color: 'var(--blue-700)', lineHeight: 1.4,
                 }}>
                   💬 {ex.trainer_note}
+                </div>
+              )}
+
+              {(pastHistory[ex.library_exercise_id]?.length ?? 0) > 0 && (
+                <div style={{
+                  background: 'var(--slate-50)', border: '1px solid var(--slate-100)',
+                  borderRadius: 8, padding: '7px 10px', marginBottom: 8,
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>
+                    Прошлые разы
+                  </div>
+                  {pastHistory[ex.library_exercise_id].map((h, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '1px 0' }}>
+                      <span style={{ color: 'var(--slate-400)' }}>{fmtHistDate(h.date)}</span>
+                      <span style={{ color: 'var(--slate-600)', fontWeight: 600 }}>{fmtExecution(h, m)}</span>
+                    </div>
+                  ))}
                 </div>
               )}
 

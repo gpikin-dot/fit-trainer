@@ -80,6 +80,7 @@ export interface ExerciseResult {
   id: string
   assigned_workout_id: string
   exercise_id: string
+  library_exercise_id: string | null
   actual_reps: number | null
   actual_weight_kg: number | null
   actual_heart_rate_bpm: number | null

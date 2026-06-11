@@ -10,3 +10,13 @@
     font-size: 16px !important;
   }
 }
+
+/* Плавная смена карточки упражнения (свайп/кнопки) */
+@keyframes ex-slide-fwd {
+  from { transform: translateX(36px); opacity: 0.25; }
+  to   { transform: none; opacity: 1; }
+}
+@keyframes ex-slide-back {
+  from { transform: translateX(-36px); opacity: 0.25; }
+  to   { transform: none; opacity: 1; }
+}

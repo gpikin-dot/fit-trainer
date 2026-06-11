@@ -551,6 +551,7 @@ export default function CreateWorkoutPage() {
                   </div>
                   {lib.image_urls?.[0] ? (
                     <img src={lib.image_urls[0]} loading="lazy" alt=""
+                      style={{ filter: 'grayscale(1) contrast(1.05)' }}
                       className="w-[46px] h-[34px] object-cover rounded-[6px] shrink-0 bg-white border border-[var(--slate-100)]" />
                   ) : (
                     <div className="w-[46px] h-[34px] rounded-[6px] shrink-0 bg-[var(--slate-50)] border border-[var(--slate-100)]" />

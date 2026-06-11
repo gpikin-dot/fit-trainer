@@ -9,7 +9,6 @@ import { clampActualReps, clampActualWeight } from '../lib/numeric'
 import { modeOf } from '../lib/workoutMode'
 import { plural } from '../lib/plural'
 import { groupInfoFor } from '../lib/superset'
-import { fetchExerciseHistory, fmtExecution, fmtHistDate, type PastExecution } from '../lib/exerciseHistory'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -53,7 +52,7 @@ function ExerciseImage({ urls, name }: { urls: string[]; name: string }) {
       <img
         src={urls[Math.min(frame, urls.length - 1)]}
         alt={`Техника: ${name}`}
-        style={{ width: '100%', height: 150, objectFit: 'contain', background: '#fff', borderRadius: 8, border: '1px solid var(--slate-100)' }}
+        style={{ width: '100%', height: 150, objectFit: 'contain', background: '#fff', borderRadius: 8, border: '1px solid var(--slate-100)', filter: 'grayscale(1) contrast(1.05)' }}
       />
       <button onClick={() => setHidden(true)}
         style={{ position: 'absolute', top: 6, right: 6, fontSize: 11, fontWeight: 600, color: 'var(--slate-400)', background: 'rgba(255,255,255,0.9)', border: '1px solid var(--slate-200)', borderRadius: 12, padding: '2px 8px', cursor: 'pointer', fontFamily: 'var(--font)' }}>
@@ -84,7 +83,6 @@ export default function DoWorkoutPage() {
   const [exercises, setExercises] = useState<(Exercise & { exercise_library: ExerciseLibrary })[]>([])
   const [existingResults, setExistingResults] = useState<ExerciseResult[]>([])
   const [exState, setExState] = useState<Record<string, ExState>>({})
-  const [pastHistory, setPastHistory] = useState<Record<string, PastExecution[]>>({})
   const [loaded, setLoaded] = useState(false)
   const [activeExId, setActiveExId] = useState<string | null>(null)
   const [timerLabel, setTimerLabel] = useState('Отдых')
@@ -99,6 +97,15 @@ export default function DoWorkoutPage() {
 
   // Свайп между упражнениями (фидбэк п.4)
   const touchStart = useRef<{ x: number; y: number } | null>(null)
+
+  // Направление анимации смены карточки: сравниваем с прошлым индексом
+  const curStepIdx = (() => {
+    const i = exercises.findIndex(e => e.id === activeExId)
+    return i >= 0 ? i : 0
+  })()
+  const prevStepIdxRef = useRef(curStepIdx)
+  const slideDir = curStepIdx >= prevStepIdxRef.current ? 'fwd' : 'back'
+  useEffect(() => { prevStepIdxRef.current = curStepIdx }, [curStepIdx])
 
   // Advance activeEx when timer stops (timer-driven auto-advance)
   const prevTimerActive = useRef(false)
@@ -171,11 +178,6 @@ export default function DoWorkoutPage() {
         list = (exs ?? []) as (Exercise & { exercise_library: ExerciseLibrary })[]
       }
       setExercises(list)
-
-      // Прошлые выполнения этих упражнений — не блокируем загрузку экрана
-      fetchExerciseHistory(a.client_id, list.map(ex => ex.library_exercise_id), { excludeAssignedId: assignedId })
-        .then(setPastHistory)
-        .catch(() => {})
 
       // Restore from localStorage
       const saved = localStorage.getItem(storageKey(assignedId))
@@ -648,10 +650,11 @@ export default function DoWorkoutPage() {
           )
 
           return (
-            <div style={{
+            <div key={ex.id} style={{
               background: 'var(--white)', border: `2px solid ${borderColor}`,
               borderRadius: 10, padding: '10px 11px', marginBottom: 6,
               boxShadow: timerActive ? '0 0 0 3px rgba(28,27,24,0.07)' : 'none',
+              animation: `${slideDir === 'fwd' ? 'ex-slide-fwd' : 'ex-slide-back'} 0.22s ease`,
             }}>
               {/* Таймер отдыха — встроен в карточку (фидбэк п.2):
                   компактная строка + «убегающая» полоса, видны подходы/прогресс */}
@@ -754,23 +757,6 @@ export default function DoWorkoutPage() {
                   fontSize: 13, color: 'var(--blue-700)', lineHeight: 1.4,
                 }}>
                   💬 {ex.trainer_note}
-                </div>
-              )}
-
-              {(pastHistory[ex.library_exercise_id]?.length ?? 0) > 0 && (
-                <div style={{
-                  background: 'var(--slate-50)', border: '1px solid var(--slate-100)',
-                  borderRadius: 8, padding: '7px 10px', marginBottom: 8,
-                }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>
-                    Прошлые разы
-                  </div>
-                  {pastHistory[ex.library_exercise_id].map((h, i) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '1px 0' }}>
-                      <span style={{ color: 'var(--slate-400)' }}>{fmtHistDate(h.date)}</span>
-                      <span style={{ color: 'var(--slate-600)', fontWeight: 600 }}>{fmtExecution(h, m)}</span>
-                    </div>
-                  ))}
                 </div>
               )}
 

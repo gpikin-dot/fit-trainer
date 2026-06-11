@@ -4,6 +4,7 @@ import { LogOut } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
+import ExerciseProgressList from '../components/ExerciseProgressList'
 import type { AssignedWorkout, Workout } from '../types/database'
 
 const DAYS_RU = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
@@ -224,13 +225,9 @@ export default function ClientDashboardPage() {
         )}
 
         {/* PROGRESS — placeholder */}
-        {tab === 'progress' && (
-          <div className="flex flex-col items-center gap-[12px] py-[48px] px-[16px]">
-            <div className="text-[32px]">📊</div>
-            <div className="text-[16px] font-semibold text-[var(--slate-700)]">Раздел в разработке</div>
-            <div className="text-[13px] text-[var(--slate-400)] text-center max-w-[240px] leading-[1.5]">
-              Здесь будет отображаться динамика весов, посещаемость и другие показатели прогресса.
-            </div>
+        {tab === 'progress' && profile && (
+          <div className="pt-[8px]">
+            <ExerciseProgressList clientId={profile.id} />
           </div>
         )}
 

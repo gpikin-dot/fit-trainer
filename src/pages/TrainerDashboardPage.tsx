@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
 import { Modal } from '../components/UI'
 import { canCreateWorkout, canInviteClient } from '../lib/planLimits'
+import { plural } from '../lib/plural'
 import type { Workout, Profile, Invite } from '../types/database'
 
 interface ClientStat extends Profile {

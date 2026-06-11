@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
 import { ErrorMessage } from '../components/UI'
+import { plural } from '../lib/plural'
 import type { Workout, Exercise, ExerciseLibrary, AssignedWorkout, Profile } from '../types/database'
 
 export default function WorkoutDetailPage() {
@@ -62,7 +63,7 @@ export default function WorkoutDetailPage() {
       const clientCount = new Set(assignments.map(a => a.client_id)).size
       setError(
         `Нельзя удалить: шаблон назначен ${assignments.length} ` +
-        `${assignments.length === 1 ? 'раз' : 'раз(а)'} ` +
+        `${plural(assignments.length, 'раз', 'раза', 'раз').replace(/^\d+ /, '')} ` +
         `(${clientCount} ${clientCount === 1 ? 'клиенту' : 'клиентам'}). ` +
         `Удаление стёрло бы все эти тренировки и историю. ` +
         `Сначала отмените назначения или используйте «Копировать» для новой версии.`
@@ -123,7 +124,7 @@ export default function WorkoutDetailPage() {
 
         <h1 className="text-[20px] font-bold text-[var(--slate-900)] mb-[2px]">{workout.name}</h1>
         <p className="text-[13px] text-[var(--slate-400)] mb-[14px]">
-          {exercises.length} упражнений · отдых {workout.default_rest_sec} сек
+          {plural(exercises.length, 'упражнение', 'упражнения', 'упражнений')} · отдых {workout.default_rest_sec} сек
         </p>
 
         {error && <ErrorMessage text={error} />}
@@ -184,7 +185,7 @@ export default function WorkoutDetailPage() {
                   </div>
                   <span className="text-[15px] font-semibold text-[var(--slate-900)] flex-1">{name}</span>
                   <span className="text-[13px] text-[var(--slate-400)]">
-                    {count} {count === 1 ? 'раз' : 'раза'}
+                    {plural(count, 'раз', 'раза', 'раз')}
                   </span>
                 </div>
               ))}

@@ -7,12 +7,8 @@ import Layout from '../components/Layout'
 import { ErrorMessage } from '../components/UI'
 import type { ExerciseLibrary, Workout, Profile, WorkoutMode, ExerciseWithLibrary, SessionExerciseWithLibrary } from '../types/database'
 import { clampSets, clampReps, clampWeight, clampRest } from '../lib/numeric'
-
-function modeOf(row: { mode?: string | null }, lib?: ExerciseLibrary): WorkoutMode {
-  if (row.mode === 'reps' || row.mode === 'time' || row.mode === 'weight') return row.mode
-  const t = lib?.exercise_type
-  return t === 'cardio_time' ? 'time' : t === 'cardio_reps' ? 'reps' : 'weight'
-}
+import { modeOf } from '../lib/workoutMode'
+import { fetchExerciseHistory, fmtExecution, fmtHistDate, type PastExecution } from '../lib/exerciseHistory'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -125,6 +121,7 @@ export default function AssignWorkoutFlow() {
   const [workoutTimeCounts, setWorkoutTimeCounts] = useState<Record<string, number>>({})
   const [exerciseCounts, setExerciseCounts] = useState<Record<string, number>>({})
   const [exercises, setExercises] = useState<ExerciseConfig[]>([])
+  const [pastHistory, setPastHistory] = useState<Record<string, PastExecution[]>>({})
   const [workoutName, setWorkoutName] = useState('')
   const [clientName, setClientName] = useState('')
   const [dateChoice, setDateChoice] = useState<DateChoice>('today')
@@ -138,6 +135,15 @@ export default function AssignWorkoutFlow() {
     loadData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile])
+
+  // История клиента по упражнениям шаблона — подсказка тренеру при настройке
+  useEffect(() => {
+    if (!selectedClientId || exercises.length === 0) { setPastHistory({}); return }
+    fetchExerciseHistory(selectedClientId, exercises.map(e => e.library_exercise_id))
+      .then(setPastHistory)
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClientId, exercises])
 
   async function loadData() {
     if (!profile) return
@@ -211,7 +217,7 @@ export default function AssignWorkoutFlow() {
           sets: se.sets, reps: se.reps, weight_kg: se.weight_kg,
           rest_sec: se.rest_sec, trainer_note: se.trainer_note ?? '',
 
-          mode: modeOf(se, se.exercise_library),
+          mode: modeOf(se.mode, se.exercise_library),
           origSets: se.sets, origReps: se.reps, origWeight: se.weight_kg,
         })))
       }
@@ -227,7 +233,7 @@ export default function AssignWorkoutFlow() {
           sets: e.sets, reps: e.reps, weight_kg: e.weight_kg,
           rest_sec: e.rest_sec, trainer_note: e.trainer_note ?? '',
 
-          mode: modeOf(e, e.exercise_library),
+          mode: modeOf(e.mode, e.exercise_library),
           origSets: e.sets, origReps: e.reps, origWeight: e.weight_kg,
         })))
       }
@@ -260,7 +266,7 @@ export default function AssignWorkoutFlow() {
       sets: e.sets, reps: e.reps, weight_kg: e.weight_kg,
       rest_sec: e.rest_sec, trainer_note: e.trainer_note ?? '',
 
-      mode: modeOf(e, e.exercise_library),
+      mode: modeOf(e.mode, e.exercise_library),
       origSets: e.sets, origReps: e.reps, origWeight: e.weight_kg,
     })))
     setLoading(false)
@@ -560,6 +566,20 @@ export default function AssignWorkoutFlow() {
                           ✕
                         </button>
                       </div>
+
+                      {(pastHistory[ex.library_exercise_id]?.length ?? 0) > 0 && (
+                        <div className="bg-[var(--slate-50)] border border-[var(--slate-100)] rounded-[7px] px-[8px] py-[5px] mb-[6px]">
+                          <div className="text-[10px] font-bold text-[var(--slate-400)] uppercase tracking-[0.05em] mb-[2px]">
+                            {clientName ? `${clientName.split(' ')[0]} делал(а)` : 'Клиент делал'}
+                          </div>
+                          {pastHistory[ex.library_exercise_id].map((h, i) => (
+                            <div key={i} className="flex justify-between text-[12px] py-[1px]">
+                              <span className="text-[var(--slate-400)]">{fmtHistDate(h.date)}</span>
+                              <span className="text-[var(--slate-600)] font-semibold">{fmtExecution(h, ex.mode)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
 
                       {exType === 'cardio_time' ? (
                         <>

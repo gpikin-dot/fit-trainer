@@ -4,12 +4,8 @@ import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import { Modal, ErrorMessage } from '../components/UI'
 import type { ExerciseLibrary, SessionExercise, WorkoutMode } from '../types/database'
-
-function modeOf(m: string | null | undefined, lib?: ExerciseLibrary): WorkoutMode {
-  if (m === 'reps' || m === 'time' || m === 'weight') return m
-  const t = lib?.exercise_type
-  return t === 'cardio_time' ? 'time' : t === 'cardio_reps' ? 'reps' : 'weight'
-}
+import { modeOf } from '../lib/workoutMode'
+import { fetchExerciseHistory, fmtExecution, fmtHistDate, type PastExecution } from '../lib/exerciseHistory'
 
 const CATEGORIES = ['Все', 'Ноги', 'Грудь', 'Спина', 'Плечи', 'Руки', 'Кор', 'Кардио']
 
@@ -46,6 +42,7 @@ export default function AssignmentEditPage() {
   const [pickedDate, setPickedDate] = useState('')
 
   const [rows, setRows] = useState<Row[]>([])
+  const [pastHistory, setPastHistory] = useState<Record<string, PastExecution[]>>({})
   const [library, setLibrary] = useState<ExerciseLibrary[]>([])
   const [showLib, setShowLib] = useState(false)
   const [libSearch, setLibSearch] = useState('')
@@ -56,6 +53,15 @@ export default function AssignmentEditPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [confirmCancel, setConfirmCancel] = useState(false)
+
+  // История клиента по упражнениям — подсказка тренеру
+  useEffect(() => {
+    if (!clientId || rows.length === 0) { setPastHistory({}); return }
+    fetchExerciseHistory(clientId, rows.map(r => r.library_exercise_id), { excludeAssignedId: assignedId })
+      .then(setPastHistory)
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientId, rows])
 
   useEffect(() => {
     if (!assignedId) return
@@ -277,6 +283,20 @@ export default function AssignmentEditPage() {
                 ✕
               </button>
             </div>
+
+            {(pastHistory[ex.library_exercise_id]?.length ?? 0) > 0 && (
+              <div className="bg-[var(--slate-50)] border border-[var(--slate-100)] rounded-[7px] px-[8px] py-[5px] mb-[6px]">
+                <div className="text-[10px] font-bold text-[var(--slate-400)] uppercase tracking-[0.05em] mb-[2px]">
+                  {clientName ? `${clientName.split(' ')[0]} делал(а)` : 'Клиент делал'}
+                </div>
+                {pastHistory[ex.library_exercise_id].map((h, i) => (
+                  <div key={i} className="flex justify-between text-[12px] py-[1px]">
+                    <span className="text-[var(--slate-400)]">{fmtHistDate(h.date)}</span>
+                    <span className="text-[var(--slate-600)] font-semibold">{fmtExecution(h, ex.mode)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="flex gap-[4px] mb-[8px]">
               {([
                 { m: 'weight', label: 'Вес' },

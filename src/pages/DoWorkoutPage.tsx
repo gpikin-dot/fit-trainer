@@ -6,6 +6,7 @@ import { useTimer } from '../contexts/TimerContext'
 import Layout from '../components/Layout'
 import type { AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult, SessionExercise } from '../types/database'
 import { clampActualReps, clampActualWeight } from '../lib/numeric'
+import { modeOf } from '../lib/workoutMode'
 import { fetchExerciseHistory, fmtExecution, fmtHistDate, type PastExecution } from '../lib/exerciseHistory'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -123,7 +124,7 @@ export default function DoWorkoutPage() {
           sets: se.sets, reps: se.reps, weight_kg: se.weight_kg,
           rest_sec: se.rest_sec, trainer_note: se.trainer_note,
           target_heart_rate_bpm: null, order: se.order,
-          mode: se.mode ?? 'weight',
+          mode: modeOf(se.mode, se.exercise_library),
           exercise_library: se.exercise_library,
         })) as (Exercise & { exercise_library: ExerciseLibrary })[]
       } else {
@@ -571,7 +572,7 @@ export default function DoWorkoutPage() {
               ? `план: ${ex.sets} × ${ex.reps}`
               : `план: ${ex.sets} × ${ex.reps}${ex.weight_kg > 0 ? ` · ${ex.weight_kg} кг` : ''}`
           const allDone = st.sets.length > 0 && st.sets.every(s => s.completed)
-          const m = ex.mode ?? 'weight'
+          const m = modeOf(ex.mode, ex.exercise_library)
           const cols = m === 'weight' ? '18px 1fr 1fr 34px' : '18px 1fr 34px'
           const lblCol2 = m === 'time' ? 'Секунды' : 'Повторы'
           const borderColor = timerActive ? 'var(--ink)' : st.skipped ? 'var(--slate-200)' : allDone ? 'var(--green-300)' : 'var(--blue-400)'

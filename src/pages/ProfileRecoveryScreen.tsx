@@ -30,7 +30,7 @@ export default function ProfileRecoveryScreen({
           {!missing && (
             <button
               onClick={onRetry}
-              className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[12px] mb-[8px]"
+              className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-white text-[15px] font-semibold rounded-[10px] py-[12px] mb-[8px]"
             >
               Попробовать снова
             </button>

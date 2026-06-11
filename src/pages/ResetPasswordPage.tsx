@@ -84,7 +84,7 @@ export default function ResetPasswordPage() {
               </p>
               <Link
                 to="/forgot-password"
-                className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[13px] block text-center"
+                className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-white text-[15px] font-semibold rounded-[10px] py-[13px] block text-center"
               >
                 Запросить новую ссылку
               </Link>
@@ -129,7 +129,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-50 text-white text-[15px] font-semibold rounded-[10px] py-[13px]"
+                  className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] disabled:opacity-50 text-white text-[15px] font-semibold rounded-[10px] py-[13px]"
                 >
                   {loading ? 'Сохраняем...' : 'Сменить пароль и войти'}
                 </button>

@@ -57,7 +57,7 @@ function StepDots({ step, clientLocked }: { step: Step; clientLocked: boolean })
       {steps.map((_, i) => (
         <span
           key={i}
-          className={`w-[6px] h-[6px] rounded-full transition-colors ${i <= idx ? 'bg-[var(--blue-600)]' : 'bg-[var(--slate-200)]'}`}
+          className={`w-[6px] h-[6px] rounded-full transition-colors ${i <= idx ? 'bg-[var(--btn-primary)]' : 'bg-[var(--slate-200)]'}`}
         />
       ))}
     </div>
@@ -424,7 +424,7 @@ export default function AssignWorkoutFlow() {
                         </div>
                       </div>
                       {selected ? (
-                        <div className="w-[16px] h-[16px] rounded-full bg-[var(--blue-600)] flex items-center justify-center text-white text-[15px] shrink-0">✓</div>
+                        <div className="w-[16px] h-[16px] rounded-full bg-[var(--btn-primary)] flex items-center justify-center text-white text-[15px] shrink-0">✓</div>
                       ) : (
                         <span className="text-[var(--slate-300)] text-[15px]">›</span>
                       )}
@@ -439,7 +439,7 @@ export default function AssignWorkoutFlow() {
             <button
               onClick={handleClientSelected}
               disabled={!selectedClientId}
-              className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[13px] disabled:opacity-40"
+              className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-white text-[15px] font-semibold rounded-[10px] py-[13px] disabled:opacity-40"
             >
               Далее
             </button>
@@ -666,7 +666,7 @@ export default function AssignWorkoutFlow() {
             <button
               onClick={() => setStep('date')}
               disabled={exercises.length === 0}
-              className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-40 text-white text-[15px] font-semibold rounded-[10px] py-[13px]"
+              className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] disabled:opacity-40 text-white text-[15px] font-semibold rounded-[10px] py-[13px]"
             >
               {clientName ? `Назначить ${clientName.split(' ')[0]} →` : 'Назначить клиенту →'}
             </button>
@@ -726,7 +726,7 @@ export default function AssignWorkoutFlow() {
                   <div className={`w-[14px] h-[14px] rounded-full border-2 shrink-0 flex items-center justify-center ${
                     active ? 'border-[var(--blue-600)]' : 'border-[var(--slate-300)]'
                   }`}>
-                    {active && <div className="w-[7px] h-[7px] bg-[var(--blue-600)] rounded-full" />}
+                    {active && <div className="w-[7px] h-[7px] bg-[var(--btn-primary)] rounded-full" />}
                   </div>
                   <div className="flex-1">
                     <div className="text-[15px] font-semibold text-[var(--slate-900)]">{opt.label}</div>
@@ -758,7 +758,7 @@ export default function AssignWorkoutFlow() {
             <button
               onClick={handleAssign}
               disabled={submitting || (dateChoice === 'pick' && !pickedDate)}
-              className="w-full bg-[var(--blue-600)] text-white rounded-[10px] py-[13px] text-[15px] font-semibold mt-[8px] disabled:opacity-40 hover:bg-[var(--blue-700)]"
+              className="w-full bg-[var(--btn-primary)] text-white rounded-[10px] py-[13px] text-[15px] font-semibold mt-[8px] disabled:opacity-40 hover:bg-[var(--btn-primary-hover)]"
             >
               {submitting ? 'Назначаем...' : 'Назначить тренировку'}
             </button>

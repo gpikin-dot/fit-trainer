@@ -5,6 +5,7 @@ import Layout from '../components/Layout'
 import { Modal, ErrorMessage } from '../components/UI'
 import type { ExerciseLibrary, SessionExercise, WorkoutMode } from '../types/database'
 import { modeOf } from '../lib/workoutMode'
+import { groupInfoFor } from '../lib/superset'
 import { fetchExerciseHistory, fmtExecution, fmtHistDate, type PastExecution } from '../lib/exerciseHistory'
 
 const CATEGORIES = ['Все', 'Ноги', 'Грудь', 'Спина', 'Плечи', 'Руки', 'Кор', 'Кардио']
@@ -26,6 +27,7 @@ interface Row {
   trainer_note: string
   mode: WorkoutMode
   order: number
+  superset_group: number | null
 }
 
 type DateChoice = 'today' | 'tomorrow' | 'pick' | 'none'
@@ -106,6 +108,7 @@ export default function AssignmentEditPage() {
         trainer_note: s.trainer_note ?? '',
         mode: modeOf((s as SessionExercise & { mode?: string }).mode, s.exercise_library),
         order: s.order,
+        superset_group: s.superset_group ?? null,
       })))
       setLoading(false)
     })()
@@ -139,6 +142,7 @@ export default function AssignmentEditPage() {
         rest_sec: null, trainer_note: '',
         mode: modeOf(null, lib),
         order: prev.length + i,
+        superset_group: null,
       })),
     ])
     setLibSel(new Set())
@@ -179,6 +183,7 @@ export default function AssignmentEditPage() {
           rest_sec: r.rest_sec,
           trainer_note: r.trainer_note || null,
           mode: r.mode,
+          superset_group: r.superset_group,
         }))
       )
       if (insErr) { setError(insErr.message); setSaving(false); return }
@@ -272,8 +277,17 @@ export default function AssignmentEditPage() {
         <div className="text-[11px] font-semibold text-[var(--slate-400)] uppercase tracking-[0.05em] mb-[6px]">
           Упражнения ({rows.length})
         </div>
-        {rows.map((ex, idx) => (
-          <div key={ex.tempId} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
+        {rows.map((ex, idx) => {
+          const gInfo = groupInfoFor(rows, idx)
+          return (
+          <div key={ex.tempId} className={`bg-white border rounded-[10px] px-[11px] py-[9px] mb-[5px] ${
+            gInfo ? 'border-[var(--green-300)] border-l-[3px]' : 'border-[var(--border)]'
+          }`}>
+            {gInfo && (
+              <div className="text-[11px] font-bold text-[var(--green-700)] uppercase tracking-[0.05em] mb-[4px]">
+                {gInfo.label} · {gInfo.pos} из {gInfo.size}
+              </div>
+            )}
             <div className="flex justify-between mb-[8px]">
               <span className="text-[15px] font-bold text-[var(--slate-900)]">{idx + 1}. {ex.library.name_ru}</span>
               <button
@@ -362,7 +376,8 @@ export default function AssignmentEditPage() {
               </div>
             </div>
           </div>
-        ))}
+          )
+        })}
 
         <button
           onClick={() => setShowLib(true)}

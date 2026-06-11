@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
 import { ErrorMessage } from '../components/UI'
 import { plural } from '../lib/plural'
+import { groupInfoFor } from '../lib/superset'
 import type { Workout, Exercise, ExerciseLibrary, AssignedWorkout, Profile } from '../types/database'
 
 export default function WorkoutDetailPage() {
@@ -151,8 +152,17 @@ export default function WorkoutDetailPage() {
         {exercises.length === 0 ? (
           <p className="text-[14px] text-[var(--slate-400)]">Нет упражнений</p>
         ) : (
-          exercises.map((ex, i) => (
-            <div key={ex.id} className="bg-white border border-[var(--border)] rounded-[10px] px-[12px] py-[10px] mb-[5px]">
+          exercises.map((ex, i) => {
+            const gInfo = groupInfoFor(exercises, i)
+            return (
+            <div key={ex.id} className={`bg-white border rounded-[10px] px-[12px] py-[10px] mb-[5px] ${
+              gInfo ? 'border-[var(--green-300)] border-l-[3px]' : 'border-[var(--border)]'
+            }`}>
+              {gInfo && (
+                <div className="text-[11px] font-bold text-[var(--green-700)] uppercase tracking-[0.05em] mb-[2px]">
+                  {gInfo.label} · {gInfo.pos} из {gInfo.size}
+                </div>
+              )}
               <div className="text-[15px] font-semibold text-[var(--slate-900)] mb-[3px]">
                 {i + 1}. {ex.exercise_library.name_ru}
               </div>
@@ -164,7 +174,8 @@ export default function WorkoutDetailPage() {
                 <div className="text-[13px] text-[var(--blue-600)] italic mt-[3px]">«{ex.trainer_note}»</div>
               )}
             </div>
-          ))
+            )
+          })
         )}
 
         {/* Who used */}

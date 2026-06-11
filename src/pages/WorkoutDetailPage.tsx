@@ -138,7 +138,7 @@ export default function WorkoutDetailPage() {
             }
             navigate(`/trainer/assign?workoutId=${id}`)
           }}
-          className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[13px] mb-[16px]"
+          className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-white text-[15px] font-semibold rounded-[10px] py-[13px] mb-[16px]"
         >
           Назначить клиенту
         </button>

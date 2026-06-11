@@ -246,7 +246,7 @@ export default function ClientCardPage() {
                     </div>
                     <button
                       onClick={() => navigate(`/trainer/workout-session/${a.id}`)}
-                      className="w-full mt-[8px] bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[14px] font-semibold rounded-[8px] py-[8px]"
+                      className="w-full mt-[8px] bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-white text-[14px] font-semibold rounded-[8px] py-[8px]"
                     >
                       {started ? 'Продолжить совместную тренировку' : 'Начать совместную тренировку'}
                     </button>

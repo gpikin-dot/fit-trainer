@@ -114,7 +114,7 @@ export default function ProfilePage() {
         <button
           onClick={saveName}
           disabled={savingName}
-          className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-50 text-white text-[15px] font-semibold rounded-[10px] py-[12px]"
+          className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] disabled:opacity-50 text-white text-[15px] font-semibold rounded-[10px] py-[12px]"
         >
           {savedName ? '✓ Сохранено' : savingName ? 'Сохранение...' : 'Сохранить изменения'}
         </button>

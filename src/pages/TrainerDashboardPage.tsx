@@ -350,7 +350,7 @@ function ChecklistStep({
           ? 'bg-[var(--green-100)] text-[var(--green-600)]'
           : disabled
             ? 'bg-[var(--slate-100)] text-[var(--slate-400)]'
-            : 'bg-[var(--blue-600)] text-white'
+            : 'bg-[var(--btn-primary)] text-white'
       }`}>
         {done ? '✓' : idx}
       </span>
@@ -490,7 +490,7 @@ function InviteModal({ invite, onClose }: { invite: Invite; onClose: () => void 
       </div>
       <button
         onClick={copy}
-        className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[12px] flex items-center justify-center gap-[6px] mb-[8px]"
+        className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-white text-[15px] font-semibold rounded-[10px] py-[12px] flex items-center justify-center gap-[6px] mb-[8px]"
       >
         {copied ? (
           <><Check className="w-4 h-4" /> Скопировано</>

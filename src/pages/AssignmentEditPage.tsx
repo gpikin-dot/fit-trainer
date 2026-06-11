@@ -252,7 +252,7 @@ export default function AssignmentEditPage() {
               <span className={`w-[18px] h-[18px] rounded-full border-2 shrink-0 flex items-center justify-center ${
                 dateChoice === k ? 'border-[var(--blue-600)]' : 'border-[var(--slate-300)]'
               }`}>
-                {dateChoice === k && <span className="w-[9px] h-[9px] rounded-full bg-[var(--blue-600)]" />}
+                {dateChoice === k && <span className="w-[9px] h-[9px] rounded-full bg-[var(--btn-primary)]" />}
               </span>
               <span className="text-[15px] font-semibold text-[var(--slate-900)]">{label}</span>
               {k === 'pick' && dateChoice === 'pick' && (
@@ -313,7 +313,7 @@ export default function AssignmentEditPage() {
                   })}
                   className={`flex-1 text-[12px] font-semibold py-[6px] rounded-[7px] border ${
                     ex.mode === m
-                      ? 'bg-[var(--blue-600)] text-white border-[var(--blue-600)]'
+                      ? 'bg-[var(--btn-primary)] text-white border-[var(--blue-600)]'
                       : 'bg-white text-[var(--slate-500)] border-[var(--slate-200)]'
                   }`}
                 >
@@ -374,7 +374,7 @@ export default function AssignmentEditPage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-50 text-white text-[15px] font-semibold rounded-[10px] py-[13px] mb-[8px]"
+          className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] disabled:opacity-50 text-white text-[15px] font-semibold rounded-[10px] py-[13px] mb-[8px]"
         >
           {saving ? 'Сохранение...' : 'Сохранить изменения'}
         </button>
@@ -402,7 +402,7 @@ export default function AssignmentEditPage() {
             {CATEGORIES.map(cat => (
               <button key={cat} onClick={() => setLibCat(cat)}
                 className={`text-[13px] font-semibold px-[8px] py-[3px] rounded-[20px] ${
-                  libCat === cat ? 'bg-[var(--blue-600)] text-white' : 'bg-[var(--slate-100)] text-[var(--slate-500)]'
+                  libCat === cat ? 'bg-[var(--btn-primary)] text-white' : 'bg-[var(--slate-100)] text-[var(--slate-500)]'
                 }`}>
                 {cat}
               </button>
@@ -414,7 +414,7 @@ export default function AssignmentEditPage() {
               return (
                 <button key={lib.id} onClick={() => toggleLib(lib.id)}
                   className={`w-full text-left px-[9px] py-[7px] flex items-center gap-[8px] border-b border-[var(--slate-100)] ${sel ? 'bg-[var(--blue-50)]' : ''}`}>
-                  <div className={`w-[15px] h-[15px] rounded-[3px] border shrink-0 flex items-center justify-center ${sel ? 'bg-[var(--blue-600)] border-[var(--blue-600)]' : 'border-[var(--slate-300)] bg-white'}`}>
+                  <div className={`w-[15px] h-[15px] rounded-[3px] border shrink-0 flex items-center justify-center ${sel ? 'bg-[var(--btn-primary)] border-[var(--blue-600)]' : 'border-[var(--slate-300)] bg-white'}`}>
                     {sel && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                   </div>
                   <div>
@@ -429,7 +429,7 @@ export default function AssignmentEditPage() {
           <button
             onClick={addSelected}
             disabled={libSel.size === 0}
-            className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-40 text-white text-[15px] font-semibold py-[10px] rounded-[8px]"
+            className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] disabled:opacity-40 text-white text-[15px] font-semibold py-[10px] rounded-[8px]"
           >
             {libSel.size === 0 ? 'Выберите упражнения' : `Добавить (${libSel.size})`}
           </button>

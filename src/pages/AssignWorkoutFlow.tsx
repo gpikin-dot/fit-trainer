@@ -512,7 +512,7 @@ export default function AssignWorkoutFlow() {
             </div>
 
             <button
-              onClick={() => navigate('/trainer/workout/new')}
+              onClick={() => navigate(selectedClientId ? `/trainer/workout/new?clientId=${selectedClientId}` : '/trainer/workout/new')}
               className="w-full border-[1.5px] border-dashed border-[var(--blue-400)] text-[var(--blue-600)] text-[15px] font-semibold py-[10px] rounded-[10px] mt-[6px]"
             >
               + Создать новый шаблон

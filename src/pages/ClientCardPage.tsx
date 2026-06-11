@@ -40,7 +40,15 @@ export default function ClientCardPage() {
   const navigate = useNavigate()
   const [client, setClient] = useState<Profile | null>(null)
   const [assignments, setAssignments] = useState<EnrichedAssignment[]>([])
-  const [tab, setTab] = useState<'active' | 'history' | 'progress'>('active')
+  // Вкладка переживает навигацию (открыл тренировку → назад)
+  const [tab, setTabState] = useState<'active' | 'history' | 'progress'>(() => {
+    const saved = sessionStorage.getItem('client_card_tab')
+    return saved === 'history' || saved === 'progress' ? saved : 'active'
+  })
+  const setTab = (t: 'active' | 'history' | 'progress') => {
+    setTabState(t)
+    sessionStorage.setItem('client_card_tab', t)
+  }
   const [progress, setProgress] = useState<ExerciseProgress[] | null>(null)
   const [loading, setLoading] = useState(true)
 

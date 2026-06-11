@@ -7,13 +7,8 @@ import Layout from '../components/Layout'
 import { Modal, ErrorMessage } from '../components/UI'
 import { canAddExercise } from '../lib/planLimits'
 import { clampSets, clampReps, clampWeight, clampRest } from '../lib/numeric'
+import { defaultMode, modeOf } from '../lib/workoutMode'
 import type { ExerciseLibrary, Exercise, WorkoutMode } from '../types/database'
-
-function defaultMode(t: ExerciseLibrary['exercise_type']): WorkoutMode {
-  if (t === 'cardio_time') return 'time'
-  if (t === 'cardio_reps') return 'reps'
-  return 'weight'
-}
 
 const CATEGORIES = ['Все', 'Ноги', 'Грудь', 'Спина', 'Плечи', 'Руки', 'Кор', 'Кардио']
 
@@ -69,7 +64,7 @@ export default function CreateWorkoutPage() {
           rest_sec: e.rest_sec,
           trainer_note: e.trainer_note ?? '',
           target_heart_rate_bpm: e.target_heart_rate_bpm ?? null,
-          mode: e.mode ?? defaultMode(e.exercise_library.exercise_type),
+          mode: modeOf(e.mode, e.exercise_library),
           order: e.order,
         })))
       })
@@ -94,7 +89,7 @@ export default function CreateWorkoutPage() {
     setExercises(prev => [
       ...prev,
       ...toAdd.map((lib, i) => {
-        const m = defaultMode(lib.exercise_type)
+        const m = defaultMode(lib)
         return {
           tempId: `tmp-${Date.now()}-${i}`,
           library_exercise_id: lib.id,
@@ -157,7 +152,7 @@ export default function CreateWorkoutPage() {
         rest_sec: null,
         trainer_note: '',
         target_heart_rate_bpm: null,
-        mode: defaultMode(newLib.exercise_type),
+        mode: defaultMode(newLib),
         order: prev.length,
       },
     ])

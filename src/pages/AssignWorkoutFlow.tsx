@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
 import { ErrorMessage } from '../components/UI'
-import type { ExerciseLibrary, Workout, Profile, WorkoutMode } from '../types/database'
+import type { ExerciseLibrary, Workout, Profile, WorkoutMode, ExerciseWithLibrary, SessionExerciseWithLibrary } from '../types/database'
 import { clampSets, clampReps, clampWeight, clampRest } from '../lib/numeric'
 
 function modeOf(row: { mode?: string | null }, lib?: ExerciseLibrary): WorkoutMode {
@@ -112,7 +112,9 @@ export default function AssignWorkoutFlow() {
     if (qRepeatFrom && qWorkoutId && qClientId) return 'customize'
     if (qWorkoutId && qClientId) return 'customize'
     if (qWorkoutId) return 'selectClient'
-    return 'selectTemplate'
+    // Без параметров начинаем с выбора клиента — иначе selectedClientId
+    // останется пустым и финальное назначение молча не сработает
+    return qClientId ? 'selectTemplate' : 'selectClient'
   }
 
   const [step, setStep] = useState<Step>(initStep)
@@ -121,6 +123,7 @@ export default function AssignWorkoutFlow() {
   const [clients, setClients] = useState<Profile[]>([])
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [workoutTimeCounts, setWorkoutTimeCounts] = useState<Record<string, number>>({})
+  const [exerciseCounts, setExerciseCounts] = useState<Record<string, number>>({})
   const [exercises, setExercises] = useState<ExerciseConfig[]>([])
   const [workoutName, setWorkoutName] = useState('')
   const [clientName, setClientName] = useState('')
@@ -147,8 +150,12 @@ export default function AssignWorkoutFlow() {
       setClients(clientData ?? [])
 
       const { data: workoutData } = await supabase
-        .from('workouts').select('*').eq('trainer_id', profile.id).order('name')
+        .from('workouts').select('*, exercises(count)').eq('trainer_id', profile.id).order('name')
       setWorkouts(workoutData ?? [])
+
+      const counts: Record<string, number> = {}
+      for (const w of workoutData ?? []) counts[w.id] = w.exercises?.[0]?.count ?? 0
+      setExerciseCounts(counts)
 
       if (selectedClientId && workoutData) {
         await loadWorkoutCounts(selectedClientId, workoutData.map(w => w.id))
@@ -167,7 +174,7 @@ export default function AssignWorkoutFlow() {
       if ((qWorkoutId && qClientId) || qRepeatFrom) {
         await loadExercises()
       }
-    } catch (e) {
+    } catch {
       setError('Ошибка загрузки данных')
     } finally {
       setLoading(false)
@@ -197,7 +204,7 @@ export default function AssignWorkoutFlow() {
         .from('session_exercises').select('*, exercise_library:exercises_library(*)')
         .eq('assigned_workout_id', qRepeatFrom).order('order')
       if (data) {
-        setExercises(data.map((se: any) => ({
+        setExercises(data.map((se: SessionExerciseWithLibrary) => ({
           library_exercise_id: se.library_exercise_id,
           library: se.exercise_library,
           order: se.order,
@@ -213,7 +220,7 @@ export default function AssignWorkoutFlow() {
         .from('exercises').select('*, exercise_library:exercises_library(*)')
         .eq('workout_id', sourceWorkoutId).order('order')
       if (data) {
-        setExercises(data.map((e: any) => ({
+        setExercises(data.map((e: ExerciseWithLibrary) => ({
           library_exercise_id: e.library_exercise_id,
           library: e.exercise_library,
           order: e.order,
@@ -236,6 +243,7 @@ export default function AssignWorkoutFlow() {
   }
 
   async function handleTemplateSelected(workoutId: string) {
+    setError('')
     setSelectedWorkoutId(workoutId)
     const workout = workouts.find(w => w.id === workoutId)
     if (workout) setWorkoutName(workout.name)
@@ -245,7 +253,7 @@ export default function AssignWorkoutFlow() {
       .from('exercises').select('*, exercise_library:exercises_library(*)')
       .eq('workout_id', workoutId).order('order')
 
-    setExercises((data ?? []).map((e: any) => ({
+    setExercises((data ?? []).map((e: ExerciseWithLibrary) => ({
       library_exercise_id: e.library_exercise_id,
       library: e.exercise_library,
       order: e.order,
@@ -289,6 +297,10 @@ export default function AssignWorkoutFlow() {
   // шаблона напрямую (фолбэк по workout_id).
   async function quickAssign(workoutId: string) {
     if (!selectedClientId || submitting) return
+    if ((exerciseCounts[workoutId] ?? 0) === 0) {
+      setError('В шаблоне нет упражнений — добавьте хотя бы одно, чтобы назначить.')
+      return
+    }
     setSubmitting(true)
     setError('')
     const { error: awErr } = await supabase
@@ -304,6 +316,10 @@ export default function AssignWorkoutFlow() {
 
   async function handleAssign() {
     if (!selectedClientId || !selectedWorkoutId) return
+    if (exercises.length === 0) {
+      setError('Добавьте хотя бы одно упражнение')
+      return
+    }
     setSubmitting(true)
     setError('')
 
@@ -342,8 +358,8 @@ export default function AssignWorkoutFlow() {
       }
 
       navigate(`/trainer/client/${selectedClientId}`)
-    } catch (e: any) {
-      setError(e.message ?? 'Неизвестная ошибка')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Неизвестная ошибка')
       setSubmitting(false)
     }
   }
@@ -445,6 +461,8 @@ export default function AssignWorkoutFlow() {
               </p>
             )}
 
+            {error && <ErrorMessage text={error} />}
+
             {favoriteWorkouts.length > 0 && (
               <div>
                 <div className="text-[11px] font-bold text-[var(--slate-400)] uppercase tracking-[0.06em] mb-[5px]">Избранные</div>
@@ -453,8 +471,10 @@ export default function AssignWorkoutFlow() {
                   return (
                     <WorkoutSelectRow
                       key={w.id} workout={w} count={count}
+                      exerciseCount={exerciseCounts[w.id] ?? 0}
                       onSelect={() => qClientId ? quickAssign(w.id) : handleTemplateSelected(w.id)}
                       onCustomize={qClientId ? () => handleTemplateSelected(w.id) : undefined}
+                      onBlocked={() => setError('В шаблоне нет упражнений — добавьте хотя бы одно, чтобы назначить.')}
                     />
                   )
                 })}
@@ -473,8 +493,10 @@ export default function AssignWorkoutFlow() {
                 return (
                   <WorkoutSelectRow
                     key={w.id} workout={w} count={count}
+                    exerciseCount={exerciseCounts[w.id] ?? 0}
                     onSelect={() => qClientId ? quickAssign(w.id) : handleTemplateSelected(w.id)}
                     onCustomize={qClientId ? () => handleTemplateSelected(w.id) : undefined}
+                    onBlocked={() => setError('В шаблоне нет упражнений — добавьте хотя бы одно, чтобы назначить.')}
                   />
                 )
               })}
@@ -489,8 +511,6 @@ export default function AssignWorkoutFlow() {
             >
               + Создать новый шаблон
             </button>
-
-            {error && <ErrorMessage text={error} />}
           </>
         )}
 
@@ -514,7 +534,10 @@ export default function AssignWorkoutFlow() {
             )}
 
             {exercises.length === 0 ? (
-              <div className="text-center py-8 text-[var(--slate-400)] text-[15px]">В шаблоне нет упражнений</div>
+              <div className="text-center py-8 text-[var(--slate-400)] text-[15px]">
+                В шаблоне нет упражнений — назначить нельзя.<br />
+                Добавьте упражнения в шаблон и вернитесь.
+              </div>
             ) : (
               <div className="mb-5">
                 {exercises.map((ex, idx) => {
@@ -629,7 +652,8 @@ export default function AssignWorkoutFlow() {
 
             <button
               onClick={() => setStep('date')}
-              className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[13px]"
+              disabled={exercises.length === 0}
+              className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-40 text-white text-[15px] font-semibold rounded-[10px] py-[13px]"
             >
               {clientName ? `Назначить ${clientName.split(' ')[0]} →` : 'Назначить клиенту →'}
             </button>
@@ -737,18 +761,23 @@ export default function AssignWorkoutFlow() {
 function WorkoutSelectRow({
   workout,
   count,
+  exerciseCount,
   onSelect,
   onCustomize,
+  onBlocked,
 }: {
   workout: Workout
   count: number
+  exerciseCount: number
   onSelect: () => void
   onCustomize?: () => void
+  onBlocked: () => void
 }) {
+  const empty = exerciseCount === 0
   return (
-    <div className="bg-white border-[1.5px] border-[var(--border)] rounded-[10px] mb-[4px] flex items-center">
+    <div className={`bg-white border-[1.5px] border-[var(--border)] rounded-[10px] mb-[4px] flex items-center ${empty ? 'opacity-60' : ''}`}>
       <button
-        onClick={onSelect}
+        onClick={empty ? onBlocked : onSelect}
         className="flex-1 min-w-0 flex items-center gap-[7px] cursor-pointer text-left px-[10px] py-[8px]"
       >
         {workout.is_favorite && (
@@ -756,6 +785,9 @@ function WorkoutSelectRow({
         )}
         <div className="flex-1 min-w-0">
           <div className="text-[15px] font-semibold text-[var(--slate-900)] truncate">{workout.name}</div>
+          {empty && (
+            <div className="text-[13px] text-[var(--red-500)] mt-[1px]">Нет упражнений — нельзя назначить</div>
+          )}
         </div>
         {count > 0 && (
           <span className="text-[15px] bg-[var(--slate-100)] text-[var(--slate-500)] rounded-[20px] px-[7px] py-[2px] shrink-0">
@@ -766,7 +798,7 @@ function WorkoutSelectRow({
       </button>
       {onCustomize && (
         <button
-          onClick={onCustomize}
+          onClick={empty ? onBlocked : onCustomize}
           className="shrink-0 self-stretch px-[12px] border-l border-[var(--border)] text-[13px] font-semibold text-[var(--slate-500)]"
         >
           Настроить

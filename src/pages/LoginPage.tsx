@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { logError, isNetworkError } from '../lib/logError'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -20,16 +21,30 @@ export default function LoginPage() {
     })
 
     if (authError || !data.user) {
-      setError('Неверный email или пароль')
+      if (authError && isNetworkError(authError)) {
+        setError('Нет соединения с сервером. Проверьте интернет и попробуйте ещё раз.')
+      } else if (authError && !/invalid login credentials/i.test(authError.message)) {
+        logError('auth.login', authError)
+        setError('Не удалось войти. Попробуйте ещё раз чуть позже.')
+      } else {
+        setError('Неверный email или пароль')
+      }
       setLoading(false)
       return
     }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profErr } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', data.user.id)
       .single()
+
+    if (profErr) {
+      // Профиль не прочитался — отправляем на «/», там покажется recovery-экран
+      logError('auth.login-profile', profErr, { userId: data.user.id })
+      navigate('/', { replace: true })
+      return
+    }
 
     navigate(profile?.role === 'trainer' ? '/trainer' : '/client', { replace: true })
   }
@@ -87,6 +102,13 @@ export default function LoginPage() {
             >
               {loading ? 'Вход...' : 'Войти'}
             </button>
+
+            <Link
+              to="/forgot-password"
+              className="text-[13px] font-semibold text-[var(--slate-400)] hover:text-[var(--blue-600)] block text-center mt-[10px]"
+            >
+              Забыли пароль?
+            </Link>
           </form>
 
           <div className="border-t border-[var(--slate-100)] mt-[16px] pt-[14px] flex flex-col gap-[6px]">

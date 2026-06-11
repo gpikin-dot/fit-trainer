@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
 import { TimerProvider } from './contexts/TimerContext'
+import { installGlobalErrorLogging } from './lib/logError'
+
+installGlobalErrorLogging()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

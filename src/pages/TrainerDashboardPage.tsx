@@ -20,7 +20,14 @@ interface ClientStat extends Profile {
 export default function TrainerDashboardPage() {
   const navigate = useNavigate()
   const { profile, signOut } = useAuth()
-  const [tab, setTab] = useState<'clients' | 'templates'>('clients')
+  // Вкладка переживает навигацию: «Шаблоны → новый шаблон → Назад»
+  // должно возвращать на «Шаблоны», а не сбрасывать на «Клиенты»
+  const [tab, setTabState] = useState<'clients' | 'templates'>(() =>
+    sessionStorage.getItem('trainer_dashboard_tab') === 'templates' ? 'templates' : 'clients')
+  const setTab = (t: 'clients' | 'templates') => {
+    setTabState(t)
+    sessionStorage.setItem('trainer_dashboard_tab', t)
+  }
 
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [workoutStats, setWorkoutStats] = useState<Map<string, { exerciseCount: number; usageCount: number }>>(new Map())

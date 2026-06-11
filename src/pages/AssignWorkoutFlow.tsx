@@ -9,6 +9,7 @@ import type { ExerciseLibrary, Workout, Profile, WorkoutMode, ExerciseWithLibrar
 import { clampSets, clampReps, clampWeight, clampRest } from '../lib/numeric'
 import { modeOf } from '../lib/workoutMode'
 import { plural } from '../lib/plural'
+import { groupInfoFor } from '../lib/superset'
 import { fetchExerciseHistory, fmtExecution, fmtHistDate, type PastExecution } from '../lib/exerciseHistory'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -25,6 +26,7 @@ interface ExerciseConfig {
   rest_sec: number | null
   trainer_note: string
   mode: WorkoutMode
+  superset_group: number | null
   origSets: number
   origReps: number
   origWeight: number
@@ -209,7 +211,7 @@ export default function AssignWorkoutFlow() {
           order: se.order,
           sets: se.sets, reps: se.reps, weight_kg: se.weight_kg,
           rest_sec: se.rest_sec, trainer_note: se.trainer_note ?? '',
-
+          superset_group: se.superset_group ?? null,
           mode: modeOf(se.mode, se.exercise_library),
           origSets: se.sets, origReps: se.reps, origWeight: se.weight_kg,
         })))
@@ -225,7 +227,7 @@ export default function AssignWorkoutFlow() {
           order: e.order,
           sets: e.sets, reps: e.reps, weight_kg: e.weight_kg,
           rest_sec: e.rest_sec, trainer_note: e.trainer_note ?? '',
-
+          superset_group: e.superset_group ?? null,
           mode: modeOf(e.mode, e.exercise_library),
           origSets: e.sets, origReps: e.reps, origWeight: e.weight_kg,
         })))
@@ -258,7 +260,7 @@ export default function AssignWorkoutFlow() {
       order: e.order,
       sets: e.sets, reps: e.reps, weight_kg: e.weight_kg,
       rest_sec: e.rest_sec, trainer_note: e.trainer_note ?? '',
-
+      superset_group: e.superset_group ?? null,
       mode: modeOf(e.mode, e.exercise_library),
       origSets: e.sets, origReps: e.reps, origWeight: e.weight_kg,
     })))
@@ -345,6 +347,7 @@ export default function AssignWorkoutFlow() {
             sets: clampSets(ex.sets), reps: clampReps(ex.reps),
             weight_kg: clampWeight(ex.weight_kg), rest_sec: clampRest(ex.rest_sec),
             trainer_note: ex.trainer_note || null, mode: ex.mode,
+            superset_group: ex.superset_group,
           }))
         )
         // Не атомарно (нет RPC-транзакции): при сбое вставки
@@ -547,9 +550,17 @@ export default function AssignWorkoutFlow() {
 
                   const modNumInput = (modified: boolean) =>
                     `${numInput} ${modified ? 'bg-[var(--blue-50)] border-[var(--blue-200)]' : ''}`
+                  const gInfo = groupInfoFor(exercises, idx)
 
                   return (
-                    <div key={idx} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
+                    <div key={idx} className={`bg-white border rounded-[10px] px-[11px] py-[9px] mb-[5px] ${
+                      gInfo ? 'border-[var(--green-300)] border-l-[3px]' : 'border-[var(--border)]'
+                    }`}>
+                      {gInfo && (
+                        <div className="text-[11px] font-bold text-[var(--green-700)] uppercase tracking-[0.05em] mb-[4px]">
+                          {gInfo.label} · {gInfo.pos} из {gInfo.size}
+                        </div>
+                      )}
                       <div className="flex justify-between mb-[8px]">
                         <span className="text-[15px] font-bold text-[var(--slate-900)]">{idx + 1}. {ex.library.name_ru}</span>
                         <button

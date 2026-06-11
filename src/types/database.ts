@@ -64,6 +64,7 @@ export interface Exercise {
   target_heart_rate_bpm: number | null
   mode: WorkoutMode
   order: number
+  superset_group: number | null
 }
 
 export interface AssignedWorkout {
@@ -127,6 +128,7 @@ export interface SessionExercise {
   trainer_note: string | null
   mode: WorkoutMode
   created_at: string
+  superset_group: number | null
 }
 
 // Joined types for UI convenience

@@ -9,6 +9,7 @@ import { canAddExercise } from '../lib/planLimits'
 import { clampSets, clampReps, clampWeight, clampRest } from '../lib/numeric'
 import { defaultMode, modeOf } from '../lib/workoutMode'
 import { fetchExerciseHistory, fmtExecution, fmtHistDate, type PastExecution } from '../lib/exerciseHistory'
+import { groupsFromLinks, groupInfoFor } from '../lib/superset'
 import type { ExerciseLibrary, Exercise, WorkoutMode } from '../types/database'
 
 const CATEGORIES = ['Все', 'Ноги', 'Грудь', 'Спина', 'Плечи', 'Руки', 'Кор', 'Кардио']
@@ -25,6 +26,7 @@ interface WorkoutExercise {
   target_heart_rate_bpm: number | null
   mode: WorkoutMode
   order: number
+  linkedWithPrev: boolean
 }
 
 export default function CreateWorkoutPage() {
@@ -75,7 +77,8 @@ export default function CreateWorkoutPage() {
         if (w) { setName(w.name); setDefaultRest(String(w.default_rest_sec)) }
       })
       supabase.from('exercises').select('*, exercise_library:exercises_library(*)').eq('workout_id', id).order('order').then(({ data }) => {
-        setExercises((data ?? []).map((e: Exercise & { exercise_library: ExerciseLibrary }) => ({
+        const rows = data ?? []
+        setExercises(rows.map((e: Exercise & { exercise_library: ExerciseLibrary }, i: number) => ({
           tempId: e.id,
           library_exercise_id: e.library_exercise_id,
           library: e.exercise_library,
@@ -87,6 +90,7 @@ export default function CreateWorkoutPage() {
           target_heart_rate_bpm: e.target_heart_rate_bpm ?? null,
           mode: modeOf(e.mode, e.exercise_library),
           order: e.order,
+          linkedWithPrev: i > 0 && e.superset_group != null && rows[i - 1].superset_group === e.superset_group,
         })))
       })
     }
@@ -123,6 +127,7 @@ export default function CreateWorkoutPage() {
           target_heart_rate_bpm: null,
           mode: m,
           order: prev.length + i,
+          linkedWithPrev: false,
         }
       }),
     ])
@@ -175,6 +180,7 @@ export default function CreateWorkoutPage() {
         target_heart_rate_bpm: null,
         mode: defaultMode(newLib),
         order: prev.length,
+        linkedWithPrev: false,
       },
     ])
     setCustomName('')
@@ -187,7 +193,9 @@ export default function CreateWorkoutPage() {
   }
 
   function removeExercise(tempId: string) {
-    setExercises(prev => prev.filter(e => e.tempId !== tempId).map((e, i) => ({ ...e, order: i })))
+    setExercises(prev => prev
+      .filter(e => e.tempId !== tempId)
+      .map((e, i) => ({ ...e, order: i, linkedWithPrev: i === 0 ? false : e.linkedWithPrev })))
   }
 
   async function handleSave() {
@@ -213,7 +221,8 @@ export default function CreateWorkoutPage() {
     if (!workoutId) { setError('Ошибка сохранения'); setSaving(false); return }
 
     if (exercises.length > 0) {
-      await supabase.from('exercises').insert(exercises.map(e => ({
+      const groups = groupsFromLinks(exercises.map(e => e.linkedWithPrev))
+      await supabase.from('exercises').insert(exercises.map((e, i) => ({
         workout_id: workoutId,
         library_exercise_id: e.library_exercise_id,
         sets: clampSets(e.sets),
@@ -224,6 +233,7 @@ export default function CreateWorkoutPage() {
         target_heart_rate_bpm: e.target_heart_rate_bpm ?? null,
         mode: e.mode,
         order: e.order,
+        superset_group: groups[i],
       })))
     }
 
@@ -287,8 +297,30 @@ export default function CreateWorkoutPage() {
         {/* Exercises */}
         {exercises.map((ex, idx) => {
           const labelCls = 'block text-[11px] font-semibold text-[var(--slate-400)] uppercase tracking-[0.05em] mb-[3px]'
+          const liveGroups = groupsFromLinks(exercises.map(e => e.linkedWithPrev))
+          const gInfo = groupInfoFor(liveGroups.map(g => ({ superset_group: g })), idx)
           return (
-            <div key={ex.tempId} className="bg-white border border-[var(--border)] rounded-[10px] px-[11px] py-[9px] mb-[5px]">
+            <div key={ex.tempId}>
+              {idx > 0 && (
+                <button
+                  onClick={() => updateExercise(ex.tempId, { linkedWithPrev: !ex.linkedWithPrev })}
+                  className={`flex items-center gap-[6px] mx-auto -my-[1px] relative z-[1] px-[10px] py-[3px] rounded-[20px] text-[12px] font-semibold border ${
+                    ex.linkedWithPrev
+                      ? 'bg-[var(--green-50)] border-[var(--green-200)] text-[var(--green-700)]'
+                      : 'bg-white border-[var(--slate-200)] text-[var(--slate-400)]'
+                  }`}
+                >
+                  {ex.linkedWithPrev ? '🔗 в связке — разъединить' : '+ связать в суперсет'}
+                </button>
+              )}
+            <div className={`bg-white border rounded-[10px] px-[11px] py-[9px] mb-[5px] ${
+              gInfo ? 'border-[var(--green-300)] border-l-[3px]' : 'border-[var(--border)]'
+            }`}>
+              {gInfo && (
+                <div className="text-[11px] font-bold text-[var(--green-700)] uppercase tracking-[0.05em] mb-[4px]">
+                  {gInfo.label} · {gInfo.pos} из {gInfo.size}
+                </div>
+              )}
               {/* Header */}
               <div className="flex justify-between mb-[8px]">
                 <span className="text-[15px] font-bold text-[var(--slate-900)]">{idx + 1}. {ex.library.name_ru}</span>
@@ -413,6 +445,7 @@ export default function CreateWorkoutPage() {
                     placeholder="Необязательно" className={noteInput} />
                 </div>
               </div>
+            </div>
             </div>
           )
         })}

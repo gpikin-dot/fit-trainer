@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -8,6 +8,7 @@ import { Modal, ErrorMessage } from '../components/UI'
 import { canAddExercise } from '../lib/planLimits'
 import { clampSets, clampReps, clampWeight, clampRest } from '../lib/numeric'
 import { defaultMode, modeOf } from '../lib/workoutMode'
+import { fetchExerciseHistory, fmtExecution, fmtHistDate, type PastExecution } from '../lib/exerciseHistory'
 import type { ExerciseLibrary, Exercise, WorkoutMode } from '../types/database'
 
 const CATEGORIES = ['Все', 'Ноги', 'Грудь', 'Спина', 'Плечи', 'Руки', 'Кор', 'Кардио']
@@ -29,6 +30,10 @@ interface WorkoutExercise {
 export default function CreateWorkoutPage() {
   const navigate = useNavigate()
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
+  // Создание шаблона из флоу назначения: клиент известен — показываем
+  // его историю по упражнениям и после сохранения возвращаемся в назначение
+  const forClientId = searchParams.get('clientId')
   const isEdit = !!id
   const { profile } = useAuth()
 
@@ -44,6 +49,22 @@ export default function CreateWorkoutPage() {
   const [customSaving, setCustomSaving] = useState(false)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [pastHistory, setPastHistory] = useState<Record<string, PastExecution[]>>({})
+  const [forClientName, setForClientName] = useState('')
+
+  useEffect(() => {
+    if (!forClientId) return
+    supabase.from('profiles').select('name').eq('id', forClientId).single()
+      .then(({ data }) => setForClientName(data?.name ?? ''))
+  }, [forClientId])
+
+  useEffect(() => {
+    if (!forClientId || exercises.length === 0) { setPastHistory({}); return }
+    fetchExerciseHistory(forClientId, exercises.map(e => e.library_exercise_id))
+      .then(setPastHistory)
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forClientId, exercises])
 
   useEffect(() => {
     if (!profile) return
@@ -206,7 +227,13 @@ export default function CreateWorkoutPage() {
       })))
     }
 
-    navigate(`/trainer/workout/${workoutId}`)
+    // Пришли из назначения клиенту — возвращаемся сразу в настройку
+    // назначения с новым шаблоном, а не на страницу шаблона
+    if (forClientId && !isEdit) {
+      navigate(`/trainer/assign?clientId=${forClientId}&workoutId=${workoutId}`)
+    } else {
+      navigate(`/trainer/workout/${workoutId}`)
+    }
   }
 
   const filteredLibrary = library.filter(l => {
@@ -272,6 +299,20 @@ export default function CreateWorkoutPage() {
                   ✕
                 </button>
               </div>
+
+              {(pastHistory[ex.library_exercise_id]?.length ?? 0) > 0 && (
+                <div className="bg-[var(--slate-50)] border border-[var(--slate-100)] rounded-[7px] px-[8px] py-[5px] mb-[8px]">
+                  <div className="text-[10px] font-bold text-[var(--slate-400)] uppercase tracking-[0.05em] mb-[2px]">
+                    {forClientName ? `${forClientName.split(' ')[0]} делал(а)` : 'Клиент делал'}
+                  </div>
+                  {pastHistory[ex.library_exercise_id].map((h, i) => (
+                    <div key={i} className="flex justify-between text-[12px] py-[1px]">
+                      <span className="text-[var(--slate-400)]">{fmtHistDate(h.date)}</span>
+                      <span className="text-[var(--slate-600)] font-semibold">{fmtExecution(h, ex.mode)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Mode selector */}
               <div className="flex gap-[4px] mb-[8px]">

@@ -16,6 +16,7 @@ interface SetState {
   completed: boolean
   reps: string
   weight: string
+  at?: string | null // время отметки подхода (ISO)
 }
 
 interface ExState {
@@ -25,8 +26,14 @@ interface ExState {
 }
 
 function storageKey(id: string) { return `workout_progress_${id}` }
+function startedKey(id: string) { return `workout_started_${id}` }
 
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+
+// Общая длительность тренировки: после часа показываем часы
+const fmtElapsed = (s: number) => s >= 3600
+  ? `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+  : fmt(s)
 
 // Техника упражнения: два кадра (старт/финиш) из библиотеки,
 // чередуем — получается простая анимация. Сворачивается тапом.
@@ -97,6 +104,22 @@ export default function DoWorkoutPage() {
 
   // Свайп между упражнениями (фидбэк п.4)
   const touchStart = useRef<{ x: number; y: number } | null>(null)
+
+  // Общий таймер тренировки: старт фиксируется в localStorage при первом
+  // входе в выполнение и переживает перезагрузку страницы
+  const [elapsedSec, setElapsedSec] = useState(0)
+  useEffect(() => {
+    if (phase !== 'doing' || !assignedId) return
+    let started = parseInt(localStorage.getItem(startedKey(assignedId)) ?? '', 10)
+    if (!started || Number.isNaN(started)) {
+      started = Date.now()
+      localStorage.setItem(startedKey(assignedId), String(started))
+    }
+    const update = () => setElapsedSec(Math.max(0, Math.floor((Date.now() - started) / 1000)))
+    update()
+    const t = setInterval(update, 1000)
+    return () => clearInterval(t)
+  }, [phase, assignedId])
 
   // Направление анимации смены карточки: сравниваем с прошлым индексом
   const curStepIdx = (() => {
@@ -223,7 +246,7 @@ export default function DoWorkoutPage() {
   function markSet(exId: string, setIdx: number) {
     const wasCompleted = exState[exId]?.sets[setIdx]?.completed
     const newSets = exState[exId].sets.map((s, i) =>
-      i === setIdx ? { ...s, completed: !s.completed } : s
+      i === setIdx ? { ...s, completed: !s.completed, at: !s.completed ? new Date().toISOString() : null } : s
     )
     setExState(prev => ({ ...prev, [exId]: { ...prev[exId], sets: newSets } }))
 
@@ -317,6 +340,7 @@ export default function DoWorkoutPage() {
         reps: clampActualReps(parseInt(s.reps) || null),
         weight: clampActualWeight(parseFloat(s.weight) || null),
         completed: s.completed,
+        at: s.at ?? null,
       }))
 
       const existing = existingResults.find(r => r.exercise_id === ex.id)
@@ -349,7 +373,10 @@ export default function DoWorkoutPage() {
 
     if (updateErr) { setError(updateErr.message); setSaving(false); return }
 
-    if (assignedId) localStorage.removeItem(storageKey(assignedId))
+    if (assignedId) {
+      localStorage.removeItem(storageKey(assignedId))
+      localStorage.removeItem(startedKey(assignedId))
+    }
     skipTimer()
     setDoneStats({ done: doneCnt, total: exercises.length, abovePlan })
     setSaving(false)
@@ -539,6 +566,15 @@ export default function DoWorkoutPage() {
         className="shrink-0"
         style={{ background: 'var(--white)', padding: '11px 13px 10px', borderBottom: '1px solid var(--border-light)' }}
       >
+        {/* Общий таймер тренировки — справа от «Назад» */}
+        {elapsedSec > 0 && (
+          <span style={{
+            float: 'right', fontSize: 16, fontWeight: 600, color: 'var(--slate-500)',
+            fontFeatureSettings: '"tnum"', letterSpacing: '0.01em',
+          }}>
+            ⏱ {fmtElapsed(elapsedSec)}
+          </span>
+        )}
         <button
           onClick={() => navigate(-1)}
           style={{ fontSize: 16, fontWeight: 600, color: 'var(--indigo-500)', background: 'none', border: 'none', cursor: 'pointer', marginBottom: 7, display: 'block', fontFamily: 'var(--font)' }}

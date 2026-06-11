@@ -94,6 +94,7 @@ export interface ActualSet {
   reps: number | null
   weight: number | null
   completed: boolean
+  at?: string | null // время отметки подхода (ISO)
 }
 
 export interface PlanLimits {

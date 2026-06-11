@@ -225,6 +225,9 @@ export default function SessionDetailPage() {
                         : ex.mode === 'reps'
                           ? `${ex.reps}`
                           : `${ex.reps} × ${ex.weight_kg} кг`
+                      const atTxt = s.completed && s.at
+                        ? new Date(s.at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                        : null
                       return (
                         <div key={i} className="grid grid-cols-[26px_1fr_1fr] gap-x-[6px] text-[15px] py-[3px] border-b border-[var(--slate-100)] last:border-0">
                           <span className="text-[var(--slate-400)]">{i + 1}</span>
@@ -238,6 +241,7 @@ export default function SessionDetailPage() {
                               <><span className={valueClass(rc)}>{s.reps ?? '—'}</span> × <span className={valueClass(wc)}>{s.weight ?? '—'}</span> кг</>
                             )}
                             {!s.completed && <span className="text-[var(--slate-300)]"> · не отмечен</span>}
+                            {atTxt && <span className="text-[var(--slate-300)] text-[12px]"> · {atTxt}</span>}
                           </span>
                         </div>
                       )

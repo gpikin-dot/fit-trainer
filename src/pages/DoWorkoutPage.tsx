@@ -7,6 +7,7 @@ import Layout from '../components/Layout'
 import type { AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult, SessionExercise } from '../types/database'
 import { clampActualReps, clampActualWeight } from '../lib/numeric'
 import { modeOf } from '../lib/workoutMode'
+import { plural } from '../lib/plural'
 import { fetchExerciseHistory, fmtExecution, fmtHistDate, type PastExecution } from '../lib/exerciseHistory'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -392,7 +393,7 @@ export default function DoWorkoutPage() {
           )}
           <h1 className="text-[20px] font-bold text-[var(--slate-900)] mb-[2px]">{workout?.name}</h1>
           <p className="text-[13px] text-[var(--slate-400)] mb-[12px]">
-            {exercises.length} упражнений
+            {plural(exercises.length, 'упражнение', 'упражнения', 'упражнений')}
             {workout?.default_rest_sec ? ` · отдых ${workout.default_rest_sec} сек` : ''}
           </p>
 
@@ -837,8 +838,10 @@ export default function DoWorkoutPage() {
               {(() => {
                 const doneN = exercises.filter(ex => exState[ex.id]?.sets.some(s => s.completed)).length
                 return doneN >= exercises.length
-                  ? `Все ${exercises.length} упражнений выполнены. Сохранить результат и завершить?`
-                  : `Выполнено ${doneN} из ${exercises.length} упражнений. Оставшиеся будут отмечены как пропущенные.`
+                  ? exercises.length === 1
+                    ? 'Упражнение выполнено. Сохранить результат и завершить?'
+                    : `Все ${plural(exercises.length, 'упражнение', 'упражнения', 'упражнений')} выполнены. Сохранить результат и завершить?`
+                  : `Выполнено ${doneN} из ${plural(exercises.length, 'упражнения', 'упражнений', 'упражнений')}. Оставшиеся будут отмечены как пропущенные.`
               })()}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

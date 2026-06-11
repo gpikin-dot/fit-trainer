@@ -8,6 +8,7 @@ import { ErrorMessage } from '../components/UI'
 import type { ExerciseLibrary, Workout, Profile, WorkoutMode, ExerciseWithLibrary, SessionExerciseWithLibrary } from '../types/database'
 import { clampSets, clampReps, clampWeight, clampRest } from '../lib/numeric'
 import { modeOf } from '../lib/workoutMode'
+import { plural } from '../lib/plural'
 import { fetchExerciseHistory, fmtExecution, fmtHistDate, type PastExecution } from '../lib/exerciseHistory'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -43,14 +44,6 @@ function localDate(offsetDays = 0) {
   return d.toISOString().slice(0, 10)
 }
 
-function plural(n: number, one: string, few: string, many: string) {
-  const m10 = n % 10
-  const m100 = n % 100
-  if (m100 >= 11 && m100 <= 14) return `${n} ${many}`
-  if (m10 === 1) return `${n} ${one}`
-  if (m10 >= 2 && m10 <= 4) return `${n} ${few}`
-  return `${n} ${many}`
-}
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -811,7 +804,7 @@ function WorkoutSelectRow({
         </div>
         {count > 0 && (
           <span className="text-[15px] bg-[var(--slate-100)] text-[var(--slate-500)] rounded-[20px] px-[7px] py-[2px] shrink-0">
-            {count} раз
+            {plural(count, 'раз', 'раза', 'раз')}
           </span>
         )}
         {!onCustomize && <span className="text-[var(--slate-300)] text-[15px]">›</span>}

@@ -6,6 +6,7 @@ import Layout from '../components/Layout'
 import { Modal } from '../components/UI'
 import type { Profile, AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult, ActualSet } from '../types/database'
 import { fmtExecution, fmtHistDate, maxWeight, type PastExecution } from '../lib/exerciseHistory'
+import { plural } from '../lib/plural'
 
 const DAYS_RU = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 const MONTHS_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
@@ -176,7 +177,7 @@ export default function ClientCardPage() {
             <div>
               <div className="text-[17px] font-bold text-[var(--slate-900)] truncate">{client.name}</div>
               <div className="text-[11px] text-[var(--slate-400)] mt-[1px]">
-                {total} тренировок{compliance !== null ? ` · посещаемость ${compliance}%` : ''}
+                {plural(total, 'тренировка', 'тренировки', 'тренировок')}{compliance !== null ? ` · посещаемость ${compliance}%` : ''}
               </div>
             </div>
           </div>
@@ -317,7 +318,7 @@ export default function ClientCardPage() {
                 <>
                   {history.length > 0 && (
                     <div className="text-[13px] text-[var(--slate-500)] px-[2px] mb-[8px]">
-                      Завершено {history.length} тренировок
+                      {history.length === 1 ? 'Завершена 1 тренировка' : `Завершено ${plural(history.length, 'тренировка', 'тренировки', 'тренировок')}`}
                       {(() => {
                         const last = history.map(a => a.completed_at).filter(Boolean).sort().at(-1)
                         return last ? ` · последняя — ${fmtDate(last)}` : ''

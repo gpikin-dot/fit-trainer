@@ -460,7 +460,7 @@ function TemplateRow({
       <div className="flex-1 min-w-0 cursor-pointer" onClick={onClick}>
         <div className="text-[15px] font-medium text-[var(--slate-900)] truncate">{workout.name}</div>
         <div className="text-[12px] text-[var(--slate-400)] mt-[2px]">
-          {stats?.exerciseCount ?? 0} упр{(stats?.usageCount ?? 0) > 0 && ` · ${stats!.usageCount} назначений`}
+          {stats?.exerciseCount ?? 0} упр{(stats?.usageCount ?? 0) > 0 && ` · ${plural(stats!.usageCount, 'назначение', 'назначения', 'назначений')}`}
         </div>
       </div>
       <span onClick={onClick} className="text-[var(--slate-300)] text-[17px] shrink-0 cursor-pointer">›</span>

@@ -8,6 +8,7 @@ import type { AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResul
 import { clampActualReps, clampActualWeight } from '../lib/numeric'
 import { modeOf } from '../lib/workoutMode'
 import { plural } from '../lib/plural'
+import { groupInfoFor } from '../lib/superset'
 import { fetchExerciseHistory, fmtExecution, fmtHistDate, type PastExecution } from '../lib/exerciseHistory'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -126,6 +127,7 @@ export default function DoWorkoutPage() {
           rest_sec: se.rest_sec, trainer_note: se.trainer_note,
           target_heart_rate_bpm: null, order: se.order,
           mode: modeOf(se.mode, se.exercise_library),
+          superset_group: se.superset_group ?? null,
           exercise_library: se.exercise_library,
         })) as (Exercise & { exercise_library: ExerciseLibrary })[]
       } else {
@@ -663,6 +665,21 @@ export default function DoWorkoutPage() {
                 </div>
               )}
 
+              {(() => {
+                const gInfo = groupInfoFor(exercises, stepIdx)
+                if (!gInfo) return null
+                return (
+                  <div style={{
+                    display: 'inline-block', background: 'var(--green-50)',
+                    border: '1px solid var(--green-200)', borderRadius: 20,
+                    padding: '2px 9px', marginBottom: 6,
+                    fontSize: 12, fontWeight: 700, color: 'var(--green-700)',
+                    textTransform: 'uppercase', letterSpacing: '0.04em',
+                  }}>
+                    {gInfo.label} · {gInfo.pos} из {gInfo.size}
+                  </div>
+                )
+              })()}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5, gap: 8 }}>
                 <span style={{ fontSize: 25, fontWeight: 700, color: 'var(--slate-900)', lineHeight: 1.1, letterSpacing: '-0.01em' }}>{name}</span>
                 <span style={{ fontSize: 13, color: 'var(--slate-400)', flexShrink: 0 }}>{stepIdx + 1} / {exercises.length}</span>

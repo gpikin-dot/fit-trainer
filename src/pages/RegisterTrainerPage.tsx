@@ -97,7 +97,7 @@ export default function RegisterTrainerPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-50 text-white text-[15px] font-semibold rounded-[10px] py-[13px]"
+              className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] disabled:opacity-50 text-white text-[15px] font-semibold rounded-[10px] py-[13px]"
             >
               {loading ? 'Создание аккаунта...' : 'Зарегистрироваться'}
             </button>

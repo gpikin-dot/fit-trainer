@@ -469,7 +469,7 @@ export default function DoWorkoutPage() {
 
           <button
             onClick={() => setPhase('doing')}
-            className="w-full mt-[14px] bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white text-[15px] font-semibold rounded-[10px] py-[14px]"
+            className="w-full mt-[14px] bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-white text-[15px] font-semibold rounded-[10px] py-[14px]"
           >
             {hasProgress
               ? 'Продолжить тренировку'
@@ -819,7 +819,7 @@ export default function DoWorkoutPage() {
           onClick={onFinishPress}
           disabled={saving}
           style={{
-            width: '100%', background: 'var(--indigo-500)', color: 'var(--white)',
+            width: '100%', background: 'var(--btn-primary)', color: 'var(--white)',
             border: 'none', borderRadius: 9, padding: 10,
             fontSize: 17, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
             opacity: saving ? 0.6 : 1, fontFamily: 'var(--font)', letterSpacing: '0.01em',
@@ -889,7 +889,7 @@ export default function DoWorkoutPage() {
             </div>
             <button
               onClick={() => navigate(exitTo)}
-              style={{ width: '100%', background: 'var(--indigo-500)', color: 'var(--white)', border: 'none', borderRadius: 9, padding: 10, fontSize: 17, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', letterSpacing: '0.01em' }}
+              style={{ width: '100%', background: 'var(--btn-primary)', color: 'var(--white)', border: 'none', borderRadius: 9, padding: 10, fontSize: 17, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', letterSpacing: '0.01em' }}
             >
               Готово
             </button>

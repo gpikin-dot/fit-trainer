@@ -290,7 +290,7 @@ export default function SessionDetailPage() {
           onClick={() =>
             navigate(`/trainer/assign?workoutId=${workout.id}&clientId=${assignment.client_id}&repeatFrom=${assignment.id}`)
           }
-          className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] text-white rounded-[10px] py-[13px] text-[15px] font-semibold mb-[6px]"
+          className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-white rounded-[10px] py-[13px] text-[15px] font-semibold mb-[6px]"
         >
           Повторить тренировку
         </button>

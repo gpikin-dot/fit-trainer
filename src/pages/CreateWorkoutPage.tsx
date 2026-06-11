@@ -331,7 +331,7 @@ export default function CreateWorkoutPage() {
                     })}
                     className={`flex-1 text-[12px] font-semibold py-[6px] rounded-[7px] border ${
                       ex.mode === m
-                        ? 'bg-[var(--blue-600)] text-white border-[var(--blue-600)]'
+                        ? 'bg-[var(--btn-primary)] text-white border-[var(--blue-600)]'
                         : 'bg-white text-[var(--slate-500)] border-[var(--slate-200)]'
                     }`}
                   >
@@ -429,7 +429,7 @@ export default function CreateWorkoutPage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-50 text-white text-[15px] font-semibold rounded-[10px] py-[13px]"
+          className="w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] disabled:opacity-50 text-white text-[15px] font-semibold rounded-[10px] py-[13px]"
         >
           {saving ? 'Сохранение...' : (isEdit ? 'Сохранить изменения' : 'Создать тренировку')}
         </button>
@@ -451,7 +451,7 @@ export default function CreateWorkoutPage() {
             <button
               onClick={createCustomExercise}
               disabled={!customName.trim() || customSaving}
-              className="shrink-0 bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-40 text-white text-[14px] font-semibold px-[12px] rounded-[8px]"
+              className="shrink-0 bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] disabled:opacity-40 text-white text-[14px] font-semibold px-[12px] rounded-[8px]"
             >
               {customSaving ? '...' : 'Создать'}
             </button>
@@ -469,7 +469,7 @@ export default function CreateWorkoutPage() {
               <button key={cat} onClick={() => setLibraryCategory(cat)}
                 className={`text-[13px] font-semibold px-[8px] py-[3px] rounded-[20px] transition-colors ${
                   libraryCategory === cat
-                    ? 'bg-[var(--blue-600)] text-white'
+                    ? 'bg-[var(--btn-primary)] text-white'
                     : 'bg-[var(--slate-100)] text-[var(--slate-500)]'
                 }`}>
                 {cat}
@@ -482,7 +482,7 @@ export default function CreateWorkoutPage() {
               return (
                 <button key={lib.id} onClick={() => toggleLibrarySelect(lib.id)}
                   className={`w-full text-left px-[9px] py-[7px] flex items-center gap-[8px] border-b border-[var(--slate-100)] transition-colors ${selected ? 'bg-[var(--blue-50)]' : 'hover:bg-[var(--slate-50)]'}`}>
-                  <div className={`w-[15px] h-[15px] rounded-[3px] border shrink-0 flex items-center justify-center transition-colors ${selected ? 'bg-[var(--blue-600)] border-[var(--blue-600)]' : 'border-[var(--slate-300)] bg-white'}`}>
+                  <div className={`w-[15px] h-[15px] rounded-[3px] border shrink-0 flex items-center justify-center transition-colors ${selected ? 'bg-[var(--btn-primary)] border-[var(--blue-600)]' : 'border-[var(--slate-300)] bg-white'}`}>
                     {selected && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                   </div>
                   <div>
@@ -497,7 +497,7 @@ export default function CreateWorkoutPage() {
           <button
             onClick={addSelectedExercises}
             disabled={selectedLibraryIds.size === 0}
-            className="shrink-0 w-full bg-[var(--blue-600)] hover:bg-[var(--blue-700)] disabled:opacity-40 text-white text-[15px] font-semibold py-[10px] rounded-[8px] transition-colors"
+            className="shrink-0 w-full bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] disabled:opacity-40 text-white text-[15px] font-semibold py-[10px] rounded-[8px] transition-colors"
           >
             {selectedLibraryIds.size === 0 ? 'Выберите упражнения' : `Добавить (${selectedLibraryIds.size})`}
           </button>

@@ -198,6 +198,23 @@ export default function CreateWorkoutPage() {
       .map((e, i) => ({ ...e, order: i, linkedWithPrev: i === 0 ? false : e.linkedWithPrev })))
   }
 
+  function moveExercise(tempId: string, dir: -1 | 1) {
+    setExercises(prev => {
+      const i = prev.findIndex(e => e.tempId === tempId)
+      const j = i + dir
+      if (i < 0 || j < 0 || j >= prev.length) return prev
+      const next = [...prev]
+      ;[next[i], next[j]] = [next[j], next[i]]
+      const m = Math.min(i, j)
+      // перестановка рвёт связки на затронутых стыках — тренер свяжет заново
+      return next.map((e, k) => ({
+        ...e,
+        order: k,
+        linkedWithPrev: k === 0 ? false : (k >= m && k <= m + 2 ? false : e.linkedWithPrev),
+      }))
+    })
+  }
+
   async function handleSave() {
     if (!name.trim()) { setError('Введите название тренировки'); return }
     if (exercises.length === 0) { setError('Добавьте хотя бы одно упражнение'); return }
@@ -300,36 +317,50 @@ export default function CreateWorkoutPage() {
           const liveGroups = groupsFromLinks(exercises.map(e => e.linkedWithPrev))
           const gInfo = groupInfoFor(liveGroups.map(g => ({ superset_group: g })), idx)
           return (
-            <div key={ex.tempId}>
-              {idx > 0 && (
+            <div key={ex.tempId} className={gInfo
+              ? `bg-[var(--green-50)] border-x-[1.5px] border-[var(--green-300)] px-[6px] ${gInfo.start ? 'border-t-[1.5px] rounded-t-[12px] pt-[7px] mt-[2px]' : ''} ${gInfo.end ? 'border-b-[1.5px] rounded-b-[12px] pb-[7px] mb-[6px]' : 'pb-[5px]'}`
+              : ''}>
+              {idx > 0 && !ex.linkedWithPrev && (
                 <button
-                  onClick={() => updateExercise(ex.tempId, { linkedWithPrev: !ex.linkedWithPrev })}
-                  className={`flex items-center gap-[6px] mx-auto -my-[1px] relative z-[1] px-[10px] py-[3px] rounded-[20px] text-[12px] font-semibold border ${
-                    ex.linkedWithPrev
-                      ? 'bg-[var(--green-50)] border-[var(--green-200)] text-[var(--green-700)]'
-                      : 'bg-white border-[var(--slate-200)] text-[var(--slate-400)]'
-                  }`}
+                  onClick={() => updateExercise(ex.tempId, { linkedWithPrev: true })}
+                  className="block mx-auto mb-[6px] px-[10px] py-[2px] rounded-[20px] text-[12px] font-semibold text-[var(--slate-400)] bg-transparent border border-dashed border-[var(--slate-300)] outline-none hover:text-[var(--green-700)] hover:border-[var(--green-300)]"
                 >
-                  {ex.linkedWithPrev ? '🔗 в связке — разъединить' : '+ связать в суперсет'}
+                  + связать в суперсет
                 </button>
               )}
-            <div className={`bg-white border rounded-[10px] px-[11px] py-[9px] mb-[5px] ${
-              gInfo ? 'border-[var(--green-300)] border-l-[3px]' : 'border-[var(--border)]'
-            }`}>
-              {gInfo && (
-                <div className="text-[11px] font-bold text-[var(--green-700)] uppercase tracking-[0.05em] mb-[4px]">
-                  {gInfo.label} · {gInfo.pos} из {gInfo.size}
+              {gInfo?.start && (
+                <div className="flex items-center justify-between px-[5px] pb-[6px]">
+                  <span className="text-[11px] font-bold text-[var(--green-700)] uppercase tracking-[0.06em]">{gInfo.label}</span>
+                  <span className="text-[11px] text-[var(--green-600)]">выполняется подряд</span>
                 </div>
               )}
+              {gInfo && !gInfo.start && (
+                <div className="flex justify-center pb-[5px]">
+                  <button
+                    onClick={() => updateExercise(ex.tempId, { linkedWithPrev: false })}
+                    className="text-[11px] font-semibold text-[var(--green-600)] hover:text-[var(--red-500)] bg-transparent border-none outline-none p-0"
+                  >
+                    ─ разъединить ─
+                  </button>
+                </div>
+              )}
+            <div className={`bg-white rounded-[10px] px-[11px] py-[9px] border ${
+              gInfo ? 'border-[var(--green-100)]' : 'border-[var(--border)] mb-[5px]'
+            }`}>
               {/* Header */}
-              <div className="flex justify-between mb-[8px]">
-                <span className="text-[15px] font-bold text-[var(--slate-900)]">{idx + 1}. {ex.library.name_ru}</span>
-                <button
-                  onClick={() => removeExercise(ex.tempId)}
-                  className="text-[var(--slate-300)] hover:text-[var(--red-500)] text-[17px] bg-transparent border-none p-0 leading-none"
-                >
-                  ✕
-                </button>
+              <div className="flex justify-between items-start gap-[8px] mb-[8px]">
+                <span className="text-[15px] font-bold text-[var(--slate-900)] flex-1 min-w-0">
+                  {idx + 1}. {ex.library.name_ru}
+                  {gInfo && <span className="text-[11px] font-bold text-[var(--green-600)] ml-[6px]">{gInfo.pos}/{gInfo.size}</span>}
+                </span>
+                <div className="flex items-center gap-[10px] shrink-0 pt-[2px]">
+                  <button onClick={() => moveExercise(ex.tempId, -1)} disabled={idx === 0} title="Переместить выше"
+                    className="text-[var(--slate-300)] hover:text-[var(--slate-600)] disabled:opacity-25 text-[15px] bg-transparent border-none p-0 leading-none">↑</button>
+                  <button onClick={() => moveExercise(ex.tempId, 1)} disabled={idx === exercises.length - 1} title="Переместить ниже"
+                    className="text-[var(--slate-300)] hover:text-[var(--slate-600)] disabled:opacity-25 text-[15px] bg-transparent border-none p-0 leading-none">↓</button>
+                  <button onClick={() => removeExercise(ex.tempId)} title="Убрать упражнение"
+                    className="text-[var(--slate-300)] hover:text-[var(--red-500)] text-[17px] bg-transparent border-none p-0 leading-none">✕</button>
+                </div>
               </div>
 
               {(pastHistory[ex.library_exercise_id]?.length ?? 0) > 0 && (

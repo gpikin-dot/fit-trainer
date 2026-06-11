@@ -549,6 +549,12 @@ export default function CreateWorkoutPage() {
                   <div className={`w-[15px] h-[15px] rounded-[3px] border shrink-0 flex items-center justify-center transition-colors ${selected ? 'bg-[var(--btn-primary)] border-[var(--blue-600)]' : 'border-[var(--slate-300)] bg-white'}`}>
                     {selected && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                   </div>
+                  {lib.image_urls?.[0] ? (
+                    <img src={lib.image_urls[0]} loading="lazy" alt=""
+                      className="w-[46px] h-[34px] object-cover rounded-[6px] shrink-0 bg-white border border-[var(--slate-100)]" />
+                  ) : (
+                    <div className="w-[46px] h-[34px] rounded-[6px] shrink-0 bg-[var(--slate-50)] border border-[var(--slate-100)]" />
+                  )}
                   <div>
                     <div className="text-[15px] font-semibold text-[var(--slate-900)]">{lib.name_ru}</div>
                     <div className="text-[13px] text-[var(--slate-400)]">{lib.category}</div>

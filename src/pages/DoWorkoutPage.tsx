@@ -29,6 +29,40 @@ function storageKey(id: string) { return `workout_progress_${id}` }
 
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
+// Техника упражнения: два кадра (старт/финиш) из библиотеки,
+// чередуем — получается простая анимация. Сворачивается тапом.
+function ExerciseImage({ urls, name }: { urls: string[]; name: string }) {
+  const [frame, setFrame] = useState(0)
+  const [hidden, setHidden] = useState(false)
+  useEffect(() => {
+    if (urls.length < 2 || hidden) return
+    const t = setInterval(() => setFrame(f => 1 - f), 900)
+    return () => clearInterval(t)
+  }, [urls.length, hidden])
+  if (urls.length === 0) return null
+  if (hidden) {
+    return (
+      <button onClick={() => setHidden(false)}
+        style={{ fontSize: 12, fontWeight: 600, color: 'var(--slate-400)', background: 'none', border: 'none', padding: '0 0 8px', cursor: 'pointer', fontFamily: 'var(--font)' }}>
+        ⊕ показать технику
+      </button>
+    )
+  }
+  return (
+    <div style={{ position: 'relative', marginBottom: 8 }}>
+      <img
+        src={urls[Math.min(frame, urls.length - 1)]}
+        alt={`Техника: ${name}`}
+        style={{ width: '100%', height: 150, objectFit: 'contain', background: '#fff', borderRadius: 8, border: '1px solid var(--slate-100)' }}
+      />
+      <button onClick={() => setHidden(true)}
+        style={{ position: 'absolute', top: 6, right: 6, fontSize: 11, fontWeight: 600, color: 'var(--slate-400)', background: 'rgba(255,255,255,0.9)', border: '1px solid var(--slate-200)', borderRadius: 12, padding: '2px 8px', cursor: 'pointer', fontFamily: 'var(--font)' }}>
+        скрыть
+      </button>
+    </div>
+  )
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function DoWorkoutPage() {
@@ -685,6 +719,8 @@ export default function DoWorkoutPage() {
                 <span style={{ fontSize: 13, color: 'var(--slate-400)', flexShrink: 0 }}>{stepIdx + 1} / {exercises.length}</span>
               </div>
               <div style={{ fontSize: 15, color: 'var(--slate-400)', marginBottom: 8 }}>{plan}</div>
+
+              <ExerciseImage urls={ex.exercise_library.image_urls ?? []} name={name} />
 
               {allDone && !st.skipped && (
                 <div style={{

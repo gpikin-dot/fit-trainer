@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
+import { Modal } from '../components/UI'
 import type { Profile, AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult, ActualSet } from '../types/database'
 import { fmtExecution, fmtHistDate, maxWeight, type PastExecution } from '../lib/exerciseHistory'
 
@@ -50,6 +51,8 @@ export default function ClientCardPage() {
     sessionStorage.setItem('client_card_tab', t)
   }
   const [progress, setProgress] = useState<ExerciseProgress[] | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<EnrichedAssignment | null>(null)
+  const [cancelling, setCancelling] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -119,6 +122,15 @@ export default function ClientCardPage() {
     }))
     setAssignments(enriched)
     setLoading(false)
+  }
+
+  async function handleCancelAssignment() {
+    if (!cancelTarget || !id) return
+    setCancelling(true)
+    const { error } = await supabase.from('assigned_workouts').delete().eq('id', cancelTarget.id)
+    setCancelling(false)
+    setCancelTarget(null)
+    if (!error) loadData(id)
   }
 
   if (loading) return (
@@ -245,7 +257,7 @@ export default function ClientCardPage() {
                         Изменить
                       </button>
                       <button
-                        onClick={() => navigate(`/trainer/assignment/${a.id}/edit`)}
+                        onClick={() => setCancelTarget(a)}
                         className="flex-1 bg-white border border-[var(--red-200)] text-[var(--red-500)] text-[13px] font-semibold rounded-[8px] py-[7px]"
                       >
                         Отменить
@@ -345,6 +357,29 @@ export default function ClientCardPage() {
               )
         )}
       </div>
+
+      {cancelTarget && (
+        <Modal onClose={() => setCancelTarget(null)}>
+          <p className="text-[16px] font-bold text-[var(--slate-900)] mb-[6px]">Отменить тренировку?</p>
+          <p className="text-[14px] text-[var(--slate-500)] leading-[1.5] mb-[14px]">
+            «{cancelTarget.workout?.name ?? '—'}» будет убрана из активных у клиента
+            {cancelTarget.results.length > 0 ? ' вместе с введёнными результатами' : ''}.
+          </p>
+          <button
+            onClick={handleCancelAssignment}
+            disabled={cancelling}
+            className="w-full bg-[var(--red-500)] hover:bg-[var(--red-600)] disabled:opacity-50 text-white text-[15px] font-semibold rounded-[10px] py-[12px] mb-[8px]"
+          >
+            {cancelling ? 'Отменяем...' : 'Да, отменить'}
+          </button>
+          <button
+            onClick={() => setCancelTarget(null)}
+            className="w-full bg-white border border-[var(--slate-200)] text-[var(--slate-700)] text-[15px] font-semibold rounded-[10px] py-[12px]"
+          >
+            Оставить
+          </button>
+        </Modal>
+      )}
     </Layout>
   )
 }

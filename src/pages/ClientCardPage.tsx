@@ -7,6 +7,8 @@ import { Modal } from '../components/UI'
 import type { Profile, AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResult, ActualSet } from '../types/database'
 import { fmtExecution, fmtHistDate, maxWeight, type PastExecution } from '../lib/exerciseHistory'
 import { plural } from '../lib/plural'
+import ExportStatsButton from '../components/ExportStatsButton'
+import { exportClientStats } from '../lib/exportStats'
 
 const DAYS_RU = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 const MONTHS_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
@@ -354,6 +356,12 @@ export default function ClientCardPage() {
                       </div>
                     )
                   })}
+                  {id && client && (
+                    <ExportStatsButton
+                      className="mt-[14px]"
+                      run={() => exportClientStats(id, client.name, true)}
+                    />
+                  )}
                 </>
               )
         )}

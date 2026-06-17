@@ -5,6 +5,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Layout from '../components/Layout'
 import ExerciseProgressList from '../components/ExerciseProgressList'
+import ExportStatsButton from '../components/ExportStatsButton'
+import { exportClientStats } from '../lib/exportStats'
 import type { AssignedWorkout, Workout } from '../types/database'
 
 const DAYS_RU = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
@@ -224,10 +226,14 @@ export default function ClientDashboardPage() {
               })
         )}
 
-        {/* PROGRESS — placeholder */}
+        {/* PROGRESS */}
         {tab === 'progress' && profile && (
           <div className="pt-[8px]">
             <ExerciseProgressList clientId={profile.id} />
+            <ExportStatsButton
+              className="mt-[14px]"
+              run={() => exportClientStats(profile.id, profile.name)}
+            />
           </div>
         )}
 

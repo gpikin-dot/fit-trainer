@@ -37,9 +37,9 @@ const fmtElapsed = (s: number) => s >= 3600
 
 // Техника упражнения: два кадра (старт/финиш) из библиотеки,
 // чередуем — получается простая анимация. Сворачивается тапом.
-function ExerciseImage({ urls, name }: { urls: string[]; name: string }) {
+function ExerciseImage({ urls, name, defaultHidden = false }: { urls: string[]; name: string; defaultHidden?: boolean }) {
   const [frame, setFrame] = useState(0)
-  const [hidden, setHidden] = useState(false)
+  const [hidden, setHidden] = useState(defaultHidden)
   useEffect(() => {
     if (urls.length < 2 || hidden) return
     const t = setInterval(() => setFrame(f => 1 - f), 900)
@@ -561,10 +561,16 @@ export default function DoWorkoutPage() {
   return (
     <Layout fullHeight>
 
-      {/* ── Sticky Header ─────────────────────────────────── */}
+      {/* Скроллер страницы: рабочий экран помещается без скролла,
+          кнопка «Завершить» спрятана ниже кромки — её достаёт скролл вниз */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+
+      {/* Экран: шапка + рабочая зона занимают высоту вьюпорта */}
+      <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+
+      {/* ── Header ─────────────────────────────────── */}
       <div
-        className="shrink-0"
-        style={{ background: 'var(--white)', padding: '11px 13px 10px', borderBottom: '1px solid var(--border-light)' }}
+        style={{ background: 'var(--white)', padding: '9px 13px 8px', borderBottom: '1px solid var(--border-light)' }}
       >
         {/* Общий таймер тренировки — справа от «Назад» */}
         {elapsedSec > 0 && (
@@ -586,7 +592,7 @@ export default function DoWorkoutPage() {
             Совместная тренировка
           </div>
         )}
-        <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--slate-900)', letterSpacing: '-0.01em', marginBottom: 7 }}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--slate-900)', letterSpacing: '-0.01em', marginBottom: 6 }}>
           {workout?.name}
         </div>
         {error && (
@@ -603,10 +609,10 @@ export default function DoWorkoutPage() {
         </div>
       </div>
 
-      {/* ── Exercise List ──────────────────────────────────── */}
+      {/* ── Рабочая зона: без своего скролла, контент ужат под экран ── */}
       <div
-        className="flex-1 min-h-0 overflow-y-auto"
-        style={{ padding: '11px 13px 0' }}
+        className="flex-1"
+        style={{ padding: '9px 13px 10px' }}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
@@ -759,7 +765,7 @@ export default function DoWorkoutPage() {
               </div>
               <div style={{ fontSize: 15, color: 'var(--slate-400)', marginBottom: 8 }}>{plan}</div>
 
-              <ExerciseImage urls={ex.exercise_library.image_urls ?? []} name={name} />
+              <ExerciseImage urls={ex.exercise_library.image_urls ?? []} name={name} defaultHidden />
 
               {allDone && !st.skipped && (
                 <div style={{
@@ -884,18 +890,22 @@ export default function DoWorkoutPage() {
           </button>
         </div>
 
-        {/* Bottom padding so last card not hidden behind sticky button */}
-        <div style={{ height: 80 }} />
-      </div>
+      </div>{/* /рабочая зона */}
+      </div>{/* /экран */}
 
-      {/* ── Sticky Finish Button (таймер теперь инлайн над упражнением) ── */}
-      <div className="shrink-0" style={{ background: 'var(--white)', borderTop: '1px solid var(--border)', padding: '10px 13px 14px' }}>
+      {/* ── «Завершить тренировку» — за нижней кромкой экрана.
+            Видна только при осознанном скролле вниз: защита от случайного
+            тапа, который досрочно завершил бы тренировку. ── */}
+      <div style={{ background: 'var(--white)', borderTop: '1px solid var(--border)', padding: '14px 13px 24px' }}>
+        <div style={{ fontSize: 12, color: 'var(--slate-400)', textAlign: 'center', marginBottom: 8 }}>
+          Закончили тренировку?
+        </div>
         <button
           onClick={onFinishPress}
           disabled={saving}
           style={{
             width: '100%', background: 'var(--btn-primary)', color: 'var(--white)',
-            border: 'none', borderRadius: 9, padding: 10,
+            border: 'none', borderRadius: 9, padding: 12,
             fontSize: 17, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
             opacity: saving ? 0.6 : 1, fontFamily: 'var(--font)', letterSpacing: '0.01em',
           }}
@@ -903,6 +913,8 @@ export default function DoWorkoutPage() {
           {saving ? 'Сохранение...' : 'Завершить тренировку'}
         </button>
       </div>
+
+      </div>{/* /скроллер */}
 
       {/* ── Confirm Dialog ─────────────────────────────────── */}
       {showConfirm && (

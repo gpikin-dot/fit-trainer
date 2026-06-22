@@ -8,7 +8,7 @@ import type { AssignedWorkout, Workout, Exercise, ExerciseLibrary, ExerciseResul
 import { clampActualReps, clampActualWeight } from '../lib/numeric'
 import { modeOf } from '../lib/workoutMode'
 import { plural } from '../lib/plural'
-import { groupInfoFor } from '../lib/superset'
+import { groupInfoFor, groupLabel } from '../lib/superset'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -483,13 +483,14 @@ export default function DoWorkoutPage() {
           )}
 
           {(() => {
+            type Ex = typeof exercises[number]
             // Где тренировка прервана — первое незавершённое/непропущенное
             const resumeIdx = exercises.findIndex(ex => {
               const st = exState[ex.id]
               return !st?.skipped && !(st && st.sets.length > 0 && st.sets.every(s => s.completed))
             })
-            return exercises.map((ex, i) => {
-              const lib = ex.exercise_library
+
+            const status = (ex: Ex, i: number) => {
               const st = exState[ex.id]
               const totalSets = st?.sets.length ?? ex.sets
               const doneSets = st?.sets.filter(s => s.completed).length ?? 0
@@ -497,14 +498,15 @@ export default function DoWorkoutPage() {
               const isSkipped = !!st?.skipped
               const isPartial = !isDone && !isSkipped && doneSets > 0
               const isResume = hasProgress && i === resumeIdx
+              return { totalSets, doneSets, isDone, isSkipped, isPartial, isResume }
+            }
+
+            // Внутренности карточки упражнения (общие для одиночных и связок)
+            const rowBody = (ex: Ex, i: number) => {
+              const lib = ex.exercise_library
+              const { totalSets, doneSets, isDone, isSkipped, isPartial, isResume } = status(ex, i)
               return (
-                <div
-                  key={ex.id}
-                  className={`bg-white rounded-[10px] px-[12px] py-[10px] mb-[5px] border ${
-                    isResume ? 'border-[var(--blue-600)] border-[1.5px]' : 'border-[var(--border)]'
-                  }`}
-                  style={isDone ? { opacity: 0.55 } : undefined}
-                >
+                <>
                   <div className="flex items-start justify-between gap-[8px]">
                     <div className="text-[15px] font-semibold text-[var(--slate-900)] mb-[3px]">
                       {i + 1}. {lib.name_ru ?? lib.name_en}
@@ -527,6 +529,64 @@ export default function DoWorkoutPage() {
                   {ex.trainer_note && (
                     <div className="text-[13px] text-[var(--blue-600)] italic mt-[3px]">«{ex.trainer_note}»</div>
                   )}
+                </>
+              )
+            }
+
+            // Группируем соседние упражнения одной связки в секции
+            const sections: { group: number | null; items: number[] }[] = []
+            exercises.forEach((ex, i) => {
+              const g = ex.superset_group
+              const last = sections[sections.length - 1]
+              if (g != null && last && last.group === g) last.items.push(i)
+              else sections.push({ group: g ?? null, items: [i] })
+            })
+
+            return sections.map((sec, si) => {
+              // Одиночное упражнение (или «группа» из одного) — обычная карточка
+              if (sec.group == null || sec.items.length < 2) {
+                const i = sec.items[0]
+                const ex = exercises[i]
+                const { isDone, isResume } = status(ex, i)
+                return (
+                  <div
+                    key={ex.id}
+                    className={`bg-white rounded-[10px] px-[12px] py-[10px] mb-[5px] border ${
+                      isResume ? 'border-[var(--blue-600)] border-[1.5px]' : 'border-[var(--border)]'
+                    }`}
+                    style={isDone ? { opacity: 0.55 } : undefined}
+                  >
+                    {rowBody(ex, i)}
+                  </div>
+                )
+              }
+              // Связка — единый зелёный блок с заголовком
+              return (
+                <div
+                  key={`g${si}`}
+                  className="rounded-[10px] mb-[5px] border-[1.5px] border-[var(--green-300)] bg-[var(--green-50)] overflow-hidden"
+                >
+                  <div className="px-[12px] pt-[8px] pb-[6px] flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-[var(--green-700)] uppercase tracking-[0.06em]">
+                      {groupLabel(sec.items.length)}
+                    </span>
+                    <span className="text-[11px] text-[var(--green-600)]">выполняется подряд</span>
+                  </div>
+                  <div className="px-[6px] pb-[6px] flex flex-col gap-[4px]">
+                    {sec.items.map(i => {
+                      const ex = exercises[i]
+                      const { isDone } = status(ex, i)
+                      return (
+                        <div
+                          key={ex.id}
+                          className="bg-white rounded-[8px] px-[10px] py-[8px] border border-[var(--green-100)]"
+                          style={isDone ? { opacity: 0.55 } : undefined}
+                        >
+                          {rowBody(ex, i)}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               )
             })
